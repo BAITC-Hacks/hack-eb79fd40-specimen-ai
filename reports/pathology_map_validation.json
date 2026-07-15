@@ -1,0 +1,292 @@
+{
+  "status": "valid",
+  "row_count": 47,
+  "class_order_count": 47,
+  "pathologies_missing": [],
+  "pathologies_extra": [],
+  "all_validated_false": true,
+  "routing_aggregation": "sum",
+  "specialty_distribution": {
+    "ЛОР": 4,
+    "аллергология": 1,
+    "гастроэнтерология": 2,
+    "инфекционист": 4,
+    "кардиология": 5,
+    "неврология": 4,
+    "пульмонология": 6,
+    "скорая/приёмный покой": 11,
+    "терапевт": 8,
+    "хирургия": 2
+  },
+  "urgency_distribution": {
+    "emergency": 10,
+    "planned": 12,
+    "routine": 7,
+    "urgent": 18
+  },
+  "icd10_count": 47,
+  "icd10_copies": [
+    {
+      "pathology": "Acute COPD exacerbation / infection",
+      "source_field": "icd10-id",
+      "value": "j44.1"
+    },
+    {
+      "pathology": "Acute dystonic reactions",
+      "source_field": "icd10-id",
+      "value": "G24.02"
+    },
+    {
+      "pathology": "Acute laryngitis",
+      "source_field": "icd10-id",
+      "value": "J04.0"
+    },
+    {
+      "pathology": "Acute otitis media",
+      "source_field": "icd10-id",
+      "value": "H66.90"
+    },
+    {
+      "pathology": "Acute pulmonary edema",
+      "source_field": "icd10-id",
+      "value": "J81.0"
+    },
+    {
+      "pathology": "Acute rhinosinusitis",
+      "source_field": "icd10-id",
+      "value": "j01"
+    },
+    {
+      "pathology": "Allergic sinusitis",
+      "source_field": "icd10-id",
+      "value": "J30"
+    },
+    {
+      "pathology": "Anaphylaxis",
+      "source_field": "icd10-id",
+      "value": "T78.0"
+    },
+    {
+      "pathology": "Anemia",
+      "source_field": "icd10-id",
+      "value": "D64.9"
+    },
+    {
+      "pathology": "Atrial fibrillation",
+      "source_field": "icd10-id",
+      "value": "I48.91"
+    },
+    {
+      "pathology": "Boerhaave",
+      "source_field": "icd10-id",
+      "value": "K22.3"
+    },
+    {
+      "pathology": "Bronchiectasis",
+      "source_field": "icd10-id",
+      "value": "J47"
+    },
+    {
+      "pathology": "Bronchitis",
+      "source_field": "icd10-id",
+      "value": "j40"
+    },
+    {
+      "pathology": "Bronchospasm / acute asthma exacerbation",
+      "source_field": "icd10-id",
+      "value": "J45"
+    },
+    {
+      "pathology": "Chagas",
+      "source_field": "icd10-id",
+      "value": "B57"
+    },
+    {
+      "pathology": "Chronic rhinosinusitis",
+      "source_field": "icd10-id",
+      "value": "j32"
+    },
+    {
+      "pathology": "Cluster headache",
+      "source_field": "icd10-id",
+      "value": "g44.009"
+    },
+    {
+      "pathology": "Ebola",
+      "source_field": "icd10-id",
+      "value": "a98.4"
+    },
+    {
+      "pathology": "Epiglottitis",
+      "source_field": "icd10-id",
+      "value": "J05.1"
+    },
+    {
+      "pathology": "GERD",
+      "source_field": "icd10-id",
+      "value": "K21"
+    },
+    {
+      "pathology": "Guillain-Barré syndrome",
+      "source_field": "icd10-id",
+      "value": "G61.0"
+    },
+    {
+      "pathology": "HIV (initial infection)",
+      "source_field": "icd10-id",
+      "value": "B20"
+    },
+    {
+      "pathology": "Influenza",
+      "source_field": "icd10-id",
+      "value": "j11.1"
+    },
+    {
+      "pathology": "Inguinal hernia",
+      "source_field": "icd10-id",
+      "value": "K40"
+    },
+    {
+      "pathology": "Larygospasm",
+      "source_field": "icd10-id",
+      "value": "J38.5"
+    },
+    {
+      "pathology": "Localized edema",
+      "source_field": "icd10-id",
+      "value": "R60.0"
+    },
+    {
+      "pathology": "Myasthenia gravis",
+      "source_field": "icd10-id",
+      "value": "G70.0"
+    },
+    {
+      "pathology": "Myocarditis",
+      "source_field": "icd10-id",
+      "value": "I51.4"
+    },
+    {
+      "pathology": "PSVT",
+      "source_field": "icd10-id",
+      "value": "I47.1"
+    },
+    {
+      "pathology": "Pancreatic neoplasm",
+      "source_field": "icd10-id",
+      "value": "c25"
+    },
+    {
+      "pathology": "Panic attack",
+      "source_field": "icd10-id",
+      "value": "f41"
+    },
+    {
+      "pathology": "Pericarditis",
+      "source_field": "icd10-id",
+      "value": "I30"
+    },
+    {
+      "pathology": "Pneumonia",
+      "source_field": "icd10-id",
+      "value": "j17, j18"
+    },
+    {
+      "pathology": "Possible NSTEMI / STEMI",
+      "source_field": "icd10-id",
+      "value": "I21"
+    },
+    {
+      "pathology": "Pulmonary embolism",
+      "source_field": "icd10-id",
+      "value": "i26"
+    },
+    {
+      "pathology": "Pulmonary neoplasm",
+      "source_field": "icd10-id",
+      "value": "c34"
+    },
+    {
+      "pathology": "SLE",
+      "source_field": "icd10-id",
+      "value": "M32"
+    },
+    {
+      "pathology": "Sarcoidosis",
+      "source_field": "icd10-id",
+      "value": "d86"
+    },
+    {
+      "pathology": "Scombroid food poisoning",
+      "source_field": "icd10-id",
+      "value": "T61.1"
+    },
+    {
+      "pathology": "Spontaneous pneumothorax",
+      "source_field": "icd10-id",
+      "value": "J93"
+    },
+    {
+      "pathology": "Spontaneous rib fracture",
+      "source_field": "icd10-id",
+      "value": "S22.9"
+    },
+    {
+      "pathology": "Stable angina",
+      "source_field": "icd10-id",
+      "value": "I20.9"
+    },
+    {
+      "pathology": "Tuberculosis",
+      "source_field": "icd10-id",
+      "value": "a15"
+    },
+    {
+      "pathology": "URTI",
+      "source_field": "icd10-id",
+      "value": "j06.9"
+    },
+    {
+      "pathology": "Unstable angina",
+      "source_field": "icd10-id",
+      "value": "I20.0"
+    },
+    {
+      "pathology": "Viral pharyngitis",
+      "source_field": "icd10-id",
+      "value": "J02.9"
+    },
+    {
+      "pathology": "Whooping cough",
+      "source_field": "icd10-id",
+      "value": "A37"
+    }
+  ],
+  "cardiac_chest_classes": [
+    "Atrial fibrillation",
+    "Myocarditis",
+    "PSVT",
+    "Pericarditis",
+    "Possible NSTEMI / STEMI",
+    "Stable angina",
+    "Unstable angina"
+  ],
+  "rhinitis_candidate_classes": [
+    "Acute rhinosinusitis",
+    "Allergic sinusitis",
+    "Chronic rhinosinusitis",
+    "Influenza",
+    "URTI",
+    "Viral pharyngitis"
+  ],
+  "low_back_classes": [],
+  "limitations": [
+    "Все маршруты и приоритеты имеют validated=false до построчной проверки врачом.",
+    "Метрики маршрутизации и приоритета до врачебной проверки не заявляются.",
+    "В class_order нет класса боли в пояснице; демо-сценарий должен использовать abstain-путь.",
+    "Закрытый список не содержит отдельных онколога, гематолога, ревматолога и психиатра; для соответствующих строк указан доступный основной маршрут."
+  ],
+  "class_order_sha256": "b1491d19cb19c46e62f8541de3cabe5b32b3cc26858b83212d48cdb89c26cbdf",
+  "conditions_source": "release_conditions.json sha256:960112db157169215c5a5c1eac0993317d2363c0cf2dadf173735dc503810d48",
+  "icd10_provenance": "Each icd10 is copied byte-for-byte from the matched icd10-id field via cond-name-eng."
+}

@@ -1,0 +1,278 @@
+import { NextRequest } from "next/server";
+import { describe, expect, it, vi } from "vitest";
+import { handleChat } from "../../app/api/chat/handler";
+import { GREETING_RU, stripDoneMarker } from "../../lib/anamnesis";
+import { HARD_TURN_CAP, SOFT_TURN_CAP } from "../../lib/config";
+import { MemorySessionStore } from "../../lib/store";
+import type { SessionStore } from "../../lib/store";
+import type { TriageResult } from "../../lib/types";
+
+const RESULT = {
+  anamnesis: {
+    chief_complaint: "боль в груди",
+    symptom: {
+      onset: "сегодня",
+      location: "грудь",
+      quality: "давящая",
+      severity: 8,
+      modifiers: "",
+      associated: ["одышка"],
+    },
+    past_history: [],
+    chronic: [],
+    allergies: [],
+    medications: [],
+    context: {
+      age: 58,
+      sex: "m",
+      pregnancy: "na",
+      risk_factors: [],
+    },
+  },
+  red_flags: [],
+  urgency: "emergency",
+  urgency_reasons: ["красный флаг"],
+  routing: [{ specialty: "кардиология", confidence: 1 }],
+  hypothesis: {
+    text: "Требуется срочная оценка врача.",
+    confidence: 0,
+    disclaimer: "Это не диагноз, решает врач.",
+  },
+  source: "rules_only",
+} as TriageResult;
+
+function request(sessionId: string, message = "Продолжаю отвечать") {
+  return new NextRequest("http://localhost/api/chat", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ sessionId, message }),
+  });
+}
+
+async function collectingSession() {
+  const sessionStore = new MemorySessionStore();
+  const token = await sessionStore.createDoctorToken();
+  const session = await sessionStore.createSession(token);
+  await sessionStore.appendMessage(session.id, {
+    role: "assistant",
+    content: GREETING_RU,
+  });
+  return { sessionStore, sessionId: session.id };
+}
+
+describe("POST /api/chat", () => {
+  it("finalizes the safety reply through the shared finalizer", async () => {
+    const { sessionStore, sessionId } = await collectingSession();
+    const analyze = vi.fn(async () => Promise.resolve(RESULT));
+
+    const response = await handleChat(request(sessionId, "Давит в груди"), {
+      sessionStore,
+      runTurn: async () =>
+        stripDoneMarker(
+          "Немедленно позвоните 103. Данные переданы врачу.\n[ ANAMNESIS COMPLETE ]",
+        ),
+      analyze,
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({ done: true, turnsLeft: 0, result: RESULT });
+    expect(body.reply).not.toMatch(/ANAMNESIS/iu);
+    expect(analyze).toHaveBeenCalledOnce();
+    expect((await sessionStore.getSession(sessionId))?.status).toBe(
+      "completed",
+    );
+  });
+
+  it("finalizes on an emergency rule even when the model omits the marker", async () => {
+    const { sessionStore, sessionId } = await collectingSession();
+    const analyze = vi.fn(async () => Promise.resolve(RESULT));
+
+    const response = await handleChat(
+      request(sessionId, "Мне сильно давит в груди"),
+      {
+        sessionStore,
+        runTurn: async () => ({
+          reply: "Немедленно позвоните 103.",
+          done: false,
+        }),
+        analyze,
+      },
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      done: true,
+      result: RESULT,
+    });
+    expect(analyze).toHaveBeenCalledOnce();
+  });
+
+  it("auto-finalizes exactly at HARD_TURN_CAP with a non-empty result", async () => {
+    const { sessionStore, sessionId } = await collectingSession();
+    const analyze = vi.fn(async () => Promise.resolve(RESULT));
+    let lastResponse: Response | undefined;
+    let lastBody: Record<string, unknown> | undefined;
+
+    for (let index = 0; index < HARD_TURN_CAP; index += 1) {
+      lastResponse = await handleChat(request(sessionId, `Реплика ${index + 1}`), {
+        sessionStore,
+        runTurn: async () => ({ reply: "Следующий вопрос", done: false }),
+        analyze,
+      });
+      const currentBody = (await lastResponse.json()) as Record<string, unknown>;
+      lastBody = currentBody;
+
+      if (index + 1 === SOFT_TURN_CAP) {
+        expect(currentBody.turnsLeft).toBe(
+          HARD_TURN_CAP - SOFT_TURN_CAP,
+        );
+      }
+    }
+
+    expect(lastResponse?.status).toBe(200);
+    expect(lastBody).toMatchObject({
+      done: true,
+      turnsLeft: 0,
+      result: RESULT,
+    });
+    expect(analyze).toHaveBeenCalledOnce();
+    expect(await sessionStore.getSession(sessionId)).toMatchObject({
+      status: "completed",
+      turnCount: HARD_TURN_CAP,
+    });
+
+    const repeated = await handleChat(request(sessionId, "Лишняя реплика"), {
+      sessionStore,
+      runTurn: async () => ({ reply: "", done: false }),
+      analyze,
+    });
+    expect(repeated.status).toBe(409);
+    await expect(repeated.json()).resolves.toMatchObject({
+      code: "SESSION_COMPLETED",
+    });
+  });
+
+  it("does not persist a patient message when the dialogue call fails", async () => {
+    const { sessionStore, sessionId } = await collectingSession();
+
+    const response = await handleChat(request(sessionId, "Повторяемая реплика"), {
+      sessionStore,
+      runTurn: async () => {
+        throw new Error("temporary outage");
+      },
+    });
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toMatchObject({
+      code: "LLM_UNAVAILABLE",
+    });
+    expect(await sessionStore.getSession(sessionId)).toMatchObject({
+      turnCount: 0,
+      messages: [{ role: "assistant", content: GREETING_RU }],
+    });
+  });
+
+  it("retries only finalize after analysis fails at the hard cap", async () => {
+    const { sessionStore, sessionId } = await collectingSession();
+    for (let index = 0; index < HARD_TURN_CAP - 1; index += 1) {
+      await sessionStore.appendMessage(sessionId, {
+        role: "user",
+        content: `Реплика ${index + 1}`,
+      });
+      await sessionStore.appendMessage(sessionId, {
+        role: "assistant",
+        content: "Следующий вопрос",
+      });
+    }
+    const runTurn = vi.fn(async () => ({
+      reply: "Последний вопрос",
+      done: false,
+    }));
+    const analyze = vi
+      .fn<() => Promise<TriageResult>>()
+      .mockRejectedValueOnce(new Error("analysis unavailable"))
+      .mockResolvedValue(RESULT);
+
+    const failed = await handleChat(request(sessionId, "Реплика 20"), {
+      sessionStore,
+      runTurn,
+      analyze,
+    });
+    expect(failed.status).toBe(500);
+    expect(await sessionStore.getSession(sessionId)).toMatchObject({
+      status: "collecting",
+      turnCount: HARD_TURN_CAP,
+    });
+    const sessionAfterFailure = await sessionStore.getSession(sessionId);
+    if (!sessionAfterFailure) throw new Error("session disappeared after failure");
+    const messagesAfterFailure = sessionAfterFailure.messages.length;
+
+    const retried = await handleChat(request(sessionId, "Не дублировать"), {
+      sessionStore,
+      runTurn,
+      analyze,
+    });
+
+    expect(retried.status).toBe(200);
+    await expect(retried.json()).resolves.toMatchObject({
+      done: true,
+      turnsLeft: 0,
+      result: RESULT,
+    });
+    expect(runTurn).toHaveBeenCalledOnce();
+    expect(analyze).toHaveBeenCalledTimes(2);
+    expect(await sessionStore.getSession(sessionId)).toMatchObject({
+      status: "completed",
+      turnCount: HARD_TURN_CAP,
+      messages: expect.arrayContaining([
+        { role: "user", content: "Реплика 20" },
+      ]),
+    });
+    expect((await sessionStore.getSession(sessionId))?.messages).toHaveLength(
+      messagesAfterFailure,
+    );
+  });
+
+  it("aborts a partial turn when appending the assistant reply fails", async () => {
+    const { sessionStore: baseStore, sessionId } = await collectingSession();
+    let failAssistant = true;
+    const failingStore: SessionStore = {
+      createDoctorToken: () => baseStore.createDoctorToken(),
+      isValidDoctorToken: (token) => baseStore.isValidDoctorToken(token),
+      createSession: (token) => baseStore.createSession(token),
+      getSession: (id) => baseStore.getSession(id),
+      appendMessage: async (id, chatMessage) => {
+        if (chatMessage.role === "assistant" && failAssistant) {
+          failAssistant = false;
+          throw new Error("assistant append failed");
+        }
+        await baseStore.appendMessage(id, chatMessage);
+      },
+      completeSession: (id, result) => baseStore.completeSession(id, result),
+      abortSession: (id, reason) => baseStore.abortSession(id, reason),
+      sweepExpired: (now) => baseStore.sweepExpired(now),
+      markNotified: (id, status) => baseStore.markNotified(id, status),
+    };
+    const runTurn = vi.fn(async () => ({ reply: "Вопрос", done: false }));
+
+    const failed = await handleChat(request(sessionId, "Ответ"), {
+      sessionStore: failingStore,
+      runTurn,
+    });
+
+    expect(failed.status).toBe(500);
+    expect(await baseStore.getSession(sessionId)).toMatchObject({
+      status: "aborted",
+      turnCount: 1,
+    });
+
+    const retry = await handleChat(request(sessionId, "Ответ"), {
+      sessionStore: failingStore,
+      runTurn,
+    });
+    expect(retry.status).toBe(409);
+    expect(runTurn).toHaveBeenCalledOnce();
+    expect((await baseStore.getSession(sessionId))?.turnCount).toBe(1);
+  });
+});

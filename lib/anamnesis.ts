@@ -4,6 +4,10 @@ import type { ChatMessage } from "./types";
 // Маркер, которым агент сигналит, что анамнез собран полностью.
 export const DONE_MARKER = "[ANAMNESIS_COMPLETE]";
 
+export const GREETING_RU =
+  "Здравствуйте! Я помощник вашей поликлиники. Задам несколько коротких вопросов " +
+  "о самочувствии, чтобы врач подготовился к приёму. Что вас беспокоит?";
+
 // System prompt агента-опросника. Основан на
 // «Specimen AI/Docs/GovTech Camp/Сценарий - Агент-опросник анамнеза».
 export const ANAMNESIS_SYSTEM = `Ты — ассистент первичного опроса пациента для государственной поликлиники.
@@ -27,35 +31,70 @@ export const ANAMNESIS_SYSTEM = `Ты — ассистент первичног�
 БЕЗОПАСНОСТЬ (на любой стадии): если пациент описывает признаки, угрожающие жизни
 (боль/давление в груди с одышкой, признаки инсульта — перекос лица/слабость в руке/нарушение речи,
 сильное кровотечение, рвота/стул с кровью, внезапная сильнейшая головная боль, нарушение сознания,
-судороги, суицидальные мысли) — немедленно посоветуй позвонить 103 или обратиться в приёмный покой,
-успокой пациента и заверши опрос.
+судороги, суицидальные мысли) — сделай РОВНО ТРИ вещи в одной реплике:
+1) немедленно посоветуй позвонить 103 или обратиться в приёмный покой;
+2) успокой пациента и скажи, что данные уже переданы врачу;
+3) отдельной последней строкой выведи ровно: ${DONE_MARKER}
+Не задавай больше ни одного вопроса. Пропуск маркера в этом случае — критическая ошибка:
+врач не получит сводку.
 
-Когда информации достаточно для передачи врачу — поблагодари пациента, скажи что передаёшь данные врачу,
-и в САМОМ КОНЦЕ ответа отдельной строкой выведи ровно: ${DONE_MARKER}
-Не выводи этот маркер раньше времени.`;
+ЗАВЕРШЕНИЕ ОПРОСА. Выведи ${DONE_MARKER} отдельной последней строкой в двух случаях:
+— сработала БЕЗОПАСНОСТЬ (см. выше), либо
+— информации достаточно для передачи врачу: поблагодари пациента, скажи, что передаёшь данные врачу.
+В остальных случаях маркер не выводи.
+
+ДЛИНА ОПРОСА: у тебя не больше 10 вопросов. Если пациент отвечает уклончиво или не по делу —
+не переспрашивай третий раз, переходи к следующей стадии. Лучше неполный анамнез вовремя,
+чем полный никогда.`;
 
 export interface TurnResult {
   reply: string;
   done: boolean;
 }
 
-// Один ход опросника. Возвращает ответ пациенту и флаг завершения.
-export async function runAnamnesisTurn(
-  messages: ChatMessage[]
-): Promise<TurnResult> {
-  const raw = await chatTurn(ANAMNESIS_SYSTEM, messages);
-  const done = raw.includes(DONE_MARKER);
-  const reply = raw.replace(DONE_MARKER, "").trim();
-  return { reply, done };
+export type ChatTurnPort = (
+  system: string,
+  messages: ChatMessage[],
+) => Promise<string>;
+
+const ANAMNESIS_TURN_SYSTEM = `${ANAMNESIS_SYSTEM}\n\nТы уже отправил пациенту приветствие: «${GREETING_RU}». Не здоровайся повторно.`;
+
+const DONE_RE =
+  /(?<!\S)[*_`~]*\s*(?:\[\s*)?ANAMNESIS[\s_-]*COMPLETE(?:\s*\])?\s*[*_`~]*(?!\S)/iu;
+const COMPLETE_REPLY = "Спасибо, я передаю данные врачу.";
+
+export function stripDoneMarker(raw: string): TurnResult {
+  const done = DONE_RE.test(raw);
+  if (!done) return { reply: raw.trim(), done: false };
+
+  const reply = raw.replace(DONE_RE, " ").trim();
+  return { reply: reply || COMPLETE_REPLY, done: true };
 }
 
-// Приветствие при старте сессии.
-export async function greeting(): Promise<string> {
-  return runAnamnesisTurn([
-    {
-      role: "user",
-      content:
-        "Пациент открыл чат по ссылке от врача. Поздоровайся, кратко объясни, что задашь несколько вопросов о самочувствии для подготовки к приёму, и задай первый вопрос.",
-    },
-  ]).then((r) => r.reply);
+// Полный транскрипт начинается со статического приветствия ассистента, а
+// Anthropic получает отдельный массив, начинающийся с первой реплики пациента.
+export function toApiMessages(
+  messages: readonly ChatMessage[],
+): ChatMessage[] {
+  const firstUserIndex = messages.findIndex(
+    (message) => message.role === "user",
+  );
+  return firstUserIndex === -1 ? [] : messages.slice(firstUserIndex);
+}
+
+// Один ход опросника. Возвращает ответ пациенту и флаг завершения.
+export async function runAnamnesisTurn(
+  messages: readonly ChatMessage[],
+  deps: { chatTurn?: ChatTurnPort } = {},
+): Promise<TurnResult> {
+  const apiMessages = toApiMessages(messages);
+  if (apiMessages.length === 0) {
+    throw new Error("Conversation history has no patient message");
+  }
+
+  const raw = await (deps.chatTurn ?? chatTurn)(
+    ANAMNESIS_TURN_SYSTEM,
+    apiMessages,
+  );
+  return stripDoneMarker(raw);
 }

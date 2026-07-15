@@ -1,0 +1,1356 @@
+{
+  "_meta": {
+    "frozen": true,
+    "generation": {
+      "deterministic": true,
+      "generator": "scripts/build_eval_phrases.py",
+      "source_dictionary": "data/evidences_ru.json",
+      "source_dictionary_sha256": "8a168fbbd5a3e844ec33ad909d7c04b9bddb5b6e791daf8a13af131a67d01496"
+    },
+    "manual_review": {
+      "date": "2026-07-14",
+      "policy": "every entry records manual_reviewed or deterministic_generator; generated phrases never masquerade as reviewed",
+      "scope": "selected curated demo evidence phrases only",
+      "status": "partial"
+    },
+    "schema_version": 1,
+    "selected_key_count": 321,
+    "selection": {
+      "pathologies": [
+        "Acute COPD exacerbation / infection",
+        "Acute dystonic reactions",
+        "Acute laryngitis",
+        "Acute otitis media",
+        "Acute pulmonary edema",
+        "Acute rhinosinusitis",
+        "Anaphylaxis",
+        "Anemia",
+        "Atrial fibrillation",
+        "Boerhaave",
+        "Bronchiectasis",
+        "Bronchitis",
+        "Bronchospasm / acute asthma exacerbation",
+        "Chronic rhinosinusitis",
+        "Cluster headache",
+        "Epiglottitis",
+        "GERD",
+        "Guillain-Barré syndrome",
+        "HIV (initial infection)",
+        "Influenza",
+        "Inguinal hernia",
+        "Localized edema",
+        "Myasthenia gravis",
+        "Myocarditis",
+        "PSVT",
+        "Pancreatic neoplasm",
+        "Panic attack",
+        "Pericarditis",
+        "Pneumonia",
+        "Possible NSTEMI / STEMI",
+        "Pulmonary embolism",
+        "Pulmonary neoplasm",
+        "SLE",
+        "Sarcoidosis",
+        "Scombroid food poisoning",
+        "Stable angina",
+        "Tuberculosis",
+        "URTI",
+        "Unstable angina",
+        "Viral pharyngitis"
+      ],
+      "seed": 42,
+      "split": "decontaminated_test",
+      "strategy": "top_40_held_out_classes_by_frequency_seeded_min_hash_row"
+    },
+    "source_counts": {
+      "deterministic_generator": 304,
+      "manual_reviewed": 17
+    }
+  },
+  "phrases": {
+    "E_0": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_0"
+    },
+    "E_1": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_1"
+    },
+    "E_101": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_101"
+    },
+    "E_102": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_102"
+    },
+    "E_103": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_103"
+    },
+    "E_104": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_104"
+    },
+    "E_105": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_105"
+    },
+    "E_106": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_106"
+    },
+    "E_108": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_108"
+    },
+    "E_109": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_109"
+    },
+    "E_113": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_113"
+    },
+    "E_115": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_115"
+    },
+    "E_116": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_116"
+    },
+    "E_118": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_118"
+    },
+    "E_119": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_119"
+    },
+    "E_120": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_120"
+    },
+    "E_121": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_121"
+    },
+    "E_123": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_123"
+    },
+    "E_124": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_124"
+    },
+    "E_125": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_125"
+    },
+    "E_129": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_129"
+    },
+    "E_130@V_107": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_130: вариант 3 (V_107)"
+    },
+    "E_130@V_11": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_130: вариант 1 (V_11)"
+    },
+    "E_130@V_138": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_130: вариант 4 (V_138)"
+    },
+    "E_130@V_156": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_130: вариант 5 (V_156)"
+    },
+    "E_130@V_157": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_130: вариант 6 (V_157)"
+    },
+    "E_131@V_10": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_131: вариант 1 (V_10)"
+    },
+    "E_131@V_12": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_131: вариант 2 (V_12)"
+    },
+    "E_132@0": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_132: значение 0"
+    },
+    "E_132@2": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_132: значение 2"
+    },
+    "E_132@3": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_132: значение 3"
+    },
+    "E_132@4": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_132: значение 4"
+    },
+    "E_132@6": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_132: значение 6"
+    },
+    "E_133@V_109": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 94 (V_109)"
+    },
+    "E_133@V_110": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 95 (V_110)"
+    },
+    "E_133@V_116": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 100 (V_116)"
+    },
+    "E_133@V_123": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 1 (V_123)"
+    },
+    "E_133@V_197": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 165 (V_197)"
+    },
+    "E_133@V_26": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 14 (V_26)"
+    },
+    "E_133@V_30": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 18 (V_30)"
+    },
+    "E_133@V_31": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 19 (V_31)"
+    },
+    "E_133@V_32": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 20 (V_32)"
+    },
+    "E_133@V_33": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 21 (V_33)"
+    },
+    "E_133@V_34": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 22 (V_34)"
+    },
+    "E_133@V_35": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 23 (V_35)"
+    },
+    "E_133@V_38": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 26 (V_38)"
+    },
+    "E_133@V_41": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 29 (V_41)"
+    },
+    "E_133@V_42": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 30 (V_42)"
+    },
+    "E_133@V_53": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 41 (V_53)"
+    },
+    "E_133@V_54": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 42 (V_54)"
+    },
+    "E_133@V_82": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 69 (V_82)"
+    },
+    "E_133@V_87": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 73 (V_87)"
+    },
+    "E_133@V_88": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 74 (V_88)"
+    },
+    "E_133@V_89": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 75 (V_89)"
+    },
+    "E_133@V_90": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 76 (V_90)"
+    },
+    "E_133@V_91": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 77 (V_91)"
+    },
+    "E_133@V_95": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_133: вариант 81 (V_95)"
+    },
+    "E_134@0": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_134: значение 0"
+    },
+    "E_134@1": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_134: значение 1"
+    },
+    "E_134@3": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_134: значение 3"
+    },
+    "E_134@4": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_134: значение 4"
+    },
+    "E_134@5": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_134: значение 5"
+    },
+    "E_135@V_10": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_135: вариант 1 (V_10)"
+    },
+    "E_135@V_12": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_135: вариант 2 (V_12)"
+    },
+    "E_136@0": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_136: значение 0"
+    },
+    "E_136@2": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_136: значение 2"
+    },
+    "E_136@4": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_136: значение 4"
+    },
+    "E_136@8": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_136: значение 8"
+    },
+    "E_136@9": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_136: значение 9"
+    },
+    "E_137": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_137"
+    },
+    "E_138": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_138"
+    },
+    "E_14": {
+      "source": "manual_reviewed",
+      "text": "боль в груди в покое"
+    },
+    "E_140": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_140"
+    },
+    "E_143": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_143"
+    },
+    "E_144": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_144"
+    },
+    "E_147": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_147"
+    },
+    "E_148": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_148"
+    },
+    "E_15": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_15"
+    },
+    "E_151": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_151"
+    },
+    "E_152@V_108": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 93 (V_108)"
+    },
+    "E_152@V_109": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 94 (V_109)"
+    },
+    "E_152@V_119": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 103 (V_119)"
+    },
+    "E_152@V_122": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 106 (V_122)"
+    },
+    "E_152@V_149": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 131 (V_149)"
+    },
+    "E_152@V_172": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 150 (V_172)"
+    },
+    "E_152@V_24": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 12 (V_24)"
+    },
+    "E_152@V_34": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 22 (V_34)"
+    },
+    "E_152@V_35": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 23 (V_35)"
+    },
+    "E_152@V_51": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 39 (V_51)"
+    },
+    "E_152@V_52": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 40 (V_52)"
+    },
+    "E_152@V_73": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 60 (V_73)"
+    },
+    "E_152@V_89": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_152: вариант 75 (V_89)"
+    },
+    "E_154": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_154"
+    },
+    "E_155": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_155"
+    },
+    "E_156": {
+      "source": "manual_reviewed",
+      "text": "односторонняя слабость лица"
+    },
+    "E_157": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_157"
+    },
+    "E_158": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_158"
+    },
+    "E_159": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_159"
+    },
+    "E_16": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_16"
+    },
+    "E_160": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_160"
+    },
+    "E_161": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_161"
+    },
+    "E_162": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_162"
+    },
+    "E_163": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_163"
+    },
+    "E_164": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_164"
+    },
+    "E_168": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_168"
+    },
+    "E_171": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_171"
+    },
+    "E_172": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_172"
+    },
+    "E_173": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_173"
+    },
+    "E_175": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_175"
+    },
+    "E_176": {
+      "source": "manual_reviewed",
+      "text": "слабость в конечностях или лице"
+    },
+    "E_179": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_179"
+    },
+    "E_18": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_18"
+    },
+    "E_181": {
+      "source": "manual_reviewed",
+      "text": "заложенность носа или прозрачные выделения"
+    },
+    "E_182": {
+      "source": "manual_reviewed",
+      "text": "зеленоватые или желтоватые выделения из носа"
+    },
+    "E_185": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_185"
+    },
+    "E_186": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_186"
+    },
+    "E_187": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_187"
+    },
+    "E_188": {
+      "source": "manual_reviewed",
+      "text": "светлый стул и тёмная моча"
+    },
+    "E_19": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_19"
+    },
+    "E_190": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_190"
+    },
+    "E_191": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_191"
+    },
+    "E_194": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_194"
+    },
+    "E_196": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_196"
+    },
+    "E_197": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_197"
+    },
+    "E_199": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_199"
+    },
+    "E_2": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_2"
+    },
+    "E_20": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_20"
+    },
+    "E_201": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_201"
+    },
+    "E_204@V_10": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_204: вариант 1 (V_10)"
+    },
+    "E_204@V_4": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_204: вариант 6 (V_4)"
+    },
+    "E_205": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_205"
+    },
+    "E_206": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_206"
+    },
+    "E_208": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_208"
+    },
+    "E_209": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_209"
+    },
+    "E_210": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_210"
+    },
+    "E_211": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_211"
+    },
+    "E_212": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_212"
+    },
+    "E_213": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_213"
+    },
+    "E_214": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_214"
+    },
+    "E_215": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_215"
+    },
+    "E_217": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_217"
+    },
+    "E_218": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_218"
+    },
+    "E_219": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_219"
+    },
+    "E_22": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_22"
+    },
+    "E_220": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_220"
+    },
+    "E_221": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_221"
+    },
+    "E_222": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_222"
+    },
+    "E_223": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_223"
+    },
+    "E_225": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_225"
+    },
+    "E_226": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_226"
+    },
+    "E_227": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_227"
+    },
+    "E_24": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_24"
+    },
+    "E_25": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_25"
+    },
+    "E_26": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_26"
+    },
+    "E_27": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_27"
+    },
+    "E_29": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_29"
+    },
+    "E_3": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_3"
+    },
+    "E_30": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_30"
+    },
+    "E_31": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_31"
+    },
+    "E_34": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_34"
+    },
+    "E_38": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_38"
+    },
+    "E_41": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_41"
+    },
+    "E_42": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_42"
+    },
+    "E_45": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_45"
+    },
+    "E_46": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_46"
+    },
+    "E_47": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_47"
+    },
+    "E_48": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_48"
+    },
+    "E_49": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_49"
+    },
+    "E_5": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_5"
+    },
+    "E_50": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_50"
+    },
+    "E_51": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_51"
+    },
+    "E_52": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_52"
+    },
+    "E_53": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_53"
+    },
+    "E_54@V_112": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 3 (V_112)"
+    },
+    "E_54@V_154": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 4 (V_154)"
+    },
+    "E_54@V_161": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 5 (V_161)"
+    },
+    "E_54@V_179": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 6 (V_179)"
+    },
+    "E_54@V_180": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 7 (V_180)"
+    },
+    "E_54@V_181": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 8 (V_181)"
+    },
+    "E_54@V_182": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 9 (V_182)"
+    },
+    "E_54@V_183": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 10 (V_183)"
+    },
+    "E_54@V_191": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 12 (V_191)"
+    },
+    "E_54@V_192": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 13 (V_192)"
+    },
+    "E_54@V_193": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 14 (V_193)"
+    },
+    "E_54@V_196": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 15 (V_196)"
+    },
+    "E_54@V_198": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 16 (V_198)"
+    },
+    "E_54@V_71": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_54: вариант 2 (V_71)"
+    },
+    "E_55@V_100": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 86 (V_100)"
+    },
+    "E_55@V_101": {
+      "source": "manual_reviewed",
+      "text": "локализация боли: верхняя часть груди"
+    },
+    "E_55@V_103": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 89 (V_103)"
+    },
+    "E_55@V_104": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 90 (V_104)"
+    },
+    "E_55@V_108": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 93 (V_108)"
+    },
+    "E_55@V_109": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 94 (V_109)"
+    },
+    "E_55@V_124": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 107 (V_124)"
+    },
+    "E_55@V_125": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 108 (V_125)"
+    },
+    "E_55@V_126": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 109 (V_126)"
+    },
+    "E_55@V_127": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 110 (V_127)"
+    },
+    "E_55@V_128": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 111 (V_128)"
+    },
+    "E_55@V_129": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 112 (V_129)"
+    },
+    "E_55@V_130": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 113 (V_130)"
+    },
+    "E_55@V_137": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 120 (V_137)"
+    },
+    "E_55@V_148": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 130 (V_148)"
+    },
+    "E_55@V_149": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 131 (V_149)"
+    },
+    "E_55@V_150": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 132 (V_150)"
+    },
+    "E_55@V_153": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 135 (V_153)"
+    },
+    "E_55@V_159": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 138 (V_159)"
+    },
+    "E_55@V_160": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 139 (V_160)"
+    },
+    "E_55@V_163": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 141 (V_163)"
+    },
+    "E_55@V_166": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 144 (V_166)"
+    },
+    "E_55@V_167": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 145 (V_167)"
+    },
+    "E_55@V_169": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 147 (V_169)"
+    },
+    "E_55@V_170": {
+      "source": "manual_reviewed",
+      "text": "локализация боли: грудная клетка сзади справа"
+    },
+    "E_55@V_171": {
+      "source": "manual_reviewed",
+      "text": "локализация боли: грудная клетка сзади слева"
+    },
+    "E_55@V_187": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 159 (V_187)"
+    },
+    "E_55@V_194": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 163 (V_194)"
+    },
+    "E_55@V_195": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 164 (V_195)"
+    },
+    "E_55@V_197": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 165 (V_197)"
+    },
+    "E_55@V_20": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 8 (V_20)"
+    },
+    "E_55@V_21": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 9 (V_21)"
+    },
+    "E_55@V_25": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 13 (V_25)"
+    },
+    "E_55@V_26": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 14 (V_26)"
+    },
+    "E_55@V_29": {
+      "source": "manual_reviewed",
+      "text": "локализация боли: нижняя часть груди"
+    },
+    "E_55@V_30": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 18 (V_30)"
+    },
+    "E_55@V_33": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 21 (V_33)"
+    },
+    "E_55@V_34": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 22 (V_34)"
+    },
+    "E_55@V_35": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 23 (V_35)"
+    },
+    "E_55@V_52": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 40 (V_52)"
+    },
+    "E_55@V_55": {
+      "source": "manual_reviewed",
+      "text": "локализация боли: правая сторона груди"
+    },
+    "E_55@V_56": {
+      "source": "manual_reviewed",
+      "text": "локализация боли: левая сторона груди"
+    },
+    "E_55@V_62": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 50 (V_62)"
+    },
+    "E_55@V_63": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 51 (V_63)"
+    },
+    "E_55@V_64": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 52 (V_64)"
+    },
+    "E_55@V_65": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 53 (V_65)"
+    },
+    "E_55@V_68": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 56 (V_68)"
+    },
+    "E_55@V_69": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 57 (V_69)"
+    },
+    "E_55@V_72": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 59 (V_72)"
+    },
+    "E_55@V_84": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 71 (V_84)"
+    },
+    "E_55@V_85": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 72 (V_85)"
+    },
+    "E_55@V_87": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 73 (V_87)"
+    },
+    "E_55@V_88": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 74 (V_88)"
+    },
+    "E_55@V_89": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 75 (V_89)"
+    },
+    "E_55@V_99": {
+      "source": "deterministic_generator",
+      "text": "локализация боли: вариант 85 (V_99)"
+    },
+    "E_56@2": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_56: значение 2"
+    },
+    "E_56@3": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_56: значение 3"
+    },
+    "E_56@4": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_56: значение 4"
+    },
+    "E_56@5": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_56: значение 5"
+    },
+    "E_56@6": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_56: значение 6"
+    },
+    "E_56@7": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_56: значение 7"
+    },
+    "E_56@8": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_56: значение 8"
+    },
+    "E_56@9": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_56: значение 9"
+    },
+    "E_57@V_101": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 87 (V_101)"
+    },
+    "E_57@V_118": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 102 (V_118)"
+    },
+    "E_57@V_122": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 106 (V_122)"
+    },
+    "E_57@V_123": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 1 (V_123)"
+    },
+    "E_57@V_127": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 110 (V_127)"
+    },
+    "E_57@V_128": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 111 (V_128)"
+    },
+    "E_57@V_160": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 139 (V_160)"
+    },
+    "E_57@V_166": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 144 (V_166)"
+    },
+    "E_57@V_167": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 145 (V_167)"
+    },
+    "E_57@V_170": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 148 (V_170)"
+    },
+    "E_57@V_171": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 149 (V_171)"
+    },
+    "E_57@V_177": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 155 (V_177)"
+    },
+    "E_57@V_194": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 163 (V_194)"
+    },
+    "E_57@V_195": {
+      "source": "manual_reviewed",
+      "text": "распространение боли: левое плечо"
+    },
+    "E_57@V_25": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 13 (V_25)"
+    },
+    "E_57@V_29": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 17 (V_29)"
+    },
+    "E_57@V_30": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 18 (V_30)"
+    },
+    "E_57@V_31": {
+      "source": "manual_reviewed",
+      "text": "распространение боли: левая верхняя часть руки"
+    },
+    "E_57@V_33": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 21 (V_33)"
+    },
+    "E_57@V_39": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 27 (V_39)"
+    },
+    "E_57@V_56": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 44 (V_56)"
+    },
+    "E_57@V_89": {
+      "source": "deterministic_generator",
+      "text": "распространение боли: вариант 75 (V_89)"
+    },
+    "E_58@10": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_58: значение 10"
+    },
+    "E_58@2": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_58: значение 2"
+    },
+    "E_58@3": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_58: значение 3"
+    },
+    "E_58@4": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_58: значение 4"
+    },
+    "E_58@5": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_58: значение 5"
+    },
+    "E_58@6": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_58: значение 6"
+    },
+    "E_58@7": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_58: значение 7"
+    },
+    "E_58@8": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_58: значение 8"
+    },
+    "E_58@9": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_58: значение 9"
+    },
+    "E_59@0": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_59: значение 0"
+    },
+    "E_59@1": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_59: значение 1"
+    },
+    "E_59@10": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_59: значение 10"
+    },
+    "E_59@2": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_59: значение 2"
+    },
+    "E_59@3": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_59: значение 3"
+    },
+    "E_59@4": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_59: значение 4"
+    },
+    "E_59@5": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_59: значение 5"
+    },
+    "E_59@6": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_59: значение 6"
+    },
+    "E_59@7": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_59: значение 7"
+    },
+    "E_59@8": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_59: значение 8"
+    },
+    "E_59@9": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_59: значение 9"
+    },
+    "E_6": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_6"
+    },
+    "E_62": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_62"
+    },
+    "E_65": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_65"
+    },
+    "E_66": {
+      "source": "manual_reviewed",
+      "text": "выраженная одышка или затруднение дыхания"
+    },
+    "E_69": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_69"
+    },
+    "E_7": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_7"
+    },
+    "E_70": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_70"
+    },
+    "E_71": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_71"
+    },
+    "E_75": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_75"
+    },
+    "E_76": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_76"
+    },
+    "E_77": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_77"
+    },
+    "E_78": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_78"
+    },
+    "E_79": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_79"
+    },
+    "E_8": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_8"
+    },
+    "E_80": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_80"
+    },
+    "E_81": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_81"
+    },
+    "E_82": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_82"
+    },
+    "E_83": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_83"
+    },
+    "E_84": {
+      "source": "manual_reviewed",
+      "text": "слабость в обеих руках или ногах"
+    },
+    "E_88": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_88"
+    },
+    "E_89": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_89"
+    },
+    "E_9": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_9"
+    },
+    "E_91": {
+      "source": "manual_reviewed",
+      "text": "повышенная температура"
+    },
+    "E_92": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_92"
+    },
+    "E_94": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_94"
+    },
+    "E_95": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_95"
+    },
+    "E_96": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_96"
+    },
+    "E_97": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_97"
+    },
+    "E_98": {
+      "source": "deterministic_generator",
+      "text": "механически описанный признак DDXPlus E_98"
+    }
+  }
+}

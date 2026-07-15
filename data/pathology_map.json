@@ -1,0 +1,524 @@
+[
+  {
+    "pathology": "Acute COPD exacerbation / infection",
+    "label_ru": "Острое обострение ХОБЛ или инфекция",
+    "specialty": "пульмонология",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "j44.1"
+  },
+  {
+    "pathology": "Acute dystonic reactions",
+    "label_ru": "Острая дистоническая реакция",
+    "specialty": "неврология",
+    "specialty_alt": [
+      "скорая/приёмный покой"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "G24.02"
+  },
+  {
+    "pathology": "Acute laryngitis",
+    "label_ru": "Острый ларингит",
+    "specialty": "ЛОР",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "routine",
+    "validated": false,
+    "icd10": "J04.0"
+  },
+  {
+    "pathology": "Acute otitis media",
+    "label_ru": "Острый средний отит",
+    "specialty": "ЛОР",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "planned",
+    "validated": false,
+    "icd10": "H66.90"
+  },
+  {
+    "pathology": "Acute pulmonary edema",
+    "label_ru": "Острый отёк лёгких",
+    "specialty": "скорая/приёмный покой",
+    "specialty_alt": [
+      "кардиология"
+    ],
+    "urgency": "emergency",
+    "validated": false,
+    "icd10": "J81.0"
+  },
+  {
+    "pathology": "Acute rhinosinusitis",
+    "label_ru": "Острый риносинусит",
+    "specialty": "ЛОР",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "planned",
+    "validated": false,
+    "icd10": "j01"
+  },
+  {
+    "pathology": "Allergic sinusitis",
+    "label_ru": "Аллергический ринит",
+    "specialty": "аллергология",
+    "specialty_alt": [
+      "ЛОР",
+      "терапевт"
+    ],
+    "urgency": "routine",
+    "validated": false,
+    "icd10": "J30"
+  },
+  {
+    "pathology": "Anaphylaxis",
+    "label_ru": "Анафилаксия",
+    "specialty": "скорая/приёмный покой",
+    "specialty_alt": [
+      "аллергология"
+    ],
+    "urgency": "emergency",
+    "validated": false,
+    "icd10": "T78.0"
+  },
+  {
+    "pathology": "Anemia",
+    "label_ru": "Анемия",
+    "specialty": "терапевт",
+    "specialty_alt": [],
+    "urgency": "planned",
+    "validated": false,
+    "icd10": "D64.9"
+  },
+  {
+    "pathology": "Atrial fibrillation",
+    "label_ru": "Фибрилляция предсердий",
+    "specialty": "кардиология",
+    "specialty_alt": [
+      "скорая/приёмный покой"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "I48.91"
+  },
+  {
+    "pathology": "Boerhaave",
+    "label_ru": "Синдром Бурхаве",
+    "specialty": "скорая/приёмный покой",
+    "specialty_alt": [
+      "хирургия"
+    ],
+    "urgency": "emergency",
+    "validated": false,
+    "icd10": "K22.3"
+  },
+  {
+    "pathology": "Bronchiectasis",
+    "label_ru": "Бронхоэктатическая болезнь",
+    "specialty": "пульмонология",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "planned",
+    "validated": false,
+    "icd10": "J47"
+  },
+  {
+    "pathology": "Bronchitis",
+    "label_ru": "Бронхит",
+    "specialty": "терапевт",
+    "specialty_alt": [
+      "пульмонология"
+    ],
+    "urgency": "routine",
+    "validated": false,
+    "icd10": "j40"
+  },
+  {
+    "pathology": "Bronchospasm / acute asthma exacerbation",
+    "label_ru": "Бронхоспазм или острое обострение астмы",
+    "specialty": "пульмонология",
+    "specialty_alt": [
+      "скорая/приёмный покой",
+      "терапевт"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "J45"
+  },
+  {
+    "pathology": "Chagas",
+    "label_ru": "Болезнь Шагаса",
+    "specialty": "инфекционист",
+    "specialty_alt": [
+      "кардиология",
+      "терапевт"
+    ],
+    "urgency": "planned",
+    "validated": false,
+    "icd10": "B57"
+  },
+  {
+    "pathology": "Chronic rhinosinusitis",
+    "label_ru": "Хронический риносинусит",
+    "specialty": "ЛОР",
+    "specialty_alt": [
+      "аллергология"
+    ],
+    "urgency": "routine",
+    "validated": false,
+    "icd10": "j32"
+  },
+  {
+    "pathology": "Cluster headache",
+    "label_ru": "Кластерная головная боль",
+    "specialty": "неврология",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "planned",
+    "validated": false,
+    "icd10": "g44.009"
+  },
+  {
+    "pathology": "Ebola",
+    "label_ru": "Болезнь, вызванная вирусом Эбола",
+    "specialty": "скорая/приёмный покой",
+    "specialty_alt": [
+      "инфекционист"
+    ],
+    "urgency": "emergency",
+    "validated": false,
+    "icd10": "a98.4"
+  },
+  {
+    "pathology": "Epiglottitis",
+    "label_ru": "Эпиглоттит",
+    "specialty": "скорая/приёмный покой",
+    "specialty_alt": [
+      "ЛОР"
+    ],
+    "urgency": "emergency",
+    "validated": false,
+    "icd10": "J05.1"
+  },
+  {
+    "pathology": "GERD",
+    "label_ru": "Гастроэзофагеальная рефлюксная болезнь",
+    "specialty": "гастроэнтерология",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "planned",
+    "validated": false,
+    "icd10": "K21"
+  },
+  {
+    "pathology": "Guillain-Barré syndrome",
+    "label_ru": "Синдром Гийена — Барре",
+    "specialty": "неврология",
+    "specialty_alt": [
+      "скорая/приёмный покой"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "G61.0"
+  },
+  {
+    "pathology": "HIV (initial infection)",
+    "label_ru": "Первичная ВИЧ-инфекция",
+    "specialty": "инфекционист",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "B20"
+  },
+  {
+    "pathology": "Influenza",
+    "label_ru": "Грипп",
+    "specialty": "терапевт",
+    "specialty_alt": [
+      "инфекционист"
+    ],
+    "urgency": "planned",
+    "validated": false,
+    "icd10": "j11.1"
+  },
+  {
+    "pathology": "Inguinal hernia",
+    "label_ru": "Паховая грыжа",
+    "specialty": "хирургия",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "planned",
+    "validated": false,
+    "icd10": "K40"
+  },
+  {
+    "pathology": "Larygospasm",
+    "label_ru": "Ларингоспазм",
+    "specialty": "скорая/приёмный покой",
+    "specialty_alt": [
+      "ЛОР"
+    ],
+    "urgency": "emergency",
+    "validated": false,
+    "icd10": "J38.5"
+  },
+  {
+    "pathology": "Localized edema",
+    "label_ru": "Локализованный отёк",
+    "specialty": "терапевт",
+    "specialty_alt": [
+      "кардиология"
+    ],
+    "urgency": "planned",
+    "validated": false,
+    "icd10": "R60.0"
+  },
+  {
+    "pathology": "Myasthenia gravis",
+    "label_ru": "Миастения",
+    "specialty": "неврология",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "G70.0"
+  },
+  {
+    "pathology": "Myocarditis",
+    "label_ru": "Миокардит",
+    "specialty": "кардиология",
+    "specialty_alt": [
+      "скорая/приёмный покой"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "I51.4"
+  },
+  {
+    "pathology": "PSVT",
+    "label_ru": "Пароксизмальная наджелудочковая тахикардия",
+    "specialty": "кардиология",
+    "specialty_alt": [
+      "скорая/приёмный покой"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "I47.1"
+  },
+  {
+    "pathology": "Pancreatic neoplasm",
+    "label_ru": "Новообразование поджелудочной железы",
+    "specialty": "гастроэнтерология",
+    "specialty_alt": [
+      "хирургия",
+      "терапевт"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "c25"
+  },
+  {
+    "pathology": "Panic attack",
+    "label_ru": "Паническая атака",
+    "specialty": "терапевт",
+    "specialty_alt": [
+      "неврология"
+    ],
+    "urgency": "routine",
+    "validated": false,
+    "icd10": "f41"
+  },
+  {
+    "pathology": "Pericarditis",
+    "label_ru": "Перикардит",
+    "specialty": "кардиология",
+    "specialty_alt": [
+      "скорая/приёмный покой"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "I30"
+  },
+  {
+    "pathology": "Pneumonia",
+    "label_ru": "Пневмония",
+    "specialty": "пульмонология",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "j17, j18"
+  },
+  {
+    "pathology": "Possible NSTEMI / STEMI",
+    "label_ru": "Возможный острый инфаркт миокарда",
+    "specialty": "скорая/приёмный покой",
+    "specialty_alt": [
+      "кардиология"
+    ],
+    "urgency": "emergency",
+    "validated": false,
+    "icd10": "I21"
+  },
+  {
+    "pathology": "Pulmonary embolism",
+    "label_ru": "Тромбоэмболия лёгочной артерии",
+    "specialty": "скорая/приёмный покой",
+    "specialty_alt": [
+      "пульмонология",
+      "кардиология"
+    ],
+    "urgency": "emergency",
+    "validated": false,
+    "icd10": "i26"
+  },
+  {
+    "pathology": "Pulmonary neoplasm",
+    "label_ru": "Новообразование лёгкого",
+    "specialty": "пульмонология",
+    "specialty_alt": [
+      "хирургия",
+      "терапевт"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "c34"
+  },
+  {
+    "pathology": "SLE",
+    "label_ru": "Системная красная волчанка",
+    "specialty": "терапевт",
+    "specialty_alt": [],
+    "urgency": "planned",
+    "validated": false,
+    "icd10": "M32"
+  },
+  {
+    "pathology": "Sarcoidosis",
+    "label_ru": "Саркоидоз",
+    "specialty": "пульмонология",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "planned",
+    "validated": false,
+    "icd10": "d86"
+  },
+  {
+    "pathology": "Scombroid food poisoning",
+    "label_ru": "Скомброидное пищевое отравление",
+    "specialty": "скорая/приёмный покой",
+    "specialty_alt": [
+      "аллергология",
+      "инфекционист"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "T61.1"
+  },
+  {
+    "pathology": "Spontaneous pneumothorax",
+    "label_ru": "Спонтанный пневмоторакс",
+    "specialty": "скорая/приёмный покой",
+    "specialty_alt": [
+      "пульмонология",
+      "хирургия"
+    ],
+    "urgency": "emergency",
+    "validated": false,
+    "icd10": "J93"
+  },
+  {
+    "pathology": "Spontaneous rib fracture",
+    "label_ru": "Спонтанный перелом ребра",
+    "specialty": "хирургия",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "S22.9"
+  },
+  {
+    "pathology": "Stable angina",
+    "label_ru": "Стабильная стенокардия",
+    "specialty": "кардиология",
+    "specialty_alt": [
+      "терапевт"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "I20.9"
+  },
+  {
+    "pathology": "Tuberculosis",
+    "label_ru": "Туберкулёз",
+    "specialty": "инфекционист",
+    "specialty_alt": [
+      "пульмонология"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "a15"
+  },
+  {
+    "pathology": "URTI",
+    "label_ru": "Острая инфекция верхних дыхательных путей",
+    "specialty": "терапевт",
+    "specialty_alt": [
+      "ЛОР"
+    ],
+    "urgency": "routine",
+    "validated": false,
+    "icd10": "j06.9"
+  },
+  {
+    "pathology": "Unstable angina",
+    "label_ru": "Нестабильная стенокардия",
+    "specialty": "скорая/приёмный покой",
+    "specialty_alt": [
+      "кардиология"
+    ],
+    "urgency": "emergency",
+    "validated": false,
+    "icd10": "I20.0"
+  },
+  {
+    "pathology": "Viral pharyngitis",
+    "label_ru": "Вирусный фарингит",
+    "specialty": "терапевт",
+    "specialty_alt": [
+      "ЛОР"
+    ],
+    "urgency": "routine",
+    "validated": false,
+    "icd10": "J02.9"
+  },
+  {
+    "pathology": "Whooping cough",
+    "label_ru": "Коклюш",
+    "specialty": "инфекционист",
+    "specialty_alt": [
+      "пульмонология",
+      "терапевт"
+    ],
+    "urgency": "urgent",
+    "validated": false,
+    "icd10": "A37"
+  }
+]

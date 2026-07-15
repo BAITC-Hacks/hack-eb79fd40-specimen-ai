@@ -1,0 +1,34 @@
+services:
+  app:
+    ports: !reset []
+    environment:
+      APP_BASE_URL: https://${DEMEU_DOMAIN-109-123-248-16.sslip.io}
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    container_name: demeu-caddy
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/usr/local/bin/demeu-tls"]
+    command: ["caddy-run"]
+    environment:
+      DEMEU_DOMAIN: ${DEMEU_DOMAIN-109-123-248-16.sslip.io}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/tls.sh:/usr/local/bin/demeu-tls:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  caddy_data:
+  caddy_config:

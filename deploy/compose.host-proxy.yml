@@ -1,0 +1,4 @@
+services:
+  app:
+    environment:
+      APP_BASE_URL: https://${DEMEU_DOMAIN-109-123-248-16.sslip.io}

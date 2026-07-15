@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "provenance": "mock",
+  "live_verified": false,
+  "scenario": {
+    "id": "scenario-2-back-pain",
+    "title": "Женщина 34 года, боль в пояснице две недели"
+  },
+  "completed_via": "chat",
+  "session_id": "6774e869-569e-4c8b-86cc-9d8b0de4d190",
+  "health": {
+    "ok": true,
+    "commit": "unknown",
+    "model_version": "lr-v1",
+    "llm_ok": true
+  },
+  "http": [
+    {
+      "path": "/api/healthz",
+      "status": 200
+    },
+    {
+      "path": "/api/link",
+      "status": 200
+    },
+    {
+      "path": "/api/chat/start",
+      "status": 200
+    },
+    {
+      "path": "/api/chat",
+      "status": 200
+    },
+    {
+      "path": "/api/chat",
+      "status": 200
+    },
+    {
+      "path": "/api/chat",
+      "status": 200
+    }
+  ],
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "Здравствуйте! Я помощник вашей поликлиники. Задам несколько коротких вопросов о самочувствии, чтобы врач подготовился к приёму. Что вас беспокоит?"
+    },
+    {
+      "role": "user",
+      "content": "Мне 34 года, я женщина. Уже две недели ноющая боль в пояснице, 4 из 10, к вечеру сильнее."
+    },
+    {
+      "role": "assistant",
+      "content": "Есть ли температура, онемение ног или нарушения мочеиспускания?"
+    },
+    {
+      "role": "user",
+      "content": "Температуры нет, ноги не немеют, мочеиспускание нормальное."
+    },
+    {
+      "role": "assistant",
+      "content": "Есть ли хронические состояния, постоянные лекарства или аллергии?"
+    },
+    {
+      "role": "user",
+      "content": "Хронических состояний нет, лекарств не принимаю, аллергий нет."
+    },
+    {
+      "role": "assistant",
+      "content": "Спасибо, я передаю данные врачу."
+    }
+  ],
+  "result": {
+    "anamnesis": {
+      "chief_complaint": "ноющая боль в пояснице две недели",
+      "symptom": {
+        "onset": "две недели назад",
+        "location": "поясница",
+        "quality": "ноющая",
+        "severity": 4,
+        "modifiers": "к вечеру сильнее",
+        "associated": []
+      },
+      "past_history": [],
+      "chronic": [],
+      "allergies": [],
+      "medications": [],
+      "context": {
+        "age": 34,
+        "sex": "f",
+        "pregnancy": "na",
+        "risk_factors": []
+      }
+    },
+    "red_flags": [],
+    "urgency": "planned",
+    "urgency_reasons": [
+      "Модель воздержалась от ранжирования.",
+      "симптом сохраняется две недели без тревожных признаков"
+    ],
+    "routing": [
+      {
+        "specialty": "терапевт",
+        "confidence": 0.75
+      },
+      {
+        "specialty": "невролог",
+        "confidence": 0.55
+      }
+    ],
+    "hypothesis": {
+      "text": "Нужна плановая оценка причины боли в пояснице.",
+      "confidence": 0.4,
+      "disclaimer": "Это предварительная гипотеза, это не диагноз, решает врач."
+    },
+    "model": {
+      "pathologies": [],
+      "top_contributions": [],
+      "abstained": true,
+      "model_version": "lr-v1",
+      "abstain_reason": "out_of_label_space"
+    },
+    "source": "llm_fallback"
+  }
+}

@@ -1,0 +1,275 @@
+{
+  "artifact": {
+    "format": "jsonl",
+    "path": "eval/cases.jsonl",
+    "sha256": "49cefd34395f89126543c1279fe7ba6da22fe33f41c162d3f3126890ddc4a3f9"
+  },
+  "coverage": {
+    "class_count": 40,
+    "classes": [
+      "Acute COPD exacerbation / infection",
+      "Acute dystonic reactions",
+      "Acute laryngitis",
+      "Acute otitis media",
+      "Acute pulmonary edema",
+      "Acute rhinosinusitis",
+      "Anaphylaxis",
+      "Anemia",
+      "Atrial fibrillation",
+      "Boerhaave",
+      "Bronchiectasis",
+      "Bronchitis",
+      "Bronchospasm / acute asthma exacerbation",
+      "Chronic rhinosinusitis",
+      "Cluster headache",
+      "Epiglottitis",
+      "GERD",
+      "Guillain-Barré syndrome",
+      "HIV (initial infection)",
+      "Influenza",
+      "Inguinal hernia",
+      "Localized edema",
+      "Myasthenia gravis",
+      "Myocarditis",
+      "PSVT",
+      "Pancreatic neoplasm",
+      "Panic attack",
+      "Pericarditis",
+      "Pneumonia",
+      "Possible NSTEMI / STEMI",
+      "Pulmonary embolism",
+      "Pulmonary neoplasm",
+      "SLE",
+      "Sarcoidosis",
+      "Scombroid food poisoning",
+      "Stable angina",
+      "Tuberculosis",
+      "URTI",
+      "Unstable angina",
+      "Viral pharyngitis"
+    ],
+    "emergency_expected": {
+      "false": 36,
+      "true": 12
+    },
+    "evidence_feature_count": 321,
+    "evidence_types": [
+      "B",
+      "C",
+      "M"
+    ],
+    "model_label_space_count": 47,
+    "sex": [
+      "f",
+      "m"
+    ],
+    "urgency": {
+      "emergency": 12,
+      "planned": 11,
+      "routine": 9,
+      "urgent": 16
+    }
+  },
+  "dependencies": {
+    "artifact": {
+      "dataset_sha256": "93933e9a9a7a00d618a931deda7767485af299fe4635bf189a7c63b510e8b172",
+      "model_version": "lr-v1",
+      "path": "models/triage-lr-v1.json",
+      "sha256": "3ddc467e753ef325a3bb83ddbe1997bd7ad8b108659c9cf72e37e50eeb7142ab"
+    },
+    "dictionary": {
+      "feature_order_source": "triage-lr-v1.json sha256:3ddc467e753ef325a3bb83ddbe1997bd7ad8b108659c9cf72e37e50eeb7142ab",
+      "path": "data/evidences_ru.json",
+      "sha256": "8a168fbbd5a3e844ec33ad909d7c04b9bddb5b6e791daf8a13af131a67d01496",
+      "source": "release_evidences.json sha256:980f7020ec068b290b49cca7f2ab0a2058faae37f9a94b113e10b6fe0c882f31"
+    },
+    "evidence_phrases": {
+      "generation": {
+        "deterministic": true,
+        "generator": "scripts/build_eval_phrases.py",
+        "source_dictionary": "data/evidences_ru.json",
+        "source_dictionary_sha256": "8a168fbbd5a3e844ec33ad909d7c04b9bddb5b6e791daf8a13af131a67d01496"
+      },
+      "manual_review": {
+        "date": "2026-07-14",
+        "policy": "every entry records manual_reviewed or deterministic_generator; generated phrases never masquerade as reviewed",
+        "scope": "selected curated demo evidence phrases only",
+        "status": "partial"
+      },
+      "path": "data/evidence_phrases_ru.json",
+      "selected_key_count": 321,
+      "sha256": "6905e78f6f2f6f4c2868de50a66038be0bc3e157633d215dd12b5ca036590e89",
+      "source_counts": {
+        "deterministic_generator": 304,
+        "manual_reviewed": 17
+      }
+    },
+    "feature_spec": {
+      "path": "data/processed/feature_spec.json",
+      "sha256": "ec4beff383b4a9fb7db5387a4602b31dac687ca4f867de4367948e16bfe2a12f"
+    },
+    "pathology_map": {
+      "path": "data/pathology_map.json",
+      "sha256": "83cda24f6ac4b828bf5cad6d01086e939c009123e6cbc4976313f221b6fab7bc",
+      "validated": false
+    },
+    "renderer": {
+      "path": "scripts/render_cases.py",
+      "sha256": "3b8b142f7f52013e3739871c5872a7a1f176aa468291f2c468348e67944cafc5"
+    }
+  },
+  "generator": "scripts/render_cases.py",
+  "methodology": {
+    "case_text": "mechanical_templates_plus_frozen_selected_evidence_phrases",
+    "derived_not_medical_gold": [
+      "specialty_set",
+      "urgency",
+      "emergency_expected"
+    ],
+    "limitations": [
+      "pathology_map rows are not clinician-validated",
+      "pathology-derived routing and urgency fields are table-dependent",
+      "eight safety cards are the explicit manual chapter 09 exception",
+      "phrase provenance distinguishes manual review from deterministic generation; neither is clinician validation"
+    ],
+    "llm_used_for_generation_or_labeling": false,
+    "manual_case_labeling": true,
+    "manual_case_labeling_scope": "five positive and three negative safety cards only",
+    "native_gold": [
+      "pathology",
+      "differential",
+      "differential_weights",
+      "evidences",
+      "age",
+      "sex",
+      "initial_evidence"
+    ],
+    "pii_fields": []
+  },
+  "renderer_version": "ddxplus_ru_structured_v1",
+  "schema_version": 1,
+  "seed": 42,
+  "selection": {
+    "count": 48,
+    "n_by_kind": {
+      "dialog": 12,
+      "flat": 28,
+      "redflag": 8
+    },
+    "raw_row_indices": [
+      1334,
+      6590,
+      7399,
+      8341,
+      14649,
+      17009,
+      18818,
+      21874,
+      22596,
+      30897,
+      33164,
+      33958,
+      36057,
+      36993,
+      43690,
+      53672,
+      55181,
+      57570,
+      60828,
+      61299,
+      64054,
+      66475,
+      66880,
+      73659,
+      75364,
+      79942,
+      80313,
+      80782,
+      83986,
+      89373,
+      91632,
+      95888,
+      105297,
+      105489,
+      107851,
+      110938,
+      122048,
+      127053,
+      129474,
+      129485
+    ],
+    "strategy": "top_40_held_out_classes_by_frequency_seeded_min_hash_row"
+  },
+  "sets": {
+    "F": {
+      "count": "at_least_28",
+      "included_in_cases": false,
+      "location": "tests/fixtures/redflags.fixtures.ts"
+    },
+    "N": {
+      "case_ids": [
+        "rf-06",
+        "rf-07",
+        "rf-08"
+      ],
+      "count": 3,
+      "label_source": "manual_chapter_09_safety_exception"
+    },
+    "P": {
+      "case_ids": [
+        "rf-01",
+        "rf-02",
+        "rf-03",
+        "rf-04",
+        "rf-05"
+      ],
+      "count": 5,
+      "label_source": "manual_chapter_09_safety_exception"
+    }
+  },
+  "source": {
+    "decontamination": {
+      "after_rows": {
+        "test": 105723,
+        "train": 814240,
+        "validate": 104770
+      },
+      "before_rows": {
+        "test": 109732,
+        "train": 814240,
+        "validate": 108199
+      },
+      "key": [
+        "AGE",
+        "SEX",
+        "PATHOLOGY",
+        "EVIDENCES"
+      ],
+      "pairwise_overlap_after": {
+        "train_test": 0,
+        "train_validate": 0,
+        "validate_test": 0
+      },
+      "pairwise_overlap_before": {
+        "train_test": 3726,
+        "train_validate": 3429,
+        "validate_test": 391
+      },
+      "removed_rows": {
+        "test": 4009,
+        "train": 0,
+        "validate": 3429
+      },
+      "strategy": "precedence_train_validate_test"
+    },
+    "input_sha256": {
+      "test": "f7ac3eae934c85780fc9b109a6cac5771540619a02690bee6fc0ab402baec186",
+      "train": "93933e9a9a7a00d618a931deda7767485af299fe4635bf189a7c63b510e8b172",
+      "validate": "b84733533bff01daa1d47d27a0cd4d684bb54a0fc20d80aaee1250ff8ff989ed"
+    },
+    "path": "data/raw/release_test_patients.csv",
+    "selected_identity_sha256": "29be53b28637bc56b357c867175508c7e8934bc71d3fc6f922816be357eb9563",
+    "sha256": "f7ac3eae934c85780fc9b109a6cac5771540619a02690bee6fc0ab402baec186"
+  },
+  "split": "decontaminated_test"
+}

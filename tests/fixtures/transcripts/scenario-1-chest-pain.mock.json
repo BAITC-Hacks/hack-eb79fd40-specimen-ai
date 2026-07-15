@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "provenance": "mock",
+  "live_verified": false,
+  "scenario": {
+    "id": "scenario-1-chest-pain",
+    "title": "Мужчина 58 лет, боль в груди и одышка"
+  },
+  "completed_via": "chat",
+  "session_id": "473c988d-94a2-4f33-b795-a42a86c41e86",
+  "health": {
+    "ok": true,
+    "commit": "unknown",
+    "model_version": "lr-v1",
+    "llm_ok": true
+  },
+  "http": [
+    {
+      "path": "/api/healthz",
+      "status": 200
+    },
+    {
+      "path": "/api/link",
+      "status": 200
+    },
+    {
+      "path": "/api/chat/start",
+      "status": 200
+    },
+    {
+      "path": "/api/chat",
+      "status": 200
+    }
+  ],
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "Здравствуйте! Я помощник вашей поликлиники. Задам несколько коротких вопросов о самочувствии, чтобы врач подготовился к приёму. Что вас беспокоит?"
+    },
+    {
+      "role": "user",
+      "content": "Мне 58 лет, я мужчина. Сильная давящая боль в груди и одышка в покое, боль 8 из 10."
+    },
+    {
+      "role": "assistant",
+      "content": "Пожалуйста, немедленно позвоните 103 или обратитесь в приёмный покой.\nСохраняйте спокойствие: данные уже переданы врачу."
+    }
+  ],
+  "result": {
+    "anamnesis": {
+      "chief_complaint": "давящая боль в груди и одышка в покое",
+      "symptom": {
+        "onset": "сегодня",
+        "location": "грудная клетка",
+        "quality": "давящая",
+        "severity": 8,
+        "modifiers": "не указаны",
+        "associated": [
+          "одышка в покое"
+        ]
+      },
+      "past_history": [],
+      "chronic": [],
+      "allergies": [],
+      "medications": [],
+      "context": {
+        "age": 58,
+        "sex": "m",
+        "pregnancy": "na",
+        "risk_factors": []
+      }
+    },
+    "red_flags": [
+      {
+        "code": "chest_pain",
+        "label": "Боль в груди с одышкой",
+        "evidence": "боль в груди",
+        "evidence_kind": "quote",
+        "emergency": true,
+        "source_message_index": 1
+      },
+      {
+        "code": "dyspnea_rest",
+        "label": "Одышка в покое",
+        "evidence": "одышка в покое",
+        "evidence_kind": "quote",
+        "emergency": true,
+        "source_message_index": 1
+      }
+    ],
+    "urgency": "emergency",
+    "urgency_reasons": [
+      "красный флаг: Боль в груди с одышкой — цитата пациента: «боль в груди»",
+      "красный флаг: Одышка в покое — цитата пациента: «одышка в покое»",
+      "Модель воздержалась от ранжирования.",
+      "боль в груди сочетается с одышкой в покое"
+    ],
+    "routing": [
+      {
+        "specialty": "кардиология",
+        "confidence": 0.92
+      },
+      {
+        "specialty": "неотложная помощь",
+        "confidence": 0.86
+      },
+      {
+        "specialty": "терапевт",
+        "confidence": 0.2
+      }
+    ],
+    "hypothesis": {
+      "text": "Требуется срочно исключить острое сердечно-сосудистое состояние.",
+      "confidence": 0.5,
+      "disclaimer": "Это предварительная гипотеза, это не диагноз, решает врач."
+    },
+    "model": {
+      "pathologies": [],
+      "top_contributions": [],
+      "abstained": true,
+      "model_version": "lr-v1",
+      "abstain_reason": "out_of_label_space"
+    },
+    "source": "llm_fallback"
+  }
+}

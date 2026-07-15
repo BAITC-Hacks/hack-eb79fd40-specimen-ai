@@ -1,7 +1,34 @@
 node_modules
 .next
-.env
-.env.local
+.env*
+!.env.example
 *.log
 .DS_Store
 next-env.d.ts
+
+# DDXPlus raw and derived data
+data/raw/
+data/processed/
+*.csv
+*.parquet
+*.zip
+.venv/
+
+# Python generated caches
+__pycache__/
+*.py[cod]
+
+# Binary model artifacts
+models/*.bin
+models/*.pkl
+models/*.joblib
+
+# Build and worktree artifacts
+tsconfig.tsbuildinfo
+.worktrees/
+.deploy_prev_sha
+.deploy_green_sha
+.deploy.lock
+
+# Sanitized runtime smoke artifacts
+reports/live-e2e/demeu-smoke-*.json

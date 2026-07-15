@@ -1,0 +1,74 @@
+{
+  "status": "valid",
+  "source_evidence_count": 223,
+  "feature_order_count": 975,
+  "demographic_feature_count": 3,
+  "evidence_feature_count": 972,
+  "dictionary_entry_count": 987,
+  "source_codes_missing": [],
+  "feature_keys_missing": [],
+  "curated_base_codes": [
+    "E_14",
+    "E_156",
+    "E_169",
+    "E_176",
+    "E_177",
+    "E_181",
+    "E_182",
+    "E_188",
+    "E_55",
+    "E_57",
+    "E_63",
+    "E_64",
+    "E_66",
+    "E_84",
+    "E_91"
+  ],
+  "curated_feature_keys": [
+    "E_55@V_101",
+    "E_55@V_170",
+    "E_55@V_171",
+    "E_55@V_29",
+    "E_55@V_40",
+    "E_55@V_55",
+    "E_55@V_56",
+    "E_57@V_195",
+    "E_57@V_28",
+    "E_57@V_31"
+  ],
+  "demo_code_groups": {
+    "demo1_chest_pain": [
+      "E_14",
+      "E_55",
+      "E_57",
+      "E_64",
+      "E_66"
+    ],
+    "demo1_neurologic_negative": [
+      "E_156",
+      "E_176",
+      "E_177",
+      "E_63",
+      "E_84"
+    ],
+    "demo2_low_back": [
+      "E_177",
+      "E_55"
+    ],
+    "demo2_urinary_context": [
+      "E_188"
+    ],
+    "demo3_common_cold": [
+      "E_169",
+      "E_181",
+      "E_182",
+      "E_91"
+    ]
+  },
+  "mechanical_neutral_count": 962,
+  "notes": [
+    "Технические age_norm/sex_m/sex_f не являются evidence-кодами.",
+    "DDXPlus кодирует присутствующие признаки; отрицательные ответы не создают feature key.",
+    "E_188 описывает цвет мочи; отдельного evidence для мочеиспускания прямым поиском не найдено."
+  ]
+}

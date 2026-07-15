@@ -1,0 +1,1864 @@
+{
+  "cases_sha256": "49cefd34395f89126543c1279fe7ba6da22fe33f41c162d3f3126890ddc4a3f9",
+  "caveats": [
+    "top-1/top-3 измерены при ИДЕАЛЬНОМ извлечении (mode=no-llm): LLM-адаптер не участвовал, сквозное качество ниже; extraction_f1 не измерялся",
+    "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`"
+  ],
+  "commit": "1cc637d",
+  "invariants": {
+    "all_passed": true,
+    "checks": [
+      {
+        "failures": [],
+        "id": "I1",
+        "passed": true
+      },
+      {
+        "failures": [],
+        "id": "I2",
+        "passed": true
+      },
+      {
+        "failures": [],
+        "id": "I2b",
+        "passed": true
+      },
+      {
+        "failures": [],
+        "id": "I3",
+        "passed": true
+      },
+      {
+        "failures": [],
+        "id": "I4",
+        "passed": true
+      },
+      {
+        "failures": [],
+        "id": "I5",
+        "passed": true
+      },
+      {
+        "failures": [],
+        "id": "I6",
+        "passed": true
+      },
+      {
+        "failures": [],
+        "id": "I7",
+        "passed": true
+      }
+    ]
+  },
+  "metric_status": {
+    "abstain_rate": {
+      "denominator": 40,
+      "numerator": 0,
+      "state": "measured"
+    },
+    "coverage_adjusted_top1": {
+      "denominator": 40,
+      "numerator": 40,
+      "state": "measured"
+    },
+    "emergency_precision_manual": {
+      "denominator": 5,
+      "numerator": 5,
+      "state": "measured"
+    },
+    "emergency_recall_manual": {
+      "denominator": 5,
+      "numerator": 5,
+      "state": "measured"
+    },
+    "emergency_recall_table_ddx": {
+      "denominator": 7,
+      "numerator": 7,
+      "reason": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`",
+      "state": "UNVALIDATED"
+    },
+    "emergency_specificity_manual": {
+      "denominator": 3,
+      "numerator": 3,
+      "state": "measured"
+    },
+    "extraction_f1_dialog": {
+      "reason": "actual LLM extraction was not run in mode no-llm",
+      "state": "not_run"
+    },
+    "extraction_f1_flat": {
+      "reason": "actual LLM extraction was not run in mode no-llm",
+      "state": "not_run"
+    },
+    "extraction_precision_dialog": {
+      "reason": "actual LLM extraction was not run in mode no-llm",
+      "state": "not_run"
+    },
+    "extraction_precision_flat": {
+      "reason": "actual LLM extraction was not run in mode no-llm",
+      "state": "not_run"
+    },
+    "extraction_recall_dialog": {
+      "reason": "actual LLM extraction was not run in mode no-llm",
+      "state": "not_run"
+    },
+    "extraction_recall_flat": {
+      "reason": "actual LLM extraction was not run in mode no-llm",
+      "state": "not_run"
+    },
+    "pathology_top1": {
+      "denominator": 40,
+      "numerator": 40,
+      "state": "measured"
+    },
+    "pathology_top3": {
+      "denominator": 40,
+      "numerator": 40,
+      "state": "measured"
+    },
+    "routing_top1_strict": {
+      "denominator": 40,
+      "numerator": 40,
+      "reason": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`",
+      "state": "UNVALIDATED"
+    },
+    "routing_top3_differential": {
+      "denominator": 40,
+      "numerator": 40,
+      "reason": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`",
+      "state": "UNVALIDATED"
+    },
+    "routing_top3_strict": {
+      "denominator": 40,
+      "numerator": 40,
+      "reason": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`",
+      "state": "UNVALIDATED"
+    },
+    "rules_only_rate": {
+      "denominator": 40,
+      "numerator": 0,
+      "state": "measured"
+    },
+    "undertriage_rate": {
+      "denominator": 40,
+      "numerator": 0,
+      "reason": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`",
+      "state": "UNVALIDATED"
+    },
+    "urgency_accuracy": {
+      "denominator": 40,
+      "numerator": 39,
+      "reason": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`",
+      "state": "UNVALIDATED"
+    }
+  },
+  "metrics": {
+    "abstain_rate": 0,
+    "coverage_adjusted_top1": 1,
+    "emergency_precision_manual": 1,
+    "emergency_recall_manual": 1,
+    "emergency_recall_table_ddx": 1,
+    "emergency_specificity_manual": 1,
+    "extraction_f1_dialog": null,
+    "extraction_f1_flat": null,
+    "extraction_precision_dialog": null,
+    "extraction_precision_flat": null,
+    "extraction_recall_dialog": null,
+    "extraction_recall_flat": null,
+    "pathology_top1": 1,
+    "pathology_top3": 1,
+    "routing_top1_strict": 1,
+    "routing_top3_differential": 1,
+    "routing_top3_strict": 1,
+    "rules_only_rate": 0,
+    "undertriage_rate": 0,
+    "urgency_accuracy": 0.975
+  },
+  "mode": "no-llm",
+  "model_version": "lr-v1",
+  "n": {
+    "dialog": 12,
+    "flat": 28,
+    "manual_negative": 3,
+    "manual_positive": 5,
+    "pathology_gold": 40,
+    "redflag": 8,
+    "total": 48
+  },
+  "pathology_map_validated": false,
+  "per_case": [
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Myasthenia gravis",
+      "gold_specialties_differential": [
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "неврология",
+        "терапевт"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-247c15a85f94eb36",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Myasthenia gravis",
+        "Acute dystonic reactions",
+        "Bronchiectasis",
+        "Atrial fibrillation",
+        "Tuberculosis"
+      ],
+      "predicted_routing": [
+        "неврология",
+        "пульмонология",
+        "кардиология"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Pancreatic neoplasm",
+      "gold_specialties_differential": [
+        "аллергология",
+        "гастроэнтерология",
+        "инфекционист",
+        "кардиология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "гастроэнтерология",
+        "хирургия",
+        "терапевт"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-249baaa52152ff53",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Pancreatic neoplasm",
+        "Anaphylaxis",
+        "SLE",
+        "Stable angina",
+        "Influenza"
+      ],
+      "predicted_routing": [
+        "гастроэнтерология",
+        "терапевт",
+        "скорая/приёмный покой"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "GERD",
+      "gold_specialties_differential": [
+        "гастроэнтерология",
+        "инфекционист",
+        "кардиология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "гастроэнтерология",
+        "терапевт"
+      ],
+      "gold_urgency": "planned",
+      "id": "ddx-2c6dfb4ac97792d6",
+      "invariant_failures": [],
+      "kind": "dialog",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "GERD",
+        "Boerhaave",
+        "Pericarditis",
+        "Spontaneous rib fracture",
+        "Tuberculosis"
+      ],
+      "predicted_routing": [
+        "гастроэнтерология",
+        "скорая/приёмный покой",
+        "кардиология"
+      ],
+      "predicted_urgency": "planned",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Bronchitis",
+      "gold_specialties_differential": [
+        "ЛОР",
+        "гастроэнтерология",
+        "инфекционист",
+        "кардиология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "терапевт",
+        "пульмонология"
+      ],
+      "gold_urgency": "routine",
+      "id": "ddx-3494dc4ca30e6b87",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Bronchitis",
+        "Acute COPD exacerbation / infection",
+        "Pneumonia",
+        "URTI",
+        "Acute laryngitis"
+      ],
+      "predicted_routing": [
+        "терапевт",
+        "пульмонология",
+        "ЛОР"
+      ],
+      "predicted_urgency": "routine",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Acute rhinosinusitis",
+      "gold_specialties_differential": [
+        "ЛОР",
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "ЛОР",
+        "терапевт"
+      ],
+      "gold_urgency": "planned",
+      "id": "ddx-3ae7c2044606d026",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Acute rhinosinusitis",
+        "Chronic rhinosinusitis",
+        "Bronchospasm / acute asthma exacerbation",
+        "Whooping cough",
+        "Acute laryngitis"
+      ],
+      "predicted_routing": [
+        "ЛОР",
+        "пульмонология",
+        "инфекционист"
+      ],
+      "predicted_urgency": "planned",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Atrial fibrillation",
+      "gold_specialties_differential": [
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "кардиология",
+        "скорая/приёмный покой"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-3dfdd90a777e77ac",
+      "invariant_failures": [],
+      "kind": "dialog",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Atrial fibrillation",
+        "Acute COPD exacerbation / infection",
+        "Guillain-Barré syndrome",
+        "Myasthenia gravis",
+        "Acute dystonic reactions"
+      ],
+      "predicted_routing": [
+        "кардиология",
+        "неврология",
+        "пульмонология"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Anemia",
+      "gold_specialties_differential": [
+        "инфекционист",
+        "неврология",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "терапевт"
+      ],
+      "gold_urgency": "planned",
+      "id": "ddx-420965401aab14c3",
+      "invariant_failures": [],
+      "kind": "dialog",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Anemia",
+        "Chagas",
+        "Influenza",
+        "Cluster headache",
+        "URTI"
+      ],
+      "predicted_routing": [
+        "терапевт",
+        "инфекционист",
+        "неврология"
+      ],
+      "predicted_urgency": "planned",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "PSVT",
+      "gold_specialties_differential": [
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "кардиология",
+        "скорая/приёмный покой"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-49d1597309d27092",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "PSVT",
+        "Panic attack",
+        "Acute otitis media",
+        "Anemia",
+        "Pericarditis"
+      ],
+      "predicted_routing": [
+        "кардиология",
+        "терапевт",
+        "ЛОР"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Acute dystonic reactions",
+      "gold_specialties_differential": [
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "неврология",
+        "скорая/приёмный покой"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-5169795e72d06d1e",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Acute dystonic reactions",
+        "Myasthenia gravis",
+        "Bronchiectasis",
+        "Atrial fibrillation",
+        "Guillain-Barré syndrome"
+      ],
+      "predicted_routing": [
+        "неврология",
+        "пульмонология",
+        "кардиология"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "URTI",
+      "gold_specialties_differential": [
+        "ЛОР",
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "пульмонология",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "терапевт",
+        "ЛОР"
+      ],
+      "gold_urgency": "routine",
+      "id": "ddx-5644b85622bcb7e8",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "URTI",
+        "Bronchitis",
+        "Influenza",
+        "Acute laryngitis",
+        "Chagas"
+      ],
+      "predicted_routing": [
+        "терапевт",
+        "ЛОР",
+        "инфекционист"
+      ],
+      "predicted_urgency": "routine",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Inguinal hernia",
+      "gold_specialties_differential": [
+        "аллергология",
+        "инфекционист",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "хирургия",
+        "терапевт"
+      ],
+      "gold_urgency": "planned",
+      "id": "ddx-56ce1343614d44b9",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Inguinal hernia",
+        "HIV (initial infection)",
+        "SLE",
+        "Stable angina",
+        "Acute otitis media"
+      ],
+      "predicted_routing": [
+        "хирургия",
+        "инфекционист",
+        "терапевт"
+      ],
+      "predicted_urgency": "planned",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Tuberculosis",
+      "gold_specialties_differential": [
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "инфекционист",
+        "пульмонология"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-5856387ffcb50e06",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Tuberculosis",
+        "Bronchiectasis",
+        "Bronchospasm / acute asthma exacerbation",
+        "Atrial fibrillation",
+        "Pulmonary neoplasm"
+      ],
+      "predicted_routing": [
+        "инфекционист",
+        "пульмонология",
+        "кардиология"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Localized edema",
+      "gold_specialties_differential": [
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "терапевт",
+        "кардиология"
+      ],
+      "gold_urgency": "planned",
+      "id": "ddx-5ca2391f4a747496",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Localized edema",
+        "Acute laryngitis",
+        "PSVT",
+        "Acute pulmonary edema",
+        "Chagas"
+      ],
+      "predicted_routing": [
+        "терапевт",
+        "ЛОР",
+        "кардиология"
+      ],
+      "predicted_urgency": "planned",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Scombroid food poisoning",
+      "gold_specialties_differential": [
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "скорая/приёмный покой",
+        "аллергология",
+        "инфекционист"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-5fa29bf55b2239e4",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Scombroid food poisoning",
+        "Anaphylaxis",
+        "Atrial fibrillation",
+        "Acute COPD exacerbation / infection",
+        "Pancreatic neoplasm"
+      ],
+      "predicted_routing": [
+        "скорая/приёмный покой",
+        "кардиология",
+        "пульмонология"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Bronchospasm / acute asthma exacerbation",
+      "gold_specialties_differential": [
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-665c7e9806a08acc",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Bronchospasm / acute asthma exacerbation",
+        "Larygospasm",
+        "Guillain-Barré syndrome",
+        "Acute COPD exacerbation / infection",
+        "Acute dystonic reactions"
+      ],
+      "predicted_routing": [
+        "пульмонология",
+        "скорая/приёмный покой",
+        "неврология"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": true,
+      "emergency_predicted": true,
+      "gold_pathology": "Boerhaave",
+      "gold_specialties_differential": [
+        "гастроэнтерология",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "скорая/приёмный покой",
+        "хирургия"
+      ],
+      "gold_urgency": "emergency",
+      "id": "ddx-67b341555b542b31",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Boerhaave",
+        "Pericarditis",
+        "Possible NSTEMI / STEMI",
+        "Chagas",
+        "Spontaneous pneumothorax"
+      ],
+      "predicted_routing": [
+        "скорая/приёмный покой",
+        "кардиология",
+        "инфекционист"
+      ],
+      "predicted_urgency": "emergency",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Stable angina",
+      "gold_specialties_differential": [
+        "аллергология",
+        "гастроэнтерология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "кардиология",
+        "терапевт"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-689e9b0048504cda",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Stable angina",
+        "Unstable angina",
+        "Possible NSTEMI / STEMI",
+        "Pericarditis",
+        "Bronchitis"
+      ],
+      "predicted_routing": [
+        "кардиология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": true,
+      "emergency_predicted": true,
+      "gold_pathology": "Acute pulmonary edema",
+      "gold_specialties_differential": [
+        "аллергология",
+        "гастроэнтерология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "скорая/приёмный покой",
+        "кардиология"
+      ],
+      "gold_urgency": "emergency",
+      "id": "ddx-6db7fd830dab161a",
+      "invariant_failures": [],
+      "kind": "dialog",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Acute pulmonary edema",
+        "Stable angina",
+        "Localized edema",
+        "Unstable angina",
+        "Atrial fibrillation"
+      ],
+      "predicted_routing": [
+        "скорая/приёмный покой",
+        "кардиология",
+        "терапевт"
+      ],
+      "predicted_urgency": "emergency",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Sarcoidosis",
+      "gold_specialties_differential": [
+        "инфекционист",
+        "кардиология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "пульмонология",
+        "терапевт"
+      ],
+      "gold_urgency": "planned",
+      "id": "ddx-6e566ff4bee40d23",
+      "invariant_failures": [],
+      "kind": "dialog",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Sarcoidosis",
+        "Pancreatic neoplasm",
+        "Inguinal hernia",
+        "Myocarditis",
+        "SLE"
+      ],
+      "predicted_routing": [
+        "пульмонология",
+        "гастроэнтерология",
+        "хирургия"
+      ],
+      "predicted_urgency": "planned",
+      "source": "model"
+    },
+    {
+      "emergency_expected": true,
+      "emergency_predicted": true,
+      "gold_pathology": "Pulmonary embolism",
+      "gold_specialties_differential": [
+        "кардиология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "скорая/приёмный покой",
+        "пульмонология",
+        "кардиология"
+      ],
+      "gold_urgency": "emergency",
+      "id": "ddx-6fcfa756c010b7ee",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Pulmonary embolism",
+        "Acute otitis media",
+        "Acute pulmonary edema",
+        "Viral pharyngitis",
+        "Panic attack"
+      ],
+      "predicted_routing": [
+        "скорая/приёмный покой",
+        "ЛОР",
+        "терапевт"
+      ],
+      "predicted_urgency": "emergency",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Viral pharyngitis",
+      "gold_specialties_differential": [
+        "ЛОР",
+        "кардиология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "терапевт",
+        "ЛОР"
+      ],
+      "gold_urgency": "routine",
+      "id": "ddx-7aeec3d24a0e2488",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Viral pharyngitis",
+        "Pulmonary neoplasm",
+        "Epiglottitis",
+        "Acute laryngitis",
+        "Spontaneous pneumothorax"
+      ],
+      "predicted_routing": [
+        "терапевт",
+        "скорая/приёмный покой",
+        "пульмонология"
+      ],
+      "predicted_urgency": "routine",
+      "source": "model"
+    },
+    {
+      "emergency_expected": true,
+      "emergency_predicted": true,
+      "gold_pathology": "Epiglottitis",
+      "gold_specialties_differential": [
+        "ЛОР",
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "скорая/приёмный покой",
+        "ЛОР"
+      ],
+      "gold_urgency": "emergency",
+      "id": "ddx-87343904ee835b75",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Epiglottitis",
+        "Acute laryngitis",
+        "Acute rhinosinusitis",
+        "Tuberculosis",
+        "Chagas"
+      ],
+      "predicted_routing": [
+        "скорая/приёмный покой",
+        "ЛОР",
+        "инфекционист"
+      ],
+      "predicted_urgency": "emergency",
+      "source": "model"
+    },
+    {
+      "emergency_expected": true,
+      "emergency_predicted": true,
+      "gold_pathology": "Anaphylaxis",
+      "gold_specialties_differential": [
+        "ЛОР",
+        "аллергология",
+        "гастроэнтерология",
+        "инфекционист",
+        "кардиология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "скорая/приёмный покой",
+        "аллергология"
+      ],
+      "gold_urgency": "emergency",
+      "id": "ddx-88ad7f96be2e0561",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Anaphylaxis",
+        "Scombroid food poisoning",
+        "Inguinal hernia",
+        "Larygospasm",
+        "Panic attack"
+      ],
+      "predicted_routing": [
+        "скорая/приёмный покой",
+        "хирургия",
+        "терапевт"
+      ],
+      "predicted_urgency": "emergency",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Pulmonary neoplasm",
+      "gold_specialties_differential": [
+        "гастроэнтерология",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "пульмонология",
+        "хирургия",
+        "терапевт"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-8d1d5d5451c26a48",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Pulmonary neoplasm",
+        "Myocarditis",
+        "Anemia",
+        "SLE",
+        "Pulmonary embolism"
+      ],
+      "predicted_routing": [
+        "пульмонология",
+        "кардиология",
+        "терапевт"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Influenza",
+      "gold_specialties_differential": [
+        "ЛОР",
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "терапевт",
+        "инфекционист"
+      ],
+      "gold_urgency": "planned",
+      "id": "ddx-92a3e13d0ece266b",
+      "invariant_failures": [],
+      "kind": "dialog",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Influenza",
+        "Anemia",
+        "Pulmonary neoplasm",
+        "HIV (initial infection)",
+        "SLE"
+      ],
+      "predicted_routing": [
+        "терапевт",
+        "пульмонология",
+        "инфекционист"
+      ],
+      "predicted_urgency": "planned",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Cluster headache",
+      "gold_specialties_differential": [
+        "неврология",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "неврология",
+        "терапевт"
+      ],
+      "gold_urgency": "planned",
+      "id": "ddx-9483b48d69c24ed7",
+      "invariant_failures": [],
+      "kind": "dialog",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Cluster headache",
+        "Chronic rhinosinusitis",
+        "Acute otitis media",
+        "URTI",
+        "Anemia"
+      ],
+      "predicted_routing": [
+        "неврология",
+        "ЛОР",
+        "терапевт"
+      ],
+      "predicted_urgency": "planned",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Pericarditis",
+      "gold_specialties_differential": [
+        "аллергология",
+        "гастроэнтерология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "кардиология",
+        "скорая/приёмный покой"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-9a2118aef4957755",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Pericarditis",
+        "Spontaneous pneumothorax",
+        "Spontaneous rib fracture",
+        "Boerhaave",
+        "Acute rhinosinusitis"
+      ],
+      "predicted_routing": [
+        "кардиология",
+        "скорая/приёмный покой",
+        "хирургия"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Myocarditis",
+      "gold_specialties_differential": [
+        "аллергология",
+        "гастроэнтерология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "кардиология",
+        "скорая/приёмный покой"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-a3467ca1b6cd3b8f",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Myocarditis",
+        "Pericarditis",
+        "Bronchitis",
+        "Spontaneous pneumothorax",
+        "Acute pulmonary edema"
+      ],
+      "predicted_routing": [
+        "кардиология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Acute COPD exacerbation / infection",
+      "gold_specialties_differential": [
+        "аллергология",
+        "инфекционист",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "пульмонология",
+        "терапевт"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-a651821e019707d9",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Acute COPD exacerbation / infection",
+        "Tuberculosis",
+        "Bronchitis",
+        "Atrial fibrillation",
+        "Bronchospasm / acute asthma exacerbation"
+      ],
+      "predicted_routing": [
+        "пульмонология",
+        "инфекционист",
+        "терапевт"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Pneumonia",
+      "gold_specialties_differential": [
+        "ЛОР",
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "пульмонология",
+        "терапевт"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-a9ea060bea710aa4",
+      "invariant_failures": [],
+      "kind": "dialog",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Pneumonia",
+        "Spontaneous pneumothorax",
+        "Pulmonary neoplasm",
+        "Influenza",
+        "Spontaneous rib fracture"
+      ],
+      "predicted_routing": [
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": true,
+      "emergency_predicted": true,
+      "gold_pathology": "Unstable angina",
+      "gold_specialties_differential": [
+        "гастроэнтерология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "скорая/приёмный покой",
+        "кардиология"
+      ],
+      "gold_urgency": "emergency",
+      "id": "ddx-ac9eafdf0754d52a",
+      "invariant_failures": [],
+      "kind": "dialog",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Unstable angina",
+        "Possible NSTEMI / STEMI",
+        "Atrial fibrillation",
+        "Pancreatic neoplasm",
+        "Acute pulmonary edema"
+      ],
+      "predicted_routing": [
+        "скорая/приёмный покой",
+        "кардиология",
+        "гастроэнтерология"
+      ],
+      "predicted_urgency": "emergency",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Guillain-Barré syndrome",
+      "gold_specialties_differential": [
+        "неврология",
+        "скорая/приёмный покой"
+      ],
+      "gold_specialties_strict": [
+        "неврология",
+        "скорая/приёмный покой"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-b37f6c2ea5441828",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Guillain-Barré syndrome",
+        "Myasthenia gravis",
+        "Larygospasm",
+        "Allergic sinusitis",
+        "Pericarditis"
+      ],
+      "predicted_routing": [
+        "неврология",
+        "скорая/приёмный покой",
+        "аллергология"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Chronic rhinosinusitis",
+      "gold_specialties_differential": [
+        "ЛОР",
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "ЛОР",
+        "аллергология"
+      ],
+      "gold_urgency": "routine",
+      "id": "ddx-c09a5133abca889c",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Chronic rhinosinusitis",
+        "Acute rhinosinusitis",
+        "Bronchospasm / acute asthma exacerbation",
+        "Cluster headache",
+        "Bronchiectasis"
+      ],
+      "predicted_routing": [
+        "ЛОР",
+        "пульмонология",
+        "неврология"
+      ],
+      "predicted_urgency": "planned",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Acute otitis media",
+      "gold_specialties_differential": [
+        "ЛОР",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "ЛОР",
+        "терапевт"
+      ],
+      "gold_urgency": "planned",
+      "id": "ddx-c4c2fa39acfad341",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Acute otitis media",
+        "Acute laryngitis",
+        "Chagas",
+        "Epiglottitis",
+        "SLE"
+      ],
+      "predicted_routing": [
+        "ЛОР",
+        "инфекционист",
+        "скорая/приёмный покой"
+      ],
+      "predicted_urgency": "planned",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Bronchiectasis",
+      "gold_specialties_differential": [
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "пульмонология",
+        "терапевт"
+      ],
+      "gold_urgency": "planned",
+      "id": "ddx-d016424e8d09f368",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Bronchiectasis",
+        "Guillain-Barré syndrome",
+        "Myasthenia gravis",
+        "Acute dystonic reactions",
+        "Bronchospasm / acute asthma exacerbation"
+      ],
+      "predicted_routing": [
+        "пульмонология",
+        "неврология"
+      ],
+      "predicted_urgency": "planned",
+      "source": "model"
+    },
+    {
+      "emergency_expected": true,
+      "emergency_predicted": true,
+      "gold_pathology": "Possible NSTEMI / STEMI",
+      "gold_specialties_differential": [
+        "аллергология",
+        "гастроэнтерология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "скорая/приёмный покой",
+        "кардиология"
+      ],
+      "gold_urgency": "emergency",
+      "id": "ddx-d39289a94b526312",
+      "invariant_failures": [],
+      "kind": "dialog",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Possible NSTEMI / STEMI",
+        "Unstable angina",
+        "Acute pulmonary edema",
+        "GERD",
+        "Panic attack"
+      ],
+      "predicted_routing": [
+        "скорая/приёмный покой",
+        "гастроэнтерология",
+        "терапевт"
+      ],
+      "predicted_urgency": "emergency",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "HIV (initial infection)",
+      "gold_specialties_differential": [
+        "аллергология",
+        "инфекционист",
+        "кардиология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "инфекционист",
+        "терапевт"
+      ],
+      "gold_urgency": "urgent",
+      "id": "ddx-d63cf80e1e91dd86",
+      "invariant_failures": [],
+      "kind": "dialog",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "HIV (initial infection)",
+        "URTI",
+        "Inguinal hernia",
+        "Pancreatic neoplasm",
+        "Acute laryngitis"
+      ],
+      "predicted_routing": [
+        "инфекционист",
+        "терапевт",
+        "хирургия"
+      ],
+      "predicted_urgency": "urgent",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Panic attack",
+      "gold_specialties_differential": [
+        "аллергология",
+        "гастроэнтерология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "терапевт",
+        "неврология"
+      ],
+      "gold_urgency": "routine",
+      "id": "ddx-dcee7b401bdb7e78",
+      "invariant_failures": [],
+      "kind": "dialog",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Panic attack",
+        "Anaphylaxis",
+        "Bronchitis",
+        "Guillain-Barré syndrome",
+        "Chagas"
+      ],
+      "predicted_routing": [
+        "терапевт",
+        "скорая/приёмный покой",
+        "неврология"
+      ],
+      "predicted_urgency": "routine",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "SLE",
+      "gold_specialties_differential": [
+        "аллергология",
+        "гастроэнтерология",
+        "инфекционист",
+        "кардиология",
+        "неврология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт",
+        "хирургия"
+      ],
+      "gold_specialties_strict": [
+        "терапевт"
+      ],
+      "gold_urgency": "planned",
+      "id": "ddx-edbd5a5561278dfc",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "SLE",
+        "Acute otitis media",
+        "Pancreatic neoplasm",
+        "Pericarditis",
+        "Anemia"
+      ],
+      "predicted_routing": [
+        "терапевт",
+        "ЛОР",
+        "гастроэнтерология"
+      ],
+      "predicted_urgency": "planned",
+      "source": "model"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": "Acute laryngitis",
+      "gold_specialties_differential": [
+        "ЛОР",
+        "инфекционист",
+        "кардиология",
+        "пульмонология",
+        "скорая/приёмный покой",
+        "терапевт"
+      ],
+      "gold_specialties_strict": [
+        "ЛОР",
+        "терапевт"
+      ],
+      "gold_urgency": "routine",
+      "id": "ddx-f49e94916c537c42",
+      "invariant_failures": [],
+      "kind": "flat",
+      "model_abstained": false,
+      "predicted_pathologies": [
+        "Acute laryngitis",
+        "Viral pharyngitis",
+        "Epiglottitis",
+        "Bronchitis",
+        "Acute rhinosinusitis"
+      ],
+      "predicted_routing": [
+        "ЛОР",
+        "терапевт",
+        "скорая/приёмный покой"
+      ],
+      "predicted_urgency": "routine",
+      "source": "model"
+    },
+    {
+      "emergency_expected": true,
+      "emergency_predicted": true,
+      "gold_pathology": null,
+      "gold_specialties_differential": [
+        "кардиология"
+      ],
+      "gold_specialties_strict": [],
+      "gold_urgency": "emergency",
+      "id": "rf-01",
+      "invariant_failures": [],
+      "kind": "redflag",
+      "model_abstained": true,
+      "predicted_pathologies": [],
+      "predicted_routing": [
+        "не измерено"
+      ],
+      "predicted_urgency": "emergency",
+      "source": "llm_fallback"
+    },
+    {
+      "emergency_expected": true,
+      "emergency_predicted": true,
+      "gold_pathology": null,
+      "gold_specialties_differential": [
+        "неврология"
+      ],
+      "gold_specialties_strict": [],
+      "gold_urgency": "emergency",
+      "id": "rf-02",
+      "invariant_failures": [],
+      "kind": "redflag",
+      "model_abstained": true,
+      "predicted_pathologies": [],
+      "predicted_routing": [
+        "не измерено"
+      ],
+      "predicted_urgency": "emergency",
+      "source": "llm_fallback"
+    },
+    {
+      "emergency_expected": true,
+      "emergency_predicted": true,
+      "gold_pathology": null,
+      "gold_specialties_differential": [
+        "скорая/приёмный покой"
+      ],
+      "gold_specialties_strict": [],
+      "gold_urgency": "emergency",
+      "id": "rf-03",
+      "invariant_failures": [],
+      "kind": "redflag",
+      "model_abstained": true,
+      "predicted_pathologies": [],
+      "predicted_routing": [
+        "не измерено"
+      ],
+      "predicted_urgency": "emergency",
+      "source": "llm_fallback"
+    },
+    {
+      "emergency_expected": true,
+      "emergency_predicted": true,
+      "gold_pathology": null,
+      "gold_specialties_differential": [
+        "неврология"
+      ],
+      "gold_specialties_strict": [],
+      "gold_urgency": "emergency",
+      "id": "rf-04",
+      "invariant_failures": [],
+      "kind": "redflag",
+      "model_abstained": true,
+      "predicted_pathologies": [],
+      "predicted_routing": [
+        "не измерено"
+      ],
+      "predicted_urgency": "emergency",
+      "source": "llm_fallback"
+    },
+    {
+      "emergency_expected": true,
+      "emergency_predicted": true,
+      "gold_pathology": null,
+      "gold_specialties_differential": [
+        "неврология"
+      ],
+      "gold_specialties_strict": [],
+      "gold_urgency": "emergency",
+      "id": "rf-05",
+      "invariant_failures": [],
+      "kind": "redflag",
+      "model_abstained": true,
+      "predicted_pathologies": [],
+      "predicted_routing": [
+        "не измерено"
+      ],
+      "predicted_urgency": "emergency",
+      "source": "llm_fallback"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": null,
+      "gold_specialties_differential": [],
+      "gold_specialties_strict": [],
+      "gold_urgency": "routine",
+      "id": "rf-06",
+      "invariant_failures": [],
+      "kind": "redflag",
+      "model_abstained": true,
+      "predicted_pathologies": [],
+      "predicted_routing": [
+        "не измерено"
+      ],
+      "predicted_urgency": "planned",
+      "source": "llm_fallback"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": null,
+      "gold_specialties_differential": [],
+      "gold_specialties_strict": [],
+      "gold_urgency": "routine",
+      "id": "rf-07",
+      "invariant_failures": [],
+      "kind": "redflag",
+      "model_abstained": true,
+      "predicted_pathologies": [],
+      "predicted_routing": [
+        "не измерено"
+      ],
+      "predicted_urgency": "planned",
+      "source": "llm_fallback"
+    },
+    {
+      "emergency_expected": false,
+      "emergency_predicted": false,
+      "gold_pathology": null,
+      "gold_specialties_differential": [],
+      "gold_specialties_strict": [],
+      "gold_urgency": "routine",
+      "id": "rf-08",
+      "invariant_failures": [],
+      "kind": "redflag",
+      "model_abstained": true,
+      "predicted_pathologies": [],
+      "predicted_routing": [
+        "не измерено"
+      ],
+      "predicted_urgency": "planned",
+      "source": "llm_fallback"
+    }
+  ],
+  "provenance": {
+    "cases": {
+      "path": "eval/cases.jsonl",
+      "sha256": "49cefd34395f89126543c1279fe7ba6da22fe33f41c162d3f3126890ddc4a3f9"
+    },
+    "dictionary": {
+      "path": "data/evidences_ru.json",
+      "sha256": "8a168fbbd5a3e844ec33ad909d7c04b9bddb5b6e791daf8a13af131a67d01496"
+    },
+    "evaluator": {
+      "path": "scripts/eval.ts",
+      "sha256": "b93be5daa41d2dff3a2ea00b1ec629e199d9f65584a899494c5748ef16fcfb08"
+    },
+    "manifest": {
+      "path": "eval/manifest.json",
+      "sha256": "4de7deb59d1e552b676031852603c1becb48d66e1f59e22f8f30f3206024a2f2"
+    },
+    "model": {
+      "path": "models/triage-lr-v1.json",
+      "sha256": "3ddc467e753ef325a3bb83ddbe1997bd7ad8b108659c9cf72e37e50eeb7142ab"
+    },
+    "pathology_map": {
+      "path": "data/pathology_map.json",
+      "sha256": "83cda24f6ac4b828bf5cad6d01086e939c009123e6cbc4976313f221b6fab7bc"
+    }
+  },
+  "readme_guard": {
+    "allowed_metrics": [
+      "pathology_top1",
+      "pathology_top3",
+      "coverage_adjusted_top1",
+      "abstain_rate",
+      "rules_only_rate",
+      "emergency_recall_manual",
+      "emergency_precision_manual",
+      "emergency_specificity_manual"
+    ],
+    "blocked_metrics": {
+      "emergency_recall_table_ddx": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`",
+      "routing_top1_strict": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`",
+      "routing_top3_differential": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`",
+      "routing_top3_strict": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`",
+      "undertriage_rate": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`",
+      "urgency_accuracy": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`"
+    },
+    "required_hashes": {
+      "cases": "49cefd34395f89126543c1279fe7ba6da22fe33f41c162d3f3126890ddc4a3f9",
+      "dictionary": "8a168fbbd5a3e844ec33ad909d7c04b9bddb5b6e791daf8a13af131a67d01496",
+      "evaluator": "b93be5daa41d2dff3a2ea00b1ec629e199d9f65584a899494c5748ef16fcfb08",
+      "manifest": "4de7deb59d1e552b676031852603c1becb48d66e1f59e22f8f30f3206024a2f2",
+      "model": "3ddc467e753ef325a3bb83ddbe1997bd7ad8b108659c9cf72e37e50eeb7142ab",
+      "pathology_map": "83cda24f6ac4b828bf5cad6d01086e939c009123e6cbc4976313f221b6fab7bc"
+    },
+    "required_mode": "no-llm",
+    "status": "PARTIAL"
+  },
+  "run_id": "no-llm-e1b367afffae834a",
+  "schema_version": 1
+}

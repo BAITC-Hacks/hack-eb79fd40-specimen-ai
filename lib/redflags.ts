@@ -1,11 +1,4 @@
-import type { Anamnesis, RedFlag } from "./types";
-
-// Rule-based детекция красных флагов.
-// Сознательно НЕ на «чёрном ящике»: каждый флаг объясним и опирается на
-// конкретный фрагмент текста — это закрывает критерий explainability.
-//
-// ВАЖНО (MVP): список согласуется с практикующими врачами (задача валидации
-// в ClickUp). Здесь — разумный базовый набор для демо, не клинический стандарт.
+import type { Anamnesis, ChatMessage, RedFlag } from "./types";
 
 interface Rule {
   code: string;
@@ -14,105 +7,223 @@ interface Rule {
   patterns: RegExp[];
 }
 
-const RULES: Rule[] = [
+export const RULES: readonly Rule[] = [
   {
     code: "chest_pain",
     label: "Боль в груди с одышкой",
     emergency: true,
-    patterns: [/бол\w*\s+в\s+груд/i, /давит\w*\s+груд/i, /жжени\w*\s+за\s+грудин/i],
+    patterns: [
+      /(?:бол\p{L}*\s+в\s+груд\p{L}*|бол\p{L}*\s+(?:ли\s+)?(?:у\s+вас\s+)?груд\p{L}*)/iu,
+      /давит\p{L}*\s+(?:в\s+)?груд\p{L}*/iu,
+      /жжени\p{L}*\s+за\s+грудин\p{L}*/iu,
+    ],
   },
   {
     code: "stroke",
     label: "Признаки инсульта",
     emergency: true,
     patterns: [
-      /перекос\w*\s+лиц/i,
-      /слабост\w*\s+в\s+рук/i,
-      /наруш\w*\s+реч/i,
-      /онемел\w*\s+половин/i,
+      /перекос\p{L}*\s+лиц\p{L}*/iu,
+      /слабост\p{L}*\s+в\s+рук\p{L}*/iu,
+      /(?:наруш\p{L}*\s+реч\p{L}*|реч\p{L}*\s+наруш\p{L}*)/iu,
+      /онемел\p{L}*\s+половин\p{L}*/iu,
     ],
   },
   {
     code: "bleeding",
     label: "Кровотечение / кровь в рвоте или стуле",
     emergency: true,
-    patterns: [/кровотечен/i, /рвот\w*\s+с\s+кров/i, /стул\w*\s+с\s+кров/i, /кров\w*\s+в\s+стул/i],
+    patterns: [
+      /кровотечен\p{L}*/iu,
+      /рвот\p{L}*\s+с\s+кров\p{L}*/iu,
+      /стул\p{L}*\s+с\s+кров\p{L}*/iu,
+      /кров\p{L}*\s+в\s+стул\p{L}*/iu,
+    ],
   },
   {
     code: "thunderclap_headache",
     label: "Внезапная сильнейшая головная боль",
     emergency: true,
-    patterns: [/сильнейш\w*\s+головн\w*\s+бол/i, /худш\w*\s+головн\w*\s+бол/i, /как\s+удар\w*\s+в\s+голов/i],
+    patterns: [
+      /сильнейш\p{L}*\s+головн\p{L}*\s+бол\p{L}*/iu,
+      /худш\p{L}*\s+головн\p{L}*\s+бол\p{L}*/iu,
+      /как\s+удар\p{L}*\s+в\s+голов\p{L}*/iu,
+    ],
   },
   {
     code: "consciousness",
     label: "Нарушение сознания / судороги",
     emergency: true,
-    patterns: [/потер\w*\s+сознани/i, /судорог/i, /обморок/i, /спутанн\w*\s+сознани/i],
+    patterns: [
+      /потер\p{L}*\s+сознани\p{L}*/iu,
+      /судорог\p{L}*/iu,
+      /обморок\p{L}*/iu,
+      /спутанн\p{L}*\s+сознани\p{L}*/iu,
+    ],
   },
   {
     code: "dyspnea_rest",
     label: "Одышка в покое",
     emergency: true,
-    patterns: [/одышк\w*\s+в\s+поко/i, /не\s+могу\s+дышать/i, /задыха\w+/i],
+    patterns: [
+      /одышк\p{L}*\s+в\s+поко\p{L}*/iu,
+      /не\s+могу\s+дышать\p{L}*/iu,
+      /задыха\p{L}*/iu,
+    ],
   },
   {
     code: "suicidal",
     label: "Суицидальные мысли",
     emergency: true,
-    patterns: [/суицид/i, /не\s+хочу\s+жить/i, /покончить\s+с\s+собой/i],
+    patterns: [
+      /суицид\p{L}*/iu,
+      /не\s+хочу\s+жить\p{L}*/iu,
+      /покончить\p{L}*\s+с\s+собой\p{L}*/iu,
+    ],
   },
   {
     code: "meningeal",
     label: "Температура + ригидность шеи + светобоязнь",
     emergency: true,
-    patterns: [/ригидност\w*\s+ше/i, /светобоязн/i, /не\s+могу\s+наклонить\s+голов/i],
+    patterns: [
+      /ригидност\p{L}*\s+ше\p{L}*/iu,
+      /светобоязн\p{L}*/iu,
+      /не\s+могу\s+наклонить\p{L}*\s+голов\p{L}*/iu,
+    ],
   },
 ];
 
-// Дополнительные факторы риска из структуры (не 103, но повышают приоритет).
-function contextFlags(a: Anamnesis): RedFlag[] {
-  const flags: RedFlag[] = [];
-  if (a.context.pregnancy === "yes") {
-    const bleed = /кров|бол\w*\s+в\s+живот/i.test(
-      a.chief_complaint + " " + a.symptom.associated.join(" ")
-    );
-    if (bleed) {
-      flags.push({
-        code: "pregnancy_risk",
-        label: "Беременность + боль/кровотечение",
-        evidence: "беременность в анамнезе + жалоба на боль/кровотечение",
-        emergency: false,
-      });
-    }
+export const CONTEXT_PATTERN_RULES: readonly Rule[] = [
+  {
+    code: "pregnancy_risk",
+    label: "Беременность + боль/кровотечение",
+    emergency: false,
+    patterns: [/(?:кров\p{L}*|бол\p{L}*\s+в\s+живот\p{L}*)/iu],
+  },
+];
+
+const CLAUSE_BOUNDARY = /[.,;!?]|\s+(?:и|а|но)\s+/gu;
+const NEGATION_BEFORE =
+  /(?:^|\s)(?:не|нет|без|отрицаю|отрицает)\s+$/iu;
+const NEGATION_AFTER =
+  /^\s*(?:[\p{L}\p{N}_-]+\s+){0,2}(?:нет|не\s+было|не\s+бывает|не\s+беспокоит|не\s+болит|отсутствует|не\s+замеча(?:л|ла)|не\s+чувствую|не\s+наблюдается)(?!\p{L})/iu;
+const SHORT_AFFIRMATION =
+  /^\s*(?:да|ага|угу|есть|бывает|верно|точно|правда|конечно)\s*[,.!]?\s*$/iu;
+
+function clauses(text: string): string[] {
+  const result: string[] = [];
+  let last = 0;
+  CLAUSE_BOUNDARY.lastIndex = 0;
+  let boundary: RegExpExecArray | null;
+
+  while ((boundary = CLAUSE_BOUNDARY.exec(text))) {
+    result.push(text.slice(last, boundary.index));
+    last = boundary.index + boundary[0].length;
   }
-  if (a.context.age !== null && a.context.age >= 65 && a.symptom.severity >= 7) {
-    flags.push({
-      code: "elderly_severe",
-      label: "Пожилой возраст + выраженная симптоматика",
-      evidence: `возраст ${a.context.age}, сила ${a.symptom.severity}/10`,
-      emergency: false,
-    });
-  }
-  return flags;
+  result.push(text.slice(last));
+  return result;
 }
 
-// transcript — весь текст диалога пациента; anamnesis — структурированный разбор.
-export function detectRedFlags(transcript: string, a: Anamnesis): RedFlag[] {
-  const found: RedFlag[] = [];
-  for (const rule of RULES) {
-    for (const p of rule.patterns) {
-      const m = transcript.match(p);
-      if (m) {
-        found.push({
-          code: rule.code,
-          label: rule.label,
-          evidence: `в тексте: «${m[0]}»`,
-          emergency: rule.emergency,
-        });
-        break;
+function isNegated(clause: string, start: number, end: number): boolean {
+  return (
+    NEGATION_BEFORE.test(clause.slice(0, start)) ||
+    NEGATION_AFTER.test(clause.slice(end))
+  );
+}
+
+function matchRule(text: string, rule: Rule): string | undefined {
+  for (const clause of clauses(text)) {
+    for (const pattern of rule.patterns) {
+      const match = pattern.exec(clause);
+      if (
+        match?.index !== undefined &&
+        !isNegated(clause, match.index, match.index + match[0].length)
+      ) {
+        return match[0];
       }
     }
   }
-  return [...found, ...contextFlags(a)];
+  return undefined;
+}
+
+function precedingQuestion(
+  messages: readonly ChatMessage[],
+  userMessageIndex: number
+): string | undefined {
+  const answer = messages[userMessageIndex].content;
+  if (!SHORT_AFFIRMATION.test(answer)) return undefined;
+
+  const previous = messages[userMessageIndex - 1];
+  return previous?.role === "assistant" ? previous.content : undefined;
+}
+
+export function detectRedFlags(messages: readonly ChatMessage[]): RedFlag[] {
+  const found: RedFlag[] = [];
+
+  for (const rule of RULES) {
+    for (let index = 0; index < messages.length; index += 1) {
+      const message = messages[index];
+      if (message.role !== "user") continue;
+
+      const elicitedBy = precedingQuestion(messages, index);
+      const matched = matchRule(elicitedBy ?? message.content, rule);
+      if (!matched) continue;
+
+      found.push({
+        code: rule.code,
+        label: rule.label,
+        evidence: elicitedBy ? message.content : matched,
+        evidence_kind: "quote",
+        emergency: rule.emergency,
+        source_message_index: index,
+        ...(elicitedBy ? { elicited_by: elicitedBy } : {}),
+      });
+      break;
+    }
+  }
+
+  return found;
+}
+
+export function contextFlags(
+  anamnesis: Anamnesis,
+  _messages: readonly ChatMessage[]
+): RedFlag[] {
+  void _messages;
+  const found: RedFlag[] = [];
+
+  if (anamnesis.context.pregnancy === "yes") {
+    const complaint = [
+      anamnesis.chief_complaint,
+      ...anamnesis.symptom.associated,
+    ].join(" ");
+    const rule = CONTEXT_PATTERN_RULES[0];
+    if (matchRule(complaint, rule)) {
+      found.push({
+        code: rule.code,
+        label: rule.label,
+        evidence: "беременность + жалоба на боль/кровотечение",
+        evidence_kind: "derived",
+        emergency: rule.emergency,
+        source_message_index: -1,
+      });
+    }
+  }
+
+  if (
+    anamnesis.context.age !== null &&
+    anamnesis.context.age >= 65 &&
+    anamnesis.symptom.severity >= 7
+  ) {
+    found.push({
+      code: "elderly_severe",
+      label: "Пожилой возраст + выраженная симптоматика",
+      evidence: `возраст ${anamnesis.context.age}, сила ${anamnesis.symptom.severity}/10`,
+      evidence_kind: "derived",
+      emergency: false,
+      source_message_index: -1,
+    });
+  }
+
+  return found;
 }

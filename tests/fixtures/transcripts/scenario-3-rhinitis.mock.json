@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "provenance": "mock",
+  "live_verified": false,
+  "scenario": {
+    "id": "scenario-3-rhinitis",
+    "title": "Насморк один день"
+  },
+  "completed_via": "chat",
+  "session_id": "c6dfc0ad-b956-4d13-b0a7-91ceb165e4c9",
+  "health": {
+    "ok": true,
+    "commit": "unknown",
+    "model_version": "lr-v1",
+    "llm_ok": true
+  },
+  "http": [
+    {
+      "path": "/api/healthz",
+      "status": 200
+    },
+    {
+      "path": "/api/link",
+      "status": 200
+    },
+    {
+      "path": "/api/chat/start",
+      "status": 200
+    },
+    {
+      "path": "/api/chat",
+      "status": 200
+    },
+    {
+      "path": "/api/chat",
+      "status": 200
+    }
+  ],
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "Здравствуйте! Я помощник вашей поликлиники. Задам несколько коротких вопросов о самочувствии, чтобы врач подготовился к приёму. Что вас беспокоит?"
+    },
+    {
+      "role": "user",
+      "content": "Мне 27 лет, я мужчина. Со вчера насморк, немного чихаю."
+    },
+    {
+      "role": "assistant",
+      "content": "Есть ли температура, боль в горле или другие жалобы?"
+    },
+    {
+      "role": "user",
+      "content": "Температуры нет, горло не болит, других жалоб нет."
+    },
+    {
+      "role": "assistant",
+      "content": "Спасибо, я передаю данные врачу."
+    }
+  ],
+  "result": {
+    "anamnesis": {
+      "chief_complaint": "насморк и чихание один день",
+      "symptom": {
+        "onset": "вчера",
+        "location": "нос",
+        "quality": "насморк",
+        "severity": 2,
+        "modifiers": "не указаны",
+        "associated": [
+          "чихание"
+        ]
+      },
+      "past_history": [],
+      "chronic": [],
+      "allergies": [],
+      "medications": [],
+      "context": {
+        "age": 27,
+        "sex": "m",
+        "pregnancy": "na",
+        "risk_factors": []
+      }
+    },
+    "red_flags": [],
+    "urgency": "routine",
+    "urgency_reasons": [
+      "Модель воздержалась от ранжирования.",
+      "лёгкие симптомы продолжаются один день"
+    ],
+    "routing": [
+      {
+        "specialty": "терапевт",
+        "confidence": 0.55
+      }
+    ],
+    "hypothesis": {
+      "text": "Картина соответствует лёгкому состоянию верхних дыхательных путей.",
+      "confidence": 0.35,
+      "disclaimer": "Это предварительная гипотеза, это не диагноз, решает врач."
+    },
+    "model": {
+      "pathologies": [],
+      "top_contributions": [],
+      "abstained": true,
+      "model_version": "lr-v1",
+      "abstain_reason": "out_of_label_space"
+    },
+    "source": "llm_fallback"
+  }
+}
