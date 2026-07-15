@@ -148,3 +148,24 @@ contains a doctor/patient token, session identifier, transcript, quote, or crede
 does not print the artifact path. Public API responses do not expose delivery state. Telegram
 acceptance therefore remains a separate operator check; a Bot API HTTP 200 with message/document
 result identifiers proves API acceptance, not that a person read the summary.
+
+### One-shot scenario 1 evidence harness
+
+For a newly deployed commit, `deploy/smoke-scenario1-once.sh` persists the exact seven-request
+scenario-1 sequence: health, link, start, one chat line, finalize, finalize replay, and completed-chat
+`409`. It requires the canonical host, an exact seven-character lowercase `EXPECTED_COMMIT`, and a
+separate production opt-in. The fixed marker is
+`reports/live-e2e/prod-s1-<commit>-once.json`; it is reserved with exclusive mode `0600` before the
+first request. An existing marker fails before fetch, so there is no automatic rerun.
+
+```bash
+EXPECTED_COMMIT=<deployed-short-sha> \
+DEMEU_SCENARIO1_LIVE=I_AUTHORIZE_ONE_PRODUCTION_SCENARIO1_ONCE \
+  npm run e2e:scenario1:production-once
+```
+
+This command is a separately authorized paid production check and must not be run merely to test the
+harness. The existing `prod-s1-e0f3f43-once.json` artifact remains untouched and ignored. Its
+semantics and privacy were independently accepted and are now cross-corroborated by the persisted
+harness, which was added after that run; the repository does not claim the historical run was
+retroactively executed by this code.

@@ -6,10 +6,12 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 export const CANONICAL_BASE = "https://109-123-248-16.sslip.io";
 export const L1_OPT_IN = "I_ACCEPT_PRODUCTION_SMOKE";
 export const L2_OPT_IN = "I_AUTHORIZE_3_SCENARIOS_AND_UP_TO_24_ANTHROPIC_REQUESTS";
+export const SCENARIO1_ONCE_OPT_IN = "I_AUTHORIZE_ONE_PRODUCTION_SCENARIO1_ONCE";
 
 const MAX_JSON_BYTES = 1_000_000;
 const L1_HTTP_CAP = 5;
 const L2_HTTP_CAP = 22;
+const SCENARIO1_HTTP_CAP = 7;
 const RESTRICTED_WORD = "\u0434\u0438\u0430\u0433\u043d\u043e\u0437";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_ARTIFACT_ROOT = resolve(ROOT, "reports/live-e2e");
@@ -491,6 +493,119 @@ export async function runL2({ baseUrl = CANONICAL_BASE, fetchImpl = globalThis.f
   };
 }
 
+async function runScenario1Once({
+  baseUrl = CANONICAL_BASE,
+  expectedCommit = "",
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  must(
+    typeof expectedCommit === "string" && /^[0-9a-f]{7}$/.test(expectedCommit),
+    "EXPECTED_COMMIT must be exactly seven lowercase hexadecimal characters",
+    "EXPECTED_COMMIT_INVALID",
+  );
+  const client = createClient({ baseUrl, fetchImpl, cap: SCENARIO1_HTTP_CAP });
+  const scenario = SCENARIOS[0];
+  must(scenario.lines.length === 1, "scenario 1 must contain exactly one patient line");
+
+  const health = await client.request("/api/healthz", { timeoutMs: 15_000 });
+  assertExactHealth(health);
+  must(health.commit === expectedCommit, "healthz commit differs from EXPECTED_COMMIT");
+  must(health.llm_ok === true, "scenario 1 preflight requires healthz llm_ok=true");
+
+  const link = await client.request("/api/link", { method: "POST", body: {} });
+  must(typeof link.token === "string" && /^[0-9a-f]{16}$/.test(link.token), "link token is malformed");
+  const start = await client.request("/api/chat/start", {
+    method: "POST",
+    body: { token: link.token },
+  });
+  must(typeof start.sessionId === "string" && start.sessionId.trim(), "sessionId is missing");
+  must(typeof start.reply === "string" && start.reply.trim(), "start reply is empty");
+  must(Number.isInteger(start.turnsLeft), "start turnsLeft is missing");
+
+  const patientLine = scenario.lines[0];
+  const messages = [
+    { role: "assistant", content: start.reply },
+    { role: "user", content: patientLine },
+  ];
+  const turn = await client.request("/api/chat", {
+    method: "POST",
+    body: { sessionId: start.sessionId, message: patientLine },
+    timeoutMs: 75_000,
+  });
+  must(typeof turn.reply === "string", "chat reply is missing");
+  must(typeof turn.done === "boolean", "chat done is missing");
+  must(Number.isInteger(turn.turnsLeft), "chat turnsLeft is missing");
+  messages.push({ role: "assistant", content: turn.reply });
+  if (turn.done) must(isRecord(turn.result), "done chat response has no TriageResult");
+
+  const firstFinalize = await client.request("/api/chat/finalize", {
+    method: "POST",
+    body: { sessionId: start.sessionId },
+    timeoutMs: 750_000,
+  });
+  must(isRecord(firstFinalize.result), "first finalize has no TriageResult");
+  must(firstFinalize.source === firstFinalize.result.source, "first finalize source mismatch");
+  if (turn.done) must(sameJson(turn.result, firstFinalize.result), "finalize changed chat result");
+
+  const secondFinalize = await client.request("/api/chat/finalize", {
+    method: "POST",
+    body: { sessionId: start.sessionId },
+    timeoutMs: 30_000,
+  });
+  must(secondFinalize.replayed === true, "second finalize is not marked replayed");
+  must(secondFinalize.source === secondFinalize.result?.source, "second finalize source mismatch");
+  must(sameJson(firstFinalize.result, secondFinalize.result), "idempotent finalize changed TriageResult");
+
+  const completed = await client.request("/api/chat", {
+    method: "POST",
+    body: { sessionId: start.sessionId, message: "Дополнительный вопрос" },
+    expectedStatus: 409,
+  });
+  must(completed.code === "SESSION_COMPLETED", "completed session did not return SESSION_COMPLETED");
+
+  assertSmokeResult(firstFinalize.result, messages);
+  scenario.verify(firstFinalize.result);
+  must(client.count() === SCENARIO1_HTTP_CAP, "scenario 1 did not execute exactly seven HTTP requests");
+
+  const model = firstFinalize.result.model;
+  return {
+    schema_version: 1,
+    level: "PROD_E2E_SCENARIO_1",
+    ok: true,
+    canonical_host_verified: true,
+    health_commit: health.commit,
+    health_model_version: health.model_version,
+    health_llm_ok: health.llm_ok,
+    http_requests: client.count(),
+    http_cap: SCENARIO1_HTTP_CAP,
+    client_retries: 0,
+    scenario: {
+      number: 1,
+      patient_lines: scenario.lines.length,
+    },
+    result: {
+      urgency: firstFinalize.result.urgency,
+      source: firstFinalize.result.source,
+      emergency_chest_pain: true,
+      routing_verified: true,
+      evidence_verified: true,
+      disclaimer_verified: true,
+      model_present: model !== undefined,
+      model_version: model?.model_version ?? null,
+      abstained: model?.abstained ?? null,
+      abstain_reason: model?.abstain_reason ?? null,
+      unsupported_model_outputs_empty: model?.abstained === true
+        ? model.pathologies.length === 0 && model.top_contributions.length === 0
+        : null,
+      finalize_result_equal: true,
+      finalize_replayed: true,
+      completed_chat_409: true,
+    },
+    one_shot_guard: "fixed_commit_marker_reserved_before_fetch",
+    telegram_delivery: "not observable from the public API; no delivery claim",
+  };
+}
+
 function nodeErrorCode(error) {
   return typeof error === "object" && error !== null && "code" in error
     ? error.code
@@ -688,9 +803,66 @@ async function assertReservationStillBound(reservation) {
   }
 }
 
+export async function executeScenario1Once({
+  baseUrl = CANONICAL_BASE,
+  expectedCommit = "",
+  optIn = "",
+  artifactRoot = DEFAULT_ARTIFACT_ROOT,
+  fetchImpl = globalThis.fetch,
+  tlsRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED,
+} = {}) {
+  must(optIn === SCENARIO1_ONCE_OPT_IN, "live scenario 1 one-shot opt-in is missing");
+  must(tlsRejectUnauthorized !== "0", "TLS certificate verification is disabled");
+  validateBase(baseUrl);
+  must(
+    typeof expectedCommit === "string" && /^[0-9a-f]{7}$/.test(expectedCommit),
+    "EXPECTED_COMMIT must be exactly seven lowercase hexadecimal characters",
+    "EXPECTED_COMMIT_INVALID",
+  );
+
+  const resolvedRoot = resolve(artifactRoot);
+  if (resolvedRoot === DEFAULT_ARTIFACT_ROOT) await ensureDefaultArtifactRoot();
+  const artifactPath = resolve(resolvedRoot, `prod-s1-${expectedCommit}-once.json`);
+  const artifact = await reserveArtifact(artifactPath, resolvedRoot);
+  let payload;
+  let failure;
+  try {
+    payload = await runScenario1Once({ baseUrl, expectedCommit, fetchImpl });
+  } catch (error) {
+    failure = error;
+    payload = {
+      schema_version: 1,
+      level: "PROD_E2E_SCENARIO_1",
+      ok: false,
+      health_commit: expectedCommit,
+      error: safeError(error),
+      http_cap: SCENARIO1_HTTP_CAP,
+      client_retries: 0,
+      one_shot_guard: "fixed_commit_marker_reserved_before_fetch",
+      telegram_delivery: "not observable from the public API; no delivery claim",
+    };
+  }
+  try {
+    await assertReservationStillBound(artifact);
+    await artifact.handle.writeFile(`${JSON.stringify(payload, null, 2)}\n`, "utf8");
+  } finally {
+    await artifact.handle.close();
+  }
+  if (failure) throw failure;
+  return { artifactPath, payload };
+}
+
 async function main() {
   const level = process.argv[2];
-  must(level === "l1" || level === "l2", "usage: smoke.mjs l1|l2");
+  must(level === "l1" || level === "l2" || level === "scenario1-once", "usage: smoke.mjs l1|l2|scenario1-once");
+  if (level === "scenario1-once") {
+    const result = await executeScenario1Once({
+      expectedCommit: process.env.EXPECTED_COMMIT,
+      optIn: process.env.DEMEU_SCENARIO1_LIVE,
+    });
+    process.stdout.write(`PASS ${result.payload.level}; fixed one-shot marker written\n`);
+    return;
+  }
   const expectedOptIn = level === "l1" ? L1_OPT_IN : L2_OPT_IN;
   must(process.env.DEMEU_SMOKE_LIVE === expectedOptIn, `live ${level.toUpperCase()} opt-in is missing`);
   must(process.env.NODE_TLS_REJECT_UNAUTHORIZED !== "0", "TLS certificate verification is disabled");

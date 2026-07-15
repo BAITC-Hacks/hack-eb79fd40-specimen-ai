@@ -9,6 +9,7 @@
     "eval": "tsx scripts/eval.ts",
     "e2e:live": "E2E_LIVE=1 node scripts/e2e.mjs",
     "e2e:scenario1:live": "LIVE_E2E=1 node --env-file=.env --import tsx scripts/live-scenario1.ts",
+    "e2e:scenario1:production-once": "bash deploy/smoke-scenario1-once.sh",
     "e2e:mock": "node scripts/e2e-mock.mjs",
     "start": "next start",
     "lint": "eslint .",

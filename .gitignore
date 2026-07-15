@@ -32,3 +32,4 @@ tsconfig.tsbuildinfo
 
 # Sanitized runtime smoke artifacts
 reports/live-e2e/demeu-smoke-*.json
+reports/live-e2e/prod-s1-*-once.json
