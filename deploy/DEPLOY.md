@@ -2,8 +2,9 @@
 
 Read-only SSH reconnaissance, exact-SHA branch-B deployment, public certificate and independent L1
 smoke have been accepted for the current magic-DNS production. Every subsequent mutation remains an
-explicit operator action through `deploy/deploy.sh`. Bare-IP support is verified offline; live
-certificate issuance and cutover remain a separate accepted operator phase.
+explicit operator action through `deploy/deploy.sh`. Bare-IP certificate issuance, SAN and renewal
+window were observed live, but the first cutover failed closed on a no-SNI client. The IP-only
+`default_sni` remediation is verified offline; repeat cutover remains a separate operator phase.
 
 ## Required server state
 
@@ -106,7 +107,8 @@ The current `sslip.io` runtime remains accepted until cutover. After this change
 authorized commit/push, the operator keeps the old `.env` for the first code-only deploy. A second
 activation of the same commit atomically changes the non-secret origin values to exact
 `109.123.248.16`, obtains the public short-lived certificate through HTTP-01, verifies SAN/redirect
-and public HTTPS without `-k`, then runs L1 against the explicit IP origin. The IP Caddy config keeps
+and public HTTPS without `-k`, then runs L1 against the explicit IP origin. The IP Caddy config uses
+`default_sni 109.123.248.16` for clients that omit SNI and keeps
 the exact old sslip hostname as a rollback alias to the same backend. L2 remains separately
 cost-authorized and is not required merely to prove the origin switch.
 
@@ -217,3 +219,15 @@ rollback: atomically restore exact sslip `DEMEU_DOMAIN`/`APP_BASE_URL`, run the 
 and verify L1. `deploy/rollback.sh` remains the exact-SHA code rollback tool and validates either
 accepted origin. The IP config also serves sslip throughout, so the old URL remains an emergency
 alias even before canonical-link rollback.
+
+The bare-IP acceptance is not an explicit-SNI certificate check. It requires both ordinary curl and
+an explicit no-SNI handshake against the public trust chain:
+
+```bash
+curl -fsS https://109.123.248.16/api/healthz
+openssl s_client -connect 109.123.248.16:443 -noservername \
+  -verify_return_error -verify_ip 109.123.248.16 -brief </dev/null
+```
+
+An auxiliary `openssl s_client ... -servername 109.123.248.16` may inspect the SAN path, but cannot
+replace either acceptance command. Unknown non-empty SNI must still fail; do not add `fallback_sni`.

@@ -1,3 +1,7 @@
+{
+	default_sni 109.123.248.16
+}
+
 (demeu_backend) {
 	encode gzip
 

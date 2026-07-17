@@ -18,6 +18,32 @@ async function text(path: string): Promise<string> {
   return readFile(path, "utf8");
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function collectJsonKeys(value: unknown, keys: Set<string>): void {
+  if (Array.isArray(value)) {
+    for (const item of value) collectJsonKeys(item, keys);
+    return;
+  }
+  if (!isRecord(value)) return;
+  for (const [key, nested] of Object.entries(value)) {
+    keys.add(key);
+    collectJsonKeys(nested, keys);
+  }
+}
+
+function collectModuleNames(value: unknown, modules: Set<string>): void {
+  if (Array.isArray(value)) {
+    for (const item of value) collectModuleNames(item, modules);
+    return;
+  }
+  if (!isRecord(value)) return;
+  if (typeof value.module === "string") modules.add(value.module);
+  for (const nested of Object.values(value)) collectModuleNames(nested, modules);
+}
+
 describe("TLS branch configuration", () => {
   it("keeps the base compose app-only for an existing host proxy", async () => {
     const base = await text("docker-compose.yml");
@@ -292,6 +318,7 @@ describe("TLS branch configuration", () => {
     expect(caddyfile).toContain("{$DEMEU_DOMAIN:109-123-248-16.sslip.io}");
     expect(ipCaddyfile).toContain("https://109.123.248.16");
     expect(ipCaddyfile).toContain("https://109-123-248-16.sslip.io");
+    expect(ipCaddyfile).toContain("default_sni 109.123.248.16");
     expect(ipCaddyfile).toContain("profile shortlived");
     expect(ipCaddyfile).toContain("disable_tlsalpn_challenge");
     for (const config of [caddyfile, ipCaddyfile]) {
@@ -319,15 +346,60 @@ describe("TLS branch configuration", () => {
       "--adapter",
       "caddyfile",
     ]);
-    const adapted = JSON.stringify(JSON.parse(stdout));
+    const adapted = JSON.parse(stdout) as {
+      apps?: {
+        http?: { servers?: Record<string, { tls_connection_policies?: unknown[] }> };
+        tls?: { automation?: { policies?: unknown[] } };
+      };
+    };
+    const server = Object.values(adapted.apps?.http?.servers ?? {})[0];
+    const connectionPolicies = server?.tls_connection_policies ?? [];
+    const automationPolicies = adapted.apps?.tls?.automation?.policies ?? [];
+    const ipAutomationPolicy = automationPolicies.find((policy) =>
+      isRecord(policy) &&
+      Array.isArray(policy.subjects) &&
+      JSON.stringify(policy.subjects) === JSON.stringify(["109.123.248.16"]));
+    expect(connectionPolicies).toHaveLength(2);
+    expect(connectionPolicies[0]).toEqual({
+      match: { sni: ["", "109.123.248.16"] },
+      default_sni: "109.123.248.16",
+    });
+    expect(connectionPolicies[1]).toEqual({
+      default_sni: "109.123.248.16",
+    });
+    expect(isRecord(connectionPolicies[1]) && connectionPolicies[1].match).toBeUndefined();
+    expect(ipAutomationPolicy).toMatchObject({
+      issuers: [{
+        module: "acme",
+        profile: "shortlived",
+        challenges: { "tls-alpn": { disabled: true } },
+      }],
+    });
 
-    expect(adapted).toContain('"subjects":["109.123.248.16"]');
-    expect(adapted).toContain('"profile":"shortlived"');
-    expect(adapted).toContain('"tls-alpn":{"disabled":true}');
-    expect(adapted).not.toContain('"http":{"disabled":true}');
-    expect(adapted).toContain('"host":["109-123-248-16.sslip.io"]');
-    expect(adapted).toContain('"dial":"app:3000"');
-    expect(adapted).toContain('"Strict-Transport-Security"');
+    const adaptedText = JSON.stringify(adapted);
+    expect(adaptedText).not.toContain('"http":{"disabled":true}');
+    expect(adaptedText).toContain('"subjects":["109-123-248-16.sslip.io"]');
+    expect(adaptedText).toContain('"host":["109-123-248-16.sslip.io"]');
+    expect(adaptedText).toContain('"host":["109.123.248.16"]');
+    expect(adaptedText).toContain('"dial":"app:3000"');
+    expect(adaptedText).toContain('"Strict-Transport-Security"');
+
+    const keys = new Set<string>();
+    const modules = new Set<string>();
+    collectJsonKeys(adapted, keys);
+    collectModuleNames(adapted, modules);
+    for (const forbiddenKey of [
+      "fallback_sni",
+      "strict_sni_host",
+      "default_bind",
+      "load_files",
+      "load_pem",
+      "certificate_loader",
+    ]) {
+      expect(keys.has(forbiddenKey)).toBe(false);
+    }
+    expect(keys.has("certificates")).toBe(false);
+    expect(modules.has("internal")).toBe(false);
     expect(stderr).toContain("enabling automatic HTTP->HTTPS redirects");
   });
 
@@ -367,7 +439,7 @@ describe("TLS branch configuration", () => {
     expect(instructions).toContain("./deploy/tls.sh render-caddy");
     expect(instructions).not.toMatch(/^docker compose -f docker-compose\.yml/mu);
     expect(instructions).not.toMatch(/^envsubst /mu);
-    expect(instructions).toContain("bare-IP origin подготовлен offline");
+    expect(instructions).toContain("default_sni 109.123.248.16");
     expect(instructions).toContain("**не проверены**");
     expect(productionFiles).not.toMatch(/(?:^|\s)-k(?:\s|$)/mu);
     expect(productionFiles).not.toMatch(/tls\s+internal/iu);

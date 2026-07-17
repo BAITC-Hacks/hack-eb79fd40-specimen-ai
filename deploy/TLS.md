@@ -6,9 +6,11 @@
 Read-only разведка VPS принята: на момент двух проверок порты 80, 443 и 3100
 были свободны, Docker/Compose доступны, поэтому для Demeu выбрана ветка B с
 отдельным pinned Caddy `2.10.2-alpine`. Текущий magic-DNS production получил
-публичный сертификат и прошёл независимый L1 smoke без обхода TLS. Новый
-bare-IP origin подготовлен offline, но live-сертификат и L1 для него ещё
-**не проверены**.
+публичный сертификат и прошёл независимый L1 smoke без обхода TLS. Для bare-IP
+уже подтверждены выдача short-lived сертификата, exact IP SAN и ARI window, но
+первый live cutover остановлен: обычный IP-клиент без SNI не получил сертификат.
+IP-only конфиг теперь задаёт `default_sni 109.123.248.16`; его повторный live
+`curl` и L1 ещё **не проверены**.
 
 Один параметр управляет доменом и `APP_BASE_URL` во всех конфигурациях:
 
@@ -64,6 +66,19 @@ ufw allow 443/tcp
 ufw status
 curl -fsS "https://${DEMEU_DOMAIN}/api/healthz"
 ```
+
+После IP activation обязательны две независимые no-SNI проверки без обхода trust chain:
+
+```bash
+curl -fsS https://109.123.248.16/api/healthz
+openssl s_client -connect 109.123.248.16:443 -noservername \
+  -verify_return_error -verify_ip 109.123.248.16 -brief </dev/null
+```
+
+`openssl ... -servername 109.123.248.16` полезен только как вспомогательная проверка SAN и
+explicit-SNI пути. Он не заменяет ни реальный `curl` к IP, ни `-noservername`: именно отсутствие
+SNI воспроизводит поведение обычного IP-клиента. `default_sni` находится только в
+`deploy/Caddyfile.ip`; FQDN-конфиг и неизвестный непустой SNI не получают fallback.
 
 HTTP-01 требует доступного извне порта 80. Данные ACME и конфигурация Caddy сохраняются в named volumes
 `caddy_data` и `caddy_config`. Для IP Caddy запрашивает профиль ACME `shortlived`, явно отключает
@@ -128,7 +143,8 @@ curl -fsS "https://${DEMEU_DOMAIN}/api/healthz"
 ## Что остаётся подтвердить с VPS
 
 - повторный read-only preflight listeners и доступность TCP 80/443;
-- выдачу short-lived сертификата с SAN `109.123.248.16` через HTTP-01;
+- повторный no-SNI handshake после `default_sni` через реальный `curl` и
+  `openssl ... -noservername`, оба без обхода trust chain;
 - `curl` без `-k` → `200` на `https://109.123.248.16/api/healthz` и HTTP→HTTPS redirect;
 - L1 через точный IP origin и сохранение sslip rollback-alias.
 

@@ -35,15 +35,20 @@ describe("release documentation status", () => {
     expect(deploy).toContain("ports 80, 443, and 3100 free");
     expect(deploy).toContain("TLS_BRANCH=branch-b-caddy");
     expect(deploy).toContain("exact-SHA branch-B deployment");
-    expect(deploy).toContain("Bare-IP support is verified offline");
+    expect(deploy).toContain("`default_sni` remediation is verified offline");
     expect(tls).toContain("выбрана ветка B");
     expect(tls).toContain("прошёл независимый L1 smoke");
-    expect(tls).toContain("bare-IP origin подготовлен offline");
+    expect(tls).toContain("default_sni 109.123.248.16");
     expect(envExample).toContain("DEMEU_DOMAIN=109.123.248.16");
     expect(readme).toContain("`https://109.123.248.16`");
     expect(deploy).toContain("about 160 hours");
     expect(deploy).toContain("Do not use `down -v`");
     expect(deploy).toContain("sslip hostname as a rollback alias");
+    for (const document of [deploy, tls]) {
+      expect(document).toContain("curl -fsS https://109.123.248.16/api/healthz");
+      expect(document).toContain("-noservername");
+      expect(document).toContain("-servername 109.123.248.16");
+    }
     expect(deploy).not.toContain("Agents do not connect to the VPS");
   });
 
