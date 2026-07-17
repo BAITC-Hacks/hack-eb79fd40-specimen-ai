@@ -183,8 +183,12 @@ case "$command" in
       exit 0
     fi
     if printf '%s' "$*" | grep -q 'demeu-health-extract:v1:'; then
-      [ "\${STUB_DEEP_HEALTH_MODE:-green}" = green ]
-      exit
+      case "\${STUB_DEEP_HEALTH_MODE:-green}" in
+        green) exit 0 ;;
+        auth) printf '%s\n' 'auth_rejected status=404 elapsed_ms=7'; exit 1 ;;
+        timeout) printf '%s\n' 'timeout status=0 elapsed_ms=210000'; exit 1 ;;
+        *) printf '%s\n' 'extraction_failed status=200 elapsed_ms=11'; exit 1 ;;
+      esac
     fi
     if [ "\${STUB_HEALTH_MODE-}" = candidate-red ] \
       && printf '%s' "$*" | grep -q "\${STUB_TARGET_SHA:-ccccccc}"; then
@@ -333,7 +337,9 @@ describe("deploy/deploy.sh", () => {
     const commands = (await readFile(sandbox.log, "utf8")).slice(before);
 
     expect(failed.code).toBe(1);
-    expect(failed.stderr).toContain("deep extraction gate failed");
+    expect(failed.stderr).toContain(
+      "deep extraction gate failed: extraction_failed status=200 elapsed_ms=11",
+    );
     expect(failed.stderr).toContain("last green release is active");
     expect(commands.match(/demeu-health-extract:v1:/gu)).toHaveLength(1);
     expect(commands).toContain("docker image tag demeu-app:last-green demeu-app:latest");
@@ -353,6 +359,26 @@ describe("deploy/deploy.sh", () => {
     expect(deepFunction).toContain("x-demeu-health-proof");
     expect(deepFunction).not.toMatch(/console\.(?:log|info|warn|error)/u);
     expect(deepFunction).not.toContain("retry");
+  });
+
+  it.each([
+    ["auth", "auth_rejected status=404 elapsed_ms=7"],
+    ["timeout", "timeout status=0 elapsed_ms=210000"],
+  ])("reports only safe deep-gate diagnostics for %s", async (mode, diagnostic) => {
+    const sandbox = await makeSandbox();
+    await writeFile(join(sandbox.root, ".env"), validEnv());
+    expect((await runDeploy(sandbox, { STUB_TARGET_SHA: "bbbbbbb" })).code).toBe(0);
+
+    const failed = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "ccccccc",
+      STUB_DEEP_HEALTH_MODE: mode,
+    });
+    const output = `${failed.stdout}\n${failed.stderr}`;
+
+    expect(failed.code).toBe(1);
+    expect(output).toContain(`deep extraction gate failed: ${diagnostic}`);
+    expect(output).not.toContain(SYNTHETIC_KEY);
+    expect(output).not.toContain("x-demeu-health-proof");
   });
 
   it("rejects a concurrent run and accepts the stale lock inode after release", async () => {

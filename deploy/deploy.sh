@@ -274,7 +274,14 @@ deep_extraction_probe() {
     const expectedCommit = process.argv[1];
     const timeoutMs = Number(process.argv[2]);
     const key = process.env.ANTHROPIC_API_KEY;
-    if (!key || !expectedCommit || !Number.isInteger(timeoutMs)) process.exit(1);
+    const startedAt = Date.now();
+    const fail = (category, status) => {
+      const elapsedMs = Math.max(0, Date.now() - startedAt);
+      process.stdout.write(`${category} status=${status} elapsed_ms=${elapsedMs}\n`);
+      process.exit(1);
+    };
+    if (!key || !expectedCommit) fail("auth_rejected", 0);
+    if (!Number.isInteger(timeoutMs)) fail("extraction_failed", 0);
     const proof = createHmac("sha256", key)
       .update(`demeu-health-extract:v1:${expectedCommit}`)
       .digest("hex");
@@ -285,17 +292,23 @@ deep_extraction_probe() {
       signal: controller.signal,
     })
       .then(async (response) => {
-        const body = await response.json();
+        let body;
+        try {
+          body = await response.json();
+        } catch {
+          fail("extraction_failed", response.status);
+        }
         const keys = Object.keys(body).sort().join(",");
         const exactKeys = keys === "commit,llm_ok,model_version,ok";
-        process.exit(
+        if (
           response.status === 200 && exactKeys && body.ok === true &&
-          body.commit === expectedCommit && body.llm_ok === true ? 0 : 1
-        );
+          body.commit === expectedCommit && body.llm_ok === true
+        ) process.exit(0);
+        fail(response.status === 404 ? "auth_rejected" : "extraction_failed", response.status);
       })
-      .catch(() => process.exit(1))
+      .catch((error) => fail(error?.name === "AbortError" ? "timeout" : "extraction_failed", 0))
       .finally(() => clearTimeout(timer));
-  ' "$expected_commit" "$DEEP_PROBE_TIMEOUT_MS" >/dev/null 2>&1
+  ' "$expected_commit" "$DEEP_PROBE_TIMEOUT_MS" 2>/dev/null
 }
 
 read_sha_marker() {
@@ -516,8 +529,12 @@ activate_server_release() {
     die ".env changed during deployment"
   }
 
-  if ! deep_extraction_probe "$COMMIT_SHA"; then
-    die "candidate deep extraction gate failed"
+  local deep_probe_diagnostic
+  if ! deep_probe_diagnostic="$(deep_extraction_probe "$COMMIT_SHA")"; then
+    if [[ ! "$deep_probe_diagnostic" =~ ^(auth_rejected|extraction_failed|timeout)\ status=[0-9]{1,3}\ elapsed_ms=[0-9]+$ ]]; then
+      deep_probe_diagnostic="extraction_failed status=0 elapsed_ms=0"
+    fi
+    die "candidate deep extraction gate failed: ${deep_probe_diagnostic}"
   fi
 
   docker image tag demeu-app:latest "$LAST_GREEN_IMAGE"

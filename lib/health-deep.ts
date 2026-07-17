@@ -39,18 +39,6 @@ function constantTimeProofMatches(provided: string | null, expected: string): bo
   return provided !== null && matches;
 }
 
-function isDirectLoopbackRequest(request: NextRequest): boolean {
-  if (
-    request.headers.has("forwarded") ||
-    request.headers.has("x-forwarded-for") ||
-    request.headers.has("x-forwarded-host") ||
-    request.headers.has("x-forwarded-proto")
-  ) {
-    return false;
-  }
-  return ["127.0.0.1", "localhost", "::1"].includes(request.nextUrl.hostname);
-}
-
 export function createExtractionProbe(
   loadExtractor: ExtractorLoader = () => import("./extract"),
 ): Probe {
@@ -117,7 +105,7 @@ export async function handleHealthRequest(
 
   const key = env.ANTHROPIC_API_KEY;
   const commit = env.COMMIT_SHA ?? "unknown";
-  if (!key || !isDirectLoopbackRequest(request)) {
+  if (!key) {
     return { status: 404, body: deepResponse(env, false) };
   }
 

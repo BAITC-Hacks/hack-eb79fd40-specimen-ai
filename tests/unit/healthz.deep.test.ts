@@ -54,19 +54,29 @@ describe("authorized deep extraction health probe", () => {
     ["missing proof", request()],
     ["wrong proof", request("http://127.0.0.1:3000", "wrong")],
     [
-      "forwarded request",
+      "stale proof",
       request(
         "http://127.0.0.1:3000",
-        computeDeepHealthProof(ENV.ANTHROPIC_API_KEY, ENV.COMMIT_SHA),
-        { "x-forwarded-for": "198.51.100.10" },
+        computeDeepHealthProof(ENV.ANTHROPIC_API_KEY, "old0000"),
       ),
     ],
+    ["public host without proof", request("https://demo.example.kz")],
     [
-      "public origin",
-      request(
-        "https://demo.example.kz",
-        computeDeepHealthProof(ENV.ANTHROPIC_API_KEY, ENV.COMMIT_SHA),
-      ),
+      "spoofed forwarded headers without proof",
+      request("http://127.0.0.1:3000", undefined, {
+        forwarded: "for=198.51.100.10;host=demo.example.kz;proto=https",
+        "x-forwarded-for": "198.51.100.10",
+        "x-forwarded-host": "demo.example.kz",
+        "x-forwarded-proto": "https",
+      }),
+    ],
+    [
+      "public host and forwarded spoof with wrong proof",
+      request("https://demo.example.kz", "wrong", {
+        "x-forwarded-for": "127.0.0.1",
+        "x-forwarded-host": "localhost:3000",
+        "x-forwarded-proto": "http",
+      }),
     ],
   ])("returns an indistinguishable 404 and makes zero provider calls for %s", async (_label, req) => {
     const probe = vi.fn(async () => true);
@@ -76,13 +86,17 @@ describe("authorized deep extraction health probe", () => {
     expect(probe).not.toHaveBeenCalled();
   });
 
-  it("accepts the exact commit-bound HMAC and returns the exact four fields", async () => {
+  it("accepts the exact commit-bound HMAC despite Next's synthesized forwarded headers", async () => {
     const proof = computeDeepHealthProof(ENV.ANTHROPIC_API_KEY, ENV.COMMIT_SHA);
     const probe = vi.fn(async () => true);
-    const result = await handleHealthRequest(request("http://localhost:3000", proof), {
-      env: ENV,
-      probeOnce: probe,
-    });
+    const result = await handleHealthRequest(
+      request("http://localhost:3000", proof, {
+        "x-forwarded-for": "127.0.0.1",
+        "x-forwarded-host": "localhost:3000",
+        "x-forwarded-proto": "http",
+      }),
+      { env: ENV, probeOnce: probe },
+    );
 
     expect(result).toEqual({ status: 200, body: expected(true) });
     expect(Object.keys(result.body).sort()).toEqual([
@@ -116,19 +130,6 @@ describe("authorized deep extraction health probe", () => {
 
     expect(result.status).toBe(404);
     expect(result.body).toEqual(expected(false));
-    expect(probe).not.toHaveBeenCalled();
-  });
-
-  it("binds proof to the runtime commit", async () => {
-    const staleProof = computeDeepHealthProof(ENV.ANTHROPIC_API_KEY, "old0000");
-    const probe = vi.fn(async () => true);
-
-    await expect(
-      handleHealthRequest(request("http://127.0.0.1:3000", staleProof), {
-        env: ENV,
-        probeOnce: probe,
-      }),
-    ).resolves.toEqual({ status: 404, body: expected(false) });
     expect(probe).not.toHaveBeenCalled();
   });
 

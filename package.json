@@ -15,6 +15,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:analytics:live": "LIVE_ANALYTICS=I_AUTHORIZE_THREE_STRUCTURED_EXTRACTIONS node --env-file=.env --import tsx scripts/live-analytics-smoke.ts",
+    "test:healthz:standalone": "npm run build && docker run --pull never --rm --network none -v \"$PWD:/workspace:ro\" -w /workspace node:24-alpine node tests/integration/healthz-standalone.mjs",
     "test:llm:live": "vitest run --config vitest.live.config.ts",
     "test:watch": "vitest"
   },
