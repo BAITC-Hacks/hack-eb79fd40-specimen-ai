@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { assertSupportedStructuredSchema } from "./structured-schema";
 
 const MODEL = "claude-sonnet-5";
 export const CHAT_TIMEOUT_MS = 30_000;
@@ -249,6 +250,7 @@ export async function structured<T>(
   schema: Record<string, unknown>,
   deps: LlmDependencies = {},
 ): Promise<T> {
+  assertSupportedStructuredSchema(schema);
   const createMessage = deps.createMessage ?? createLiveMessage;
   const log = deps.log ?? logLive;
   const maxRetries = deps.applicationMaxRetries ?? STRUCTURED_MAX_RETRIES;

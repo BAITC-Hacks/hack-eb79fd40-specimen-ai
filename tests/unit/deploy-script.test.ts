@@ -22,6 +22,7 @@ function syntheticAnthropicKey(suffix: string): string {
 }
 
 const SYNTHETIC_KEY = syntheticAnthropicKey("synthetic_test_value_".repeat(3));
+const DEEP_PROBE_AUTHORIZATION = "I_AUTHORIZE_ONE_STRUCTURED_EXTRACTION";
 
 interface Sandbox {
   root: string;
@@ -50,6 +51,7 @@ function deployEnvironment(
     HEALTH_INTERVAL_SECONDS: "0",
     STUB_LOG: sandbox.log,
     STUB_STATE: sandbox.state,
+    DEMEU_DEEP_PROBE: DEEP_PROBE_AUTHORIZATION,
     ...extraEnv,
   };
 }
@@ -180,6 +182,10 @@ case "$command" in
       printf '%s\\n' "\${STUB_ANTHROPIC_COUNT:-1}"
       exit 0
     fi
+    if printf '%s' "$*" | grep -q 'demeu-health-extract:v1:'; then
+      [ "\${STUB_DEEP_HEALTH_MODE:-green}" = green ]
+      exit
+    fi
     if [ "\${STUB_HEALTH_MODE-}" = candidate-red ] \
       && printf '%s' "$*" | grep -q "\${STUB_TARGET_SHA:-ccccccc}"; then
       exit 1
@@ -279,6 +285,74 @@ describe("deploy/deploy.sh", () => {
 
     expect(script).toMatch(/\bflock\b/u);
     expect(script).toMatch(/\btrap\b/u);
+  });
+
+  it("requires an exact one-shot paid-probe opt-in before Docker", async () => {
+    const sandbox = await makeSandbox();
+    await writeFile(join(sandbox.root, ".env"), validEnv());
+
+    const result = await runDeploy(sandbox, { DEMEU_DEEP_PROBE: "not-authorized" });
+    const commands = await readFile(sandbox.log, "utf8");
+
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain(DEEP_PROBE_AUTHORIZATION);
+    expect(commands).not.toContain("docker ");
+    expect(commands).not.toContain("demeu-health-extract:v1:");
+  });
+
+  it("orders the one-shot deep gate after shallow/env checks and before green markers", async () => {
+    const sandbox = await makeSandbox();
+    await writeFile(join(sandbox.root, ".env"), validEnv());
+
+    const result = await runDeploy(sandbox, { STUB_TARGET_SHA: "bbbbbbb" });
+    const commands = await readFile(sandbox.log, "utf8");
+    const shallow = commands.indexOf("const expected = process.argv[1]");
+    const cardinality = commands.indexOf('grep -c "^ANTHROPIC_API_KEY="');
+    const deep = commands.indexOf("demeu-health-extract:v1:");
+    const green = commands.indexOf("docker image tag demeu-app:latest demeu-app:last-green");
+
+    expect(result.code).toBe(0);
+    expect(shallow).toBeGreaterThan(-1);
+    expect(cardinality).toBeGreaterThan(shallow);
+    expect(deep).toBeGreaterThan(cardinality);
+    expect(green).toBeGreaterThan(deep);
+    expect(commands.match(/demeu-health-extract:v1:/gu)).toHaveLength(1);
+    expect(`${result.stdout}\n${result.stderr}`).not.toContain(SYNTHETIC_KEY);
+  });
+
+  it("recovers after a red deep gate without invoking it during recovery", async () => {
+    const sandbox = await makeSandbox();
+    await writeFile(join(sandbox.root, ".env"), validEnv());
+    expect((await runDeploy(sandbox, { STUB_TARGET_SHA: "bbbbbbb" })).code).toBe(0);
+    const before = (await readFile(sandbox.log, "utf8")).length;
+
+    const failed = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "ccccccc",
+      STUB_DEEP_HEALTH_MODE: "red",
+    });
+    const commands = (await readFile(sandbox.log, "utf8")).slice(before);
+
+    expect(failed.code).toBe(1);
+    expect(failed.stderr).toContain("deep extraction gate failed");
+    expect(failed.stderr).toContain("last green release is active");
+    expect(commands.match(/demeu-health-extract:v1:/gu)).toHaveLength(1);
+    expect(commands).toContain("docker image tag demeu-app:last-green demeu-app:latest");
+    expect(`${failed.stdout}\n${failed.stderr}`).not.toContain(SYNTHETIC_KEY);
+  });
+
+  it("pins one fetch and an outer deadline beyond the structured timeout", async () => {
+    const script = await readFile("deploy/deploy.sh", "utf8");
+    const deepFunction = script.slice(
+      script.indexOf("deep_extraction_probe()"),
+      script.indexOf("read_sha_marker()"),
+    );
+    const timeout = Number(script.match(/DEEP_PROBE_TIMEOUT_MS=(\d+)/u)?.[1]);
+
+    expect(timeout).toBeGreaterThan(180_000);
+    expect(deepFunction.match(/fetch\(/gu)).toHaveLength(1);
+    expect(deepFunction).toContain("x-demeu-health-proof");
+    expect(deepFunction).not.toMatch(/console\.(?:log|info|warn|error)/u);
+    expect(deepFunction).not.toContain("retry");
   });
 
   it("rejects a concurrent run and accepts the stale lock inode after release", async () => {

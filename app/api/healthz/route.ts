@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
-import { buildHealthResponse } from "@/lib/health";
+import { NextRequest, NextResponse } from "next/server";
+import { handleHealthRequest } from "@/lib/health-deep";
 
 export const dynamic = "force-dynamic";
 
-export function GET() {
-  return NextResponse.json(buildHealthResponse(), { status: 200 });
+export async function GET(request: NextRequest) {
+  const result = await handleHealthRequest(request);
+  return NextResponse.json(result.body, { status: result.status });
 }

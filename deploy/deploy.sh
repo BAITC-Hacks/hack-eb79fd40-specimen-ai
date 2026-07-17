@@ -8,6 +8,8 @@ BRANCH="${BRANCH:-main}"
 DEPLOY_MODE="${DEPLOY_MODE:-git}"
 HEALTH_ATTEMPTS="${HEALTH_ATTEMPTS:-30}"
 HEALTH_INTERVAL_SECONDS="${HEALTH_INTERVAL_SECONDS:-3}"
+DEEP_PROBE_AUTHORIZATION="I_AUTHORIZE_ONE_STRUCTURED_EXTRACTION"
+DEEP_PROBE_TIMEOUT_MS=210000
 LAST_GREEN_IMAGE="demeu-app:last-green"
 RECOVERY_IMAGE="demeu-app:deploy-recovery"
 LOCK_FD=""
@@ -76,6 +78,11 @@ validate_common_inputs() {
     || die "HEALTH_ATTEMPTS must be a canonical integer from 1 to 999"
   [[ "$HEALTH_INTERVAL_SECONDS" =~ ^(0|[1-9][0-9]{0,2})$ ]] \
     || die "HEALTH_INTERVAL_SECONDS must be a canonical integer from 0 to 999"
+}
+
+require_deep_probe_authorization() {
+  [ "${DEMEU_DEEP_PROBE-}" = "$DEEP_PROBE_AUTHORIZATION" ] \
+    || die "set DEMEU_DEEP_PROBE=${DEEP_PROBE_AUTHORIZATION} to authorize the one-shot structured extraction gate"
 }
 
 audit_git_history() {
@@ -258,6 +265,37 @@ wait_for_any_green_health() {
 
 anthropic_env_count() {
   compose exec -T app sh -c 'env | grep -c "^ANTHROPIC_API_KEY="' 2>/dev/null
+}
+
+deep_extraction_probe() {
+  local expected_commit="$1"
+  compose exec -T app node -e '
+    const { createHmac } = require("node:crypto");
+    const expectedCommit = process.argv[1];
+    const timeoutMs = Number(process.argv[2]);
+    const key = process.env.ANTHROPIC_API_KEY;
+    if (!key || !expectedCommit || !Number.isInteger(timeoutMs)) process.exit(1);
+    const proof = createHmac("sha256", key)
+      .update(`demeu-health-extract:v1:${expectedCommit}`)
+      .digest("hex");
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    fetch("http://127.0.0.1:3000/api/healthz?probe=extract", {
+      headers: { "x-demeu-health-proof": proof },
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const body = await response.json();
+        const keys = Object.keys(body).sort().join(",");
+        const exactKeys = keys === "commit,llm_ok,model_version,ok";
+        process.exit(
+          response.status === 200 && exactKeys && body.ok === true &&
+          body.commit === expectedCommit && body.llm_ok === true ? 0 : 1
+        );
+      })
+      .catch(() => process.exit(1))
+      .finally(() => clearTimeout(timer));
+  ' "$expected_commit" "$DEEP_PROBE_TIMEOUT_MS" >/dev/null 2>&1
 }
 
 read_sha_marker() {
@@ -478,6 +516,10 @@ activate_server_release() {
     die ".env changed during deployment"
   }
 
+  if ! deep_extraction_probe "$COMMIT_SHA"; then
+    die "candidate deep extraction gate failed"
+  fi
+
   docker image tag demeu-app:latest "$LAST_GREEN_IMAGE"
   LAST_GREEN_SAFE=0
   printf '%s\n' "$COMMIT_SHA" > .deploy_green_sha
@@ -522,10 +564,11 @@ run_rsync_mode() {
     -- ./ "${SERVER}:${APP_DIR}/"
 
   ssh -- "$SERVER" \
-    "cd '$APP_DIR' && APP_DIR='$APP_DIR' bash deploy/deploy.sh --activate-rsync '$commit_sha'"
+    "cd '$APP_DIR' && APP_DIR='$APP_DIR' DEMEU_DEEP_PROBE='$DEEP_PROBE_AUTHORIZATION' bash deploy/deploy.sh --activate-rsync '$commit_sha'"
 }
 
 validate_common_inputs
+require_deep_probe_authorization
 trap 'handle_exit' EXIT
 trap 'handle_signal INT 130' INT
 trap 'handle_signal TERM 143' TERM

@@ -44,12 +44,18 @@ verified fingerprint. Never copy a personal SSH key or PAT to the server.
 
 ```bash
 cd /opt/demeu
-bash deploy/deploy.sh
+DEMEU_DEEP_PROBE=I_AUTHORIZE_ONE_STRUCTURED_EXTRACTION \
+  bash deploy/deploy.sh
 ```
 
 The default mode performs a fast-forward-only `git pull`, audits history for an Anthropic credential
 pattern, validates the chosen TLS compose branch in quiet mode, builds, starts the stack, and verifies
-`/api/healthz` from inside the app container. Both `commit` and `llm_ok:true` must match. On failure the
+the shallow `/api/healthz` from inside the app container. It then makes exactly one authorized
+structured extraction call through the HMAC-protected loopback-only `?probe=extract` gate before
+marking the image green. The opt-in is checked before Docker or provider access; no new secret is
+stored because the proof is derived inside the container from the runtime key and commit. Both
+`commit` and deep `llm_ok:true` must match. Recovery and Docker health remain shallow and make no
+provider call. On failure the
 last green image is restored before the command exits non-zero. `.env` is never overwritten.
 
 Server activation takes a non-blocking kernel lock on `.deploy.lock`. A concurrent run fails before
@@ -68,7 +74,8 @@ misclassified as a first deployment when a healthy production container is alrea
 ## Fallback mode: rsync from the local repository
 
 ```bash
-DEPLOY_MODE=rsync SERVER=root@109.123.248.16 APP_DIR=/opt/demeu \
+DEMEU_DEEP_PROBE=I_AUTHORIZE_ONE_STRUCTURED_EXTRACTION \
+  DEPLOY_MODE=rsync SERVER=root@109.123.248.16 APP_DIR=/opt/demeu \
   bash deploy/deploy.sh
 ```
 

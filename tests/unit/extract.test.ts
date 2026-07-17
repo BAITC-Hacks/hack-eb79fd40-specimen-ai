@@ -222,8 +222,6 @@ describe("Russian transcript to EvidenceVector adapter", () => {
       anamnesisSchema.properties?.symptom?.properties?.severity,
     ).toEqual({
       type: ["integer", "null"],
-      minimum: 0,
-      maximum: 10,
     });
     expect(
       anamnesisSchema.properties?.symptom?.required,

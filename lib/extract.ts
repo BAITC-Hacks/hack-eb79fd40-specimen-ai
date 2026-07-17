@@ -89,8 +89,6 @@ const ANAMNESIS_SCHEMA: Record<string, unknown> = {
         quality: { type: "string" },
         severity: {
           type: ["integer", "null"],
-          minimum: 0,
-          maximum: 10,
         },
         modifiers: { type: "string" },
         associated: { type: "array", items: { type: "string" } },
