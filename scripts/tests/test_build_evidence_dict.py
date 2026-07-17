@@ -7,9 +7,11 @@ from pathlib import Path
 
 from scripts.build_evidence_dict import (
     CURATED_BASE,
+    CURATED_VALUES,
     build_dictionary,
     evidence_feature_keys,
     stable_json,
+    validate_source,
     validate_dictionary,
 )
 
@@ -91,6 +93,56 @@ class EvidenceDictionaryTest(unittest.TestCase):
     def test_rejects_missing_demographic_feature(self) -> None:
         with self.assertRaisesRegex(ValueError, "demographics differ"):
             evidence_feature_keys(["age_norm", "sex_m", *CURATED_BASE], self.evidences)
+
+    def test_curated_translations_are_pinned_to_the_checked_in_release(self) -> None:
+        release_path = (
+            Path(__file__).resolve().parents[2]
+            / "data"
+            / "raw"
+            / "release_evidences.json"
+        )
+        release = json.loads(release_path.read_text(encoding="utf-8"))
+
+        validate_source(release)
+        for code, curated in CURATED_BASE.items():
+            with self.subTest(code=code):
+                self.assertEqual(release[code]["question_en"], curated.question_en)
+        for feature, curated in CURATED_VALUES.items():
+            code, value = feature.split("@", 1)
+            with self.subTest(feature=feature):
+                self.assertEqual(
+                    release[code]["value_meaning"][value]["en"],
+                    curated.value_en,
+                )
+
+    def test_rejects_stale_curated_question_and_value_meaning(self) -> None:
+        release_path = (
+            Path(__file__).resolve().parents[2]
+            / "data"
+            / "raw"
+            / "release_evidences.json"
+        )
+        release = json.loads(release_path.read_text(encoding="utf-8"))
+        stale_question = json.loads(json.dumps(release))
+        stale_question["E_218"]["question_en"] = "Changed upstream question"
+        with self.assertRaisesRegex(ValueError, "curated translation is stale"):
+            validate_source(stale_question)
+
+        stale_value = json.loads(json.dumps(release))
+        stale_value["E_54"]["value_meaning"]["V_183"]["en"] = "changed"
+        with self.assertRaisesRegex(ValueError, "curated value is stale"):
+            build_dictionary(
+                stale_value,
+                json.loads(
+                    (
+                        Path(__file__).resolve().parents[2]
+                        / "models"
+                        / "triage-lr-v1.json"
+                    ).read_text(encoding="utf-8")
+                )["feature_order"],
+                "raw-hash",
+                "model-hash",
+            )
 
     def test_output_is_stable_and_utf8(self) -> None:
         first = build_dictionary(

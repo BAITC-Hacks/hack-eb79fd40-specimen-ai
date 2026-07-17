@@ -10,6 +10,7 @@ import {
 } from "../../lib/triage";
 import type { ChatMessage } from "../../lib/types";
 import {
+  BASE_LLM_ANALYSIS,
   failingLlm,
   fakeLlm,
   fakeModel,
@@ -61,6 +62,7 @@ describe("model integration in the analytical layer", () => {
     });
 
     expect(result.source).toBe("rules_only");
+    expect(result.anamnesis.symptom.severity).toBeNull();
     expect(result.model).toBeUndefined();
     expect(modelCalls.calls).toBe(0);
     expect(result.urgency_reasons.join(" ")).toMatch(
@@ -117,11 +119,90 @@ describe("model integration in the analytical layer", () => {
     ).toBe("out_of_label_space");
     expect(
       shouldAbstain(
-        { evidences: [{ code: "mapped" }], age: null, sex: "unknown" },
-        ["one unmapped"],
+        {
+          evidences: [{ code: "E_14" }, { code: "E_66" }],
+          age: null,
+          sex: "unknown",
+        },
+        ["one unmapped", "two unmapped"],
         ROUTINE_MODEL.prediction,
         0.5,
       ),
     ).toBeUndefined();
+  });
+
+  it("uses deterministic zero-confidence fallback routes without extra port calls", async () => {
+    const emergencyLlmCalls: PortCounter = { calls: 0 };
+    const emergencyModelCalls: PortCounter = { calls: 0 };
+    const emergency = await analyze(EMERGENCY_MESSAGES, {
+      llm: fakeLlm(emergencyLlmCalls),
+      model: fakeModel(emergencyModelCalls, "abstain"),
+    });
+
+    expect(emergency.source).toBe("llm_fallback");
+    expect(emergency.routing).toEqual([
+      { specialty: "скорая/приёмный покой", confidence: 0 },
+    ]);
+    expect(emergency.model).toMatchObject({
+      abstained: true,
+      pathologies: [],
+      top_contributions: [],
+    });
+    expect(emergencyLlmCalls.calls).toBe(1);
+    expect(emergencyModelCalls.calls).toBe(1);
+
+    const routineLlmCalls: PortCounter = { calls: 0 };
+    const routineModelCalls: PortCounter = { calls: 0 };
+    const routine = await analyze(
+      [{ role: "user", content: "Насморк без тревожных признаков." }],
+      {
+        llm: fakeLlm(routineLlmCalls),
+        model: fakeModel(routineModelCalls, "abstain"),
+      },
+    );
+
+    expect(routine.source).toBe("llm_fallback");
+    expect(routine.routing).toEqual([
+      { specialty: "терапевт", confidence: 0 },
+    ]);
+    expect(routineLlmCalls.calls).toBe(1);
+    expect(routineModelCalls.calls).toBe(1);
+
+    const failedLlmCalls: PortCounter = { calls: 0 };
+    const skippedModelCalls: PortCounter = { calls: 0 };
+    const rulesOnly = await analyze(EMERGENCY_MESSAGES, {
+      llm: failingLlm(failedLlmCalls),
+      model: fakeModel(skippedModelCalls),
+    });
+
+    expect(rulesOnly.source).toBe("rules_only");
+    expect(rulesOnly.routing).toEqual([]);
+    expect(failedLlmCalls.calls).toBe(1);
+    expect(skippedModelCalls.calls).toBe(0);
+  });
+
+  it("routes any emergency fallback to emergency care even without a regex flag", async () => {
+    const llmCalls: PortCounter = { calls: 0 };
+    const modelCalls: PortCounter = { calls: 0 };
+    const result = await analyze(
+      [{ role: "user", content: "Сильная слабость началась сегодня." }],
+      {
+        llm: fakeLlm(llmCalls, {
+          ...BASE_LLM_ANALYSIS,
+          urgency: "emergency",
+          urgency_reasons: ["Адаптер определил экстренный приоритет."],
+        }),
+        model: fakeModel(modelCalls, "abstain"),
+      },
+    );
+
+    expect(result.red_flags).toEqual([]);
+    expect(result.source).toBe("llm_fallback");
+    expect(result.urgency).toBe("emergency");
+    expect(result.routing).toEqual([
+      { specialty: "скорая/приёмный покой", confidence: 0 },
+    ]);
+    expect(llmCalls.calls).toBe(1);
+    expect(modelCalls.calls).toBe(1);
   });
 });

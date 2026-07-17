@@ -1,7 +1,11 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 import { handleChat } from "../../app/api/chat/handler";
-import { GREETING_RU, stripDoneMarker } from "../../lib/anamnesis";
+import {
+  GREETING_KK,
+  GREETING_RU,
+  stripDoneMarker,
+} from "../../lib/anamnesis";
 import { HARD_TURN_CAP, SOFT_TURN_CAP } from "../../lib/config";
 import { MemorySessionStore } from "../../lib/store";
 import type { SessionStore } from "../../lib/store";
@@ -56,6 +60,17 @@ async function collectingSession() {
   await sessionStore.appendMessage(session.id, {
     role: "assistant",
     content: GREETING_RU,
+  });
+  return { sessionStore, sessionId: session.id };
+}
+
+async function collectingKazakhSession() {
+  const sessionStore = new MemorySessionStore();
+  const token = await sessionStore.createDoctorToken();
+  const session = await sessionStore.createSession(token, "kk");
+  await sessionStore.appendMessage(session.id, {
+    role: "assistant",
+    content: GREETING_KK,
   });
   return { sessionStore, sessionId: session.id };
 }
@@ -151,6 +166,36 @@ describe("POST /api/chat", () => {
     await expect(repeated.json()).resolves.toMatchObject({
       code: "SESSION_COMPLETED",
     });
+  });
+
+  it("uses only the Kazakh hard-cap closing for a Kazakh session", async () => {
+    const { sessionStore, sessionId } = await collectingKazakhSession();
+    for (let index = 0; index < HARD_TURN_CAP - 1; index += 1) {
+      await sessionStore.appendMessage(sessionId, {
+        role: "user",
+        content: `Жауап ${index + 1}`,
+      });
+      await sessionStore.appendMessage(sessionId, {
+        role: "assistant",
+        content: "Келесі сұрақ",
+      });
+    }
+
+    const response = await handleChat(request(sessionId, "Соңғы жауап"), {
+      sessionStore,
+      runTurn: async (_messages, language) => {
+        expect(language).toBe("kk");
+        return { reply: "Түсіндім.", done: false };
+      },
+      analyze: async () => RESULT,
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.reply).toBe(
+      "Түсіндім.\n\nЖеткілікті мәлімет жиналды. Рақмет!",
+    );
+    expect(body.reply).not.toMatch(/Спасибо|передаю|врачу/iu);
   });
 
   it("does not persist a patient message when the dialogue call fails", async () => {

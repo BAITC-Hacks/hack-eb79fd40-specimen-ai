@@ -77,11 +77,11 @@ async function waitForFile(path: string): Promise<void> {
   throw new Error(`timed out waiting for ${path}`);
 }
 
-function validEnv(branch = "branch-a-nginx"): string {
+function validEnv(branch = "branch-a-nginx", domain = "109-123-248-16.sslip.io"): string {
   return [
     `ANTHROPIC_API_KEY=${SYNTHETIC_KEY}`,
-    "DEMEU_DOMAIN=109-123-248-16.sslip.io",
-    "APP_BASE_URL=https://109-123-248-16.sslip.io",
+    `DEMEU_DOMAIN=${domain}`,
+    `APP_BASE_URL=https://${domain}`,
     "APP_PORT=3100",
     `TLS_BRANCH=${branch}`,
     "VPS_RECON_CONFIRMED=yes",
@@ -394,6 +394,51 @@ afterEach(async () => {
 });
 
 describe("deploy/rollback.sh", () => {
+  it("accepts a custom FQDN only with the exact matching HTTPS APP_BASE_URL", async () => {
+    const accepted = await makeSandbox();
+    await writeFile(
+      join(accepted.root, ".env"),
+      validEnv("branch-b-caddy", "demo.example.kz"),
+    );
+    expect((await runRollback(accepted)).code).toBe(0);
+
+    const rejected = await makeSandbox();
+    await writeFile(
+      join(rejected.root, ".env"),
+      validEnv("branch-b-caddy", "demo.example.kz").replace(
+        "APP_BASE_URL=https://demo.example.kz",
+        "APP_BASE_URL=https://other.example.kz",
+      ),
+    );
+    const result = await runRollback(rejected);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("APP_BASE_URL must exactly match");
+    expect(await readFile(rejected.log, "utf8")).not.toContain("docker ");
+  });
+
+  it("accepts only the exact production IP on branch B and rejects branch A before Docker", async () => {
+    const accepted = await makeSandbox();
+    const ipEnv = validEnv("branch-b-caddy", "109.123.248.16");
+    await writeFile(
+      join(accepted.root, ".env"),
+      ipEnv,
+    );
+    expect((await runRollback(accepted)).code).toBe(0);
+    expect(await readFile(join(accepted.root, ".env"), "utf8")).toBe(ipEnv);
+
+    for (const branch of ["branch-a-nginx", "branch-a-caddy"]) {
+      const rejected = await makeSandbox();
+      await writeFile(
+        join(rejected.root, ".env"),
+        validEnv(branch, "109.123.248.16"),
+      );
+      const result = await runRollback(rejected);
+      expect(result.code).toBe(1);
+      expect(result.stderr).toContain("requires TLS_BRANCH=branch-b-caddy");
+      expect(await readFile(rejected.log, "utf8")).not.toContain("docker ");
+    }
+  });
+
   it("rolls a broken repository state back through the marker and proves the full health contract", async () => {
     const sandbox = await makeSandbox();
 

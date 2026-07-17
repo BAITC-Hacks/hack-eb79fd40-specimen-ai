@@ -86,6 +86,27 @@ function rawExtraction(
   };
 }
 
+function rawExtractionWithSeverity(
+  current: MockFixture,
+  severity: unknown,
+): Record<string, unknown> {
+  return {
+    anamnesis: {
+      ...current.result.anamnesis,
+      symptom: {
+        ...current.result.anamnesis.symptom,
+        severity,
+      },
+    },
+    evidence: {
+      evidences: [],
+      age: current.result.anamnesis.context.age,
+      sex: current.result.anamnesis.context.sex,
+    },
+    unmapped: [],
+  };
+}
+
 const DEMO_CASES = [
   {
     id: "scenario-1-chest-pain" as const,
@@ -160,7 +181,16 @@ describe("Russian transcript to EvidenceVector adapter", () => {
     expect(request.system).toContain("V_40=локализация боли: поясничный отдел позвоночника");
     expect(request.system).toContain("E_66 | B | выраженная одышка");
     expect(request.system).toContain("E_181 | B | заложенность носа");
-    expect(request.system).toContain("Не заменяй его похожим кодом");
+    expect(request.system).toContain("E_218 | B | усиление симптомов при нагрузке");
+    expect(request.system).toContain("КАЖДЫЙ поддерживаемый подтверждённый признак");
+    expect(request.system).toContain("Наличие unmapped не отменяет поддерживаемые признаки");
+    expect(request.system).toContain("слово «ангина» без контекста");
+    expect(request.system).toContain(
+      "Не заменяй неподдерживаемый симптом ближайшим или похожим кодом",
+    );
+    expect(request.system).toContain(
+      "Если силу симптома пациент не называл, верни null",
+    );
     expect(request.output_config).toMatchObject({
       format: {
         type: "json_schema",
@@ -178,6 +208,65 @@ describe("Russian transcript to EvidenceVector adapter", () => {
       "evidence",
       "unmapped",
     ]);
+    const anamnesisSchema = schema?.properties?.anamnesis as {
+      properties?: {
+        symptom?: {
+          required?: string[];
+          properties?: {
+            severity?: Record<string, unknown>;
+          };
+        };
+      };
+    };
+    expect(
+      anamnesisSchema.properties?.symptom?.properties?.severity,
+    ).toEqual({
+      type: ["integer", "null"],
+      minimum: 0,
+      maximum: 10,
+    });
+    expect(
+      anamnesisSchema.properties?.symptom?.required,
+    ).toContain("severity");
+  });
+
+  it.each([
+    ["patient did not state intensity", null],
+    ["explicit zero", 0],
+    ["maximum ten", 10],
+  ])("accepts severity for %s", async (_label, severity) => {
+    const current = fixture("scenario-1-chest-pain");
+    const fake = capture(rawExtractionWithSeverity(current, severity));
+
+    const result = await extractAll(current.messages, {
+      ...fake,
+      log: () => undefined,
+      warn: () => undefined,
+    });
+
+    expect(result.extraction_ok).toBe(true);
+    expect(result.anamnesis.symptom.severity).toBe(severity);
+  });
+
+  it.each([
+    ["missing field", undefined],
+    ["string", "7"],
+    ["fraction", 7.5],
+    ["below range", -1],
+    ["above range", 11],
+  ])("rejects invalid severity: %s", async (_label, severity) => {
+    const current = fixture("scenario-1-chest-pain");
+    const fake = capture(rawExtractionWithSeverity(current, severity));
+
+    const result = await extractAll(current.messages, {
+      ...fake,
+      log: () => undefined,
+      warn: () => undefined,
+    });
+
+    expect(result.extraction_ok).toBe(false);
+    expect(result.audit.failure).toBe("invalid_output");
+    expect(result.anamnesis.symptom.severity).toBeNull();
   });
 
   it("records and rejects malformed, unknown, incorrectly typed, and duplicate evidence entries", async () => {

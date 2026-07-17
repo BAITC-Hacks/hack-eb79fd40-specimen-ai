@@ -213,6 +213,7 @@ export function contextFlags(
   if (
     anamnesis.context.age !== null &&
     anamnesis.context.age >= 65 &&
+    anamnesis.symptom.severity !== null &&
     anamnesis.symptom.severity >= 7
   ) {
     found.push({

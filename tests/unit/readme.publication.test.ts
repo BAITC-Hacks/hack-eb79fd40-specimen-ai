@@ -116,7 +116,8 @@ describe("README publication contract", () => {
 
     expect(readme).toContain("docker compose up --build -d");
     expect(readme).toContain("http://localhost:3100/api/healthz");
-    expect(readme).toContain("Публичный HTTPS/VPS-деплой не заявлен как готовый");
+    expect(readme).toContain("Публичный сертификат");
+    expect(readme).toContain("независимый L1 smoke");
   });
 
   it("contains no legacy integration, cut architecture, forbidden stack or secret", () => {

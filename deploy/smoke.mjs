@@ -1,9 +1,11 @@
+import { createHash } from "node:crypto";
 import { constants } from "node:fs";
 import { lstat, mkdir, open, realpath } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-export const CANONICAL_BASE = "https://109-123-248-16.sslip.io";
+export const CANONICAL_BASE = "https://109.123.248.16";
+export const LEGACY_PRODUCTION_ORIGIN = "https://109-123-248-16.sslip.io";
 export const L1_OPT_IN = "I_ACCEPT_PRODUCTION_SMOKE";
 export const L2_OPT_IN = "I_AUTHORIZE_3_SCENARIOS_AND_UP_TO_24_ANTHROPIC_REQUESTS";
 export const SCENARIO1_ONCE_OPT_IN = "I_AUTHORIZE_ONE_PRODUCTION_SCENARIO1_ONCE";
@@ -79,13 +81,58 @@ function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function validateBase(baseUrl) {
-  must(baseUrl === CANONICAL_BASE, "BASE_URL is not the canonical production origin");
-  const parsed = new URL(baseUrl);
+function validateProductionHostname(hostname) {
+  if (hostname === "109.123.248.16") return hostname;
+  must(
+    typeof hostname === "string" &&
+      hostname.length <= 253 &&
+      hostname.includes(".") &&
+      /^[a-z0-9.-]+$/.test(hostname),
+    "production hostname is not the approved public IPv4 or a normalized lowercase ASCII DNS FQDN",
+  );
+  const labels = hostname.split(".");
+  must(labels.length >= 2, "production hostname requires at least two labels");
+  for (const label of labels) {
+    must(
+      label.length >= 1 &&
+        label.length <= 63 &&
+        /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(label) &&
+        !label.startsWith("xn--"),
+      "production hostname contains an invalid DNS label",
+    );
+  }
+  const finalLabel = labels.at(-1);
+  must(
+    typeof finalLabel === "string" &&
+      !/^[0-9]+$/.test(finalLabel) &&
+      !/^0x[0-9a-f]*$/.test(finalLabel),
+    "production hostname has an IP-shaped final DNS label",
+  );
+  must(
+    !(labels.length === 4 && labels.every((label) => /^[0-9]+$/.test(label))),
+    "production hostname must not be an IP literal",
+  );
+  must(hostname !== "localhost", "production hostname must not be localhost");
+  return hostname;
+}
+
+export function validateProductionOrigin(origin) {
+  must(
+    typeof origin === "string" && /^https:\/\/[a-z0-9.-]+$/.test(origin),
+    "production origin must be exact lowercase HTTPS without authority extras",
+  );
+  const parsed = new URL(origin);
   must(parsed.protocol === "https:", "production smoke requires HTTPS");
-  must(parsed.origin === baseUrl && parsed.pathname === "/", "BASE_URL must be an origin without path");
-  must(!parsed.username && !parsed.password && !parsed.port, "BASE_URL contains forbidden authority fields");
+  must(parsed.origin === origin && parsed.pathname === "/", "production origin must not contain a path");
+  must(!parsed.username && !parsed.password && !parsed.port, "production origin contains forbidden authority fields");
+  validateProductionHostname(parsed.hostname);
   return parsed.origin;
+}
+
+function validateBase(baseUrl, expectedOrigin = CANONICAL_BASE) {
+  const trustedOrigin = validateProductionOrigin(expectedOrigin);
+  must(baseUrl === trustedOrigin, "BASE_URL does not match EXPECTED_PRODUCTION_ORIGIN");
+  return validateProductionOrigin(baseUrl);
 }
 
 function safeError(error) {
@@ -107,8 +154,13 @@ function endpointLabel(path) {
   return "request";
 }
 
-function createClient({ baseUrl, fetchImpl = globalThis.fetch, cap }) {
-  const origin = validateBase(baseUrl);
+function createClient({
+  baseUrl,
+  expectedOrigin = CANONICAL_BASE,
+  fetchImpl = globalThis.fetch,
+  cap,
+}) {
+  const origin = validateBase(baseUrl, expectedOrigin);
   let count = 0;
 
   async function request(path, {
@@ -262,10 +314,17 @@ export function assertSmokeResult(result, messages) {
   must(typeof result.anamnesis.chief_complaint === "string", "chief complaint is invalid");
   must(isRecord(result.anamnesis.symptom), "anamnesis symptom is invalid");
   must(
-    Number.isFinite(result.anamnesis.symptom.severity) &&
-      result.anamnesis.symptom.severity >= 0 &&
-      result.anamnesis.symptom.severity <= 10,
-    "symptom severity is outside 0..10",
+    Object.hasOwn(result.anamnesis.symptom, "severity"),
+    "symptom severity is missing",
+  );
+  const severity = result.anamnesis.symptom.severity;
+  must(
+    severity === null ||
+      (Number.isFinite(severity) &&
+        Number.isInteger(severity) &&
+        severity >= 0 &&
+        severity <= 10),
+    "symptom severity must be null or an integer from 0 to 10",
   );
   for (const key of ["past_history", "chronic", "allergies", "medications"]) {
     must(Array.isArray(result.anamnesis[key]), `anamnesis ${key} is not an array`);
@@ -350,8 +409,12 @@ export function assertSmokeResult(result, messages) {
   assertOnlyNegativeRestrictedUsage(result);
 }
 
-export async function runL1({ baseUrl = CANONICAL_BASE, fetchImpl = globalThis.fetch } = {}) {
-  const client = createClient({ baseUrl, fetchImpl, cap: L1_HTTP_CAP });
+export async function runL1({
+  baseUrl = CANONICAL_BASE,
+  expectedOrigin = CANONICAL_BASE,
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  const client = createClient({ baseUrl, expectedOrigin, fetchImpl, cap: L1_HTTP_CAP });
   const checks = [];
 
   const root = await client.request("/", { expectJson: false, timeoutMs: 15_000 });
@@ -400,8 +463,12 @@ function sameJson(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-export async function runL2({ baseUrl = CANONICAL_BASE, fetchImpl = globalThis.fetch } = {}) {
-  const client = createClient({ baseUrl, fetchImpl, cap: L2_HTTP_CAP });
+export async function runL2({
+  baseUrl = CANONICAL_BASE,
+  expectedOrigin = CANONICAL_BASE,
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  const client = createClient({ baseUrl, expectedOrigin, fetchImpl, cap: L2_HTTP_CAP });
   const health = await client.request("/api/healthz", { timeoutMs: 15_000 });
   assertExactHealth(health);
   must(health.llm_ok === true, "L2 preflight requires healthz llm_ok=true");
@@ -495,6 +562,7 @@ export async function runL2({ baseUrl = CANONICAL_BASE, fetchImpl = globalThis.f
 
 async function runScenario1Once({
   baseUrl = CANONICAL_BASE,
+  expectedOrigin = CANONICAL_BASE,
   expectedCommit = "",
   fetchImpl = globalThis.fetch,
 } = {}) {
@@ -503,7 +571,12 @@ async function runScenario1Once({
     "EXPECTED_COMMIT must be exactly seven lowercase hexadecimal characters",
     "EXPECTED_COMMIT_INVALID",
   );
-  const client = createClient({ baseUrl, fetchImpl, cap: SCENARIO1_HTTP_CAP });
+  const client = createClient({
+    baseUrl,
+    expectedOrigin,
+    fetchImpl,
+    cap: SCENARIO1_HTTP_CAP,
+  });
   const scenario = SCENARIOS[0];
   must(scenario.lines.length === 1, "scenario 1 must contain exactly one patient line");
 
@@ -572,7 +645,8 @@ async function runScenario1Once({
     schema_version: 1,
     level: "PROD_E2E_SCENARIO_1",
     ok: true,
-    canonical_host_verified: true,
+    production_origin: expectedOrigin,
+    expected_origin_verified: true,
     health_commit: health.commit,
     health_model_version: health.model_version,
     health_llm_ok: health.llm_ok,
@@ -805,6 +879,7 @@ async function assertReservationStillBound(reservation) {
 
 export async function executeScenario1Once({
   baseUrl = CANONICAL_BASE,
+  expectedOrigin = CANONICAL_BASE,
   expectedCommit = "",
   optIn = "",
   artifactRoot = DEFAULT_ARTIFACT_ROOT,
@@ -813,7 +888,7 @@ export async function executeScenario1Once({
 } = {}) {
   must(optIn === SCENARIO1_ONCE_OPT_IN, "live scenario 1 one-shot opt-in is missing");
   must(tlsRejectUnauthorized !== "0", "TLS certificate verification is disabled");
-  validateBase(baseUrl);
+  const productionOrigin = validateBase(baseUrl, expectedOrigin);
   must(
     typeof expectedCommit === "string" && /^[0-9a-f]{7}$/.test(expectedCommit),
     "EXPECTED_COMMIT must be exactly seven lowercase hexadecimal characters",
@@ -822,18 +897,35 @@ export async function executeScenario1Once({
 
   const resolvedRoot = resolve(artifactRoot);
   if (resolvedRoot === DEFAULT_ARTIFACT_ROOT) await ensureDefaultArtifactRoot();
-  const artifactPath = resolve(resolvedRoot, `prod-s1-${expectedCommit}-once.json`);
+  const originHash = createHash("sha256").update(productionOrigin).digest("hex");
+  const hostnameSlug = new URL(productionOrigin).hostname
+    .replaceAll(".", "-")
+    .slice(0, 48)
+    .replace(/-+$/u, "");
+  const originSuffix = productionOrigin === LEGACY_PRODUCTION_ORIGIN
+    ? ""
+    : `-${hostnameSlug}-${originHash}`;
+  const artifactPath = resolve(
+    resolvedRoot,
+    `prod-s1-${expectedCommit}${originSuffix}-once.json`,
+  );
   const artifact = await reserveArtifact(artifactPath, resolvedRoot);
   let payload;
   let failure;
   try {
-    payload = await runScenario1Once({ baseUrl, expectedCommit, fetchImpl });
+    payload = await runScenario1Once({
+      baseUrl,
+      expectedOrigin: productionOrigin,
+      expectedCommit,
+      fetchImpl,
+    });
   } catch (error) {
     failure = error;
     payload = {
       schema_version: 1,
       level: "PROD_E2E_SCENARIO_1",
       ok: false,
+      production_origin: productionOrigin,
       health_commit: expectedCommit,
       error: safeError(error),
       http_cap: SCENARIO1_HTTP_CAP,
@@ -856,7 +948,11 @@ async function main() {
   const level = process.argv[2];
   must(level === "l1" || level === "l2" || level === "scenario1-once", "usage: smoke.mjs l1|l2|scenario1-once");
   if (level === "scenario1-once") {
+    const expectedOrigin = process.env.EXPECTED_PRODUCTION_ORIGIN ?? CANONICAL_BASE;
+    const baseUrl = process.env.BASE_URL ?? expectedOrigin;
     const result = await executeScenario1Once({
+      baseUrl,
+      expectedOrigin,
       expectedCommit: process.env.EXPECTED_COMMIT,
       optIn: process.env.DEMEU_SCENARIO1_LIVE,
     });
@@ -866,8 +962,9 @@ async function main() {
   const expectedOptIn = level === "l1" ? L1_OPT_IN : L2_OPT_IN;
   must(process.env.DEMEU_SMOKE_LIVE === expectedOptIn, `live ${level.toUpperCase()} opt-in is missing`);
   must(process.env.NODE_TLS_REJECT_UNAUTHORIZED !== "0", "TLS certificate verification is disabled");
-  const baseUrl = process.env.BASE_URL ?? CANONICAL_BASE;
-  validateBase(baseUrl);
+  const expectedOrigin = process.env.EXPECTED_PRODUCTION_ORIGIN ?? CANONICAL_BASE;
+  const baseUrl = process.env.BASE_URL ?? expectedOrigin;
+  validateBase(baseUrl, expectedOrigin);
 
   const hasCustomRoot = process.env.SMOKE_ARTIFACT_ROOT !== undefined;
   const hasCustomArtifact = process.env.SMOKE_ARTIFACT !== undefined;
@@ -899,7 +996,9 @@ async function main() {
   let payload;
   let exitCode = 0;
   try {
-    payload = level === "l1" ? await runL1({ baseUrl }) : await runL2({ baseUrl });
+    payload = level === "l1"
+      ? await runL1({ baseUrl, expectedOrigin })
+      : await runL2({ baseUrl, expectedOrigin });
   } catch (error) {
     payload = { level: level.toUpperCase(), ok: false, error: safeError(error) };
     exitCode = 1;

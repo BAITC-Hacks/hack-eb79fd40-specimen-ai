@@ -65,6 +65,7 @@ describe("mock E2E snapshot environment isolation", () => {
       await symlink(join(ROOT, "node_modules"), join(source, "node_modules"), "dir");
       const sentinel = [
         "TELEGRAM_BOT_TOKEN=sentinel-telegram-token",
+        "TELEGRAM_DOCTOR_CHAT_IDS=111111111,222222222",
         "TELEGRAM_DOCTOR_CHAT_ID=sentinel-chat-id",
         "DOCTOR_ACCESS_CODE=sentinel-access-code",
         "",

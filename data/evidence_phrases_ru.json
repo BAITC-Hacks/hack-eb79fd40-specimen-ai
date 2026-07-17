@@ -5,7 +5,7 @@
       "deterministic": true,
       "generator": "scripts/build_eval_phrases.py",
       "source_dictionary": "data/evidences_ru.json",
-      "source_dictionary_sha256": "8a168fbbd5a3e844ec33ad909d7c04b9bddb5b6e791daf8a13af131a67d01496"
+      "source_dictionary_sha256": "162e4d00b322dec293a47b5ae994f35d0f834929b93a42efaafea0fe54b2430a"
     },
     "manual_review": {
       "date": "2026-07-14",
@@ -63,8 +63,8 @@
       "strategy": "top_40_held_out_classes_by_frequency_seeded_min_hash_row"
     },
     "source_counts": {
-      "deterministic_generator": 304,
-      "manual_reviewed": 17
+      "deterministic_generator": 288,
+      "manual_reviewed": 33
     }
   },
   "phrases": {
@@ -81,16 +81,16 @@
       "text": "механически описанный признак DDXPlus E_101"
     },
     "E_102": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_102"
+      "source": "manual_reviewed",
+      "text": "обращение из-за повышенного давления"
     },
     "E_103": {
       "source": "deterministic_generator",
       "text": "механически описанный признак DDXPlus E_103"
     },
     "E_104": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_104"
+      "source": "manual_reviewed",
+      "text": "повышенное давление или приём препаратов от давления"
     },
     "E_105": {
       "source": "deterministic_generator",
@@ -441,8 +441,8 @@
       "text": "механически описанный признак DDXPlus E_154"
     },
     "E_155": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_155"
+      "source": "manual_reviewed",
+      "text": "учащённое или нерегулярное сердцебиение"
     },
     "E_156": {
       "source": "manual_reviewed",
@@ -577,8 +577,8 @@
       "text": "механически описанный признак DDXPlus E_20"
     },
     "E_201": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_201"
+      "source": "manual_reviewed",
+      "text": "кашель"
     },
     "E_204@V_10": {
       "source": "deterministic_generator",
@@ -633,8 +633,8 @@
       "text": "механически описанный признак DDXPlus E_217"
     },
     "E_218": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_218"
+      "source": "manual_reviewed",
+      "text": "усиление симптомов при нагрузке и облегчение в покое"
     },
     "E_219": {
       "source": "deterministic_generator",
@@ -645,8 +645,8 @@
       "text": "механически описанный признак DDXPlus E_22"
     },
     "E_220": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_220"
+      "source": "manual_reviewed",
+      "text": "усиление боли при глубоком вдохе"
     },
     "E_221": {
       "source": "deterministic_generator",
@@ -745,8 +745,8 @@
       "text": "механически описанный признак DDXPlus E_5"
     },
     "E_50": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_50"
+      "source": "manual_reviewed",
+      "text": "значительно усиленное потоотделение"
     },
     "E_51": {
       "source": "deterministic_generator",
@@ -757,64 +757,64 @@
       "text": "механически описанный признак DDXPlus E_52"
     },
     "E_53": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_53"
+      "source": "manual_reviewed",
+      "text": "боль, связанная с текущим обращением"
     },
     "E_54@V_112": {
       "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 3 (V_112)"
+      "text": "характер боли: вариант 3 (V_112)"
     },
     "E_54@V_154": {
       "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 4 (V_154)"
+      "text": "характер боли: вариант 4 (V_154)"
     },
     "E_54@V_161": {
       "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 5 (V_161)"
+      "text": "характер боли: вариант 5 (V_161)"
     },
     "E_54@V_179": {
       "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 6 (V_179)"
+      "text": "характер боли: вариант 6 (V_179)"
     },
     "E_54@V_180": {
       "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 7 (V_180)"
+      "text": "характер боли: вариант 7 (V_180)"
     },
     "E_54@V_181": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 8 (V_181)"
+      "source": "manual_reviewed",
+      "text": "характер боли: жгучая"
     },
     "E_54@V_182": {
       "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 9 (V_182)"
+      "text": "характер боли: вариант 9 (V_182)"
     },
     "E_54@V_183": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 10 (V_183)"
+      "source": "manual_reviewed",
+      "text": "характер боли: тяжёлая"
     },
     "E_54@V_191": {
       "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 12 (V_191)"
+      "text": "характер боли: вариант 12 (V_191)"
     },
     "E_54@V_192": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 13 (V_192)"
+      "source": "manual_reviewed",
+      "text": "характер боли: резкая"
     },
     "E_54@V_193": {
       "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 14 (V_193)"
+      "text": "характер боли: вариант 14 (V_193)"
     },
     "E_54@V_196": {
       "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 15 (V_196)"
+      "text": "характер боли: вариант 15 (V_196)"
     },
     "E_54@V_198": {
       "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 16 (V_198)"
+      "text": "характер боли: вариант 16 (V_198)"
     },
     "E_54@V_71": {
       "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_54: вариант 2 (V_71)"
+      "text": "характер боли: вариант 2 (V_71)"
     },
     "E_55@V_100": {
       "source": "deterministic_generator",
@@ -1245,8 +1245,8 @@
       "text": "механически описанный признак DDXPlus E_62"
     },
     "E_65": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_65"
+      "source": "manual_reviewed",
+      "text": "затруднение или дискомфорт при глотании"
     },
     "E_66": {
       "source": "manual_reviewed",
@@ -1273,8 +1273,8 @@
       "text": "механически описанный признак DDXPlus E_75"
     },
     "E_76": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_76"
+      "source": "manual_reviewed",
+      "text": "лёгкое головокружение"
     },
     "E_77": {
       "source": "deterministic_generator",
@@ -1301,8 +1301,8 @@
       "text": "механически описанный признак DDXPlus E_81"
     },
     "E_82": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_82"
+      "source": "manual_reviewed",
+      "text": "головокружение или предобморочное состояние"
     },
     "E_83": {
       "source": "deterministic_generator",
@@ -1321,8 +1321,8 @@
       "text": "механически описанный признак DDXPlus E_89"
     },
     "E_9": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_9"
+      "source": "manual_reviewed",
+      "text": "увеличенные или болезненные лимфоузлы"
     },
     "E_91": {
       "source": "manual_reviewed",
@@ -1345,8 +1345,8 @@
       "text": "механически описанный признак DDXPlus E_96"
     },
     "E_97": {
-      "source": "deterministic_generator",
-      "text": "механически описанный признак DDXPlus E_97"
+      "source": "manual_reviewed",
+      "text": "боль в горле"
     },
     "E_98": {
       "source": "deterministic_generator",

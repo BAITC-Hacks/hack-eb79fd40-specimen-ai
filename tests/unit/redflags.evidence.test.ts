@@ -7,7 +7,7 @@ import { RED_FLAG_PATTERN_FIXTURES } from "../fixtures/redflags.fixtures";
 function anamnesis(overrides?: {
   age?: number;
   pregnancy?: "yes" | "no" | "na";
-  severity?: number;
+  severity?: number | null;
   complaint?: string;
 }): Anamnesis {
   return {
@@ -16,7 +16,7 @@ function anamnesis(overrides?: {
       onset: "сегодня",
       location: "",
       quality: "",
-      severity: overrides?.severity ?? 3,
+      severity: overrides?.severity === undefined ? 3 : overrides.severity,
       modifiers: "",
       associated: [],
     },
@@ -109,5 +109,20 @@ describe("red flag evidence contract", () => {
       expect(flag.source_message_index).toBe(-1);
       expect(flag.evidence).not.toBe("");
     }
+  });
+
+  it("does not infer elderly severe risk when intensity is unknown", () => {
+    const messages: ChatMessage[] = [{ role: "user", content: "Мне плохо" }];
+
+    expect(
+      contextFlags(anamnesis({ age: 70, severity: null }), messages).some(
+        ({ code }) => code === "elderly_severe",
+      ),
+    ).toBe(false);
+    expect(
+      contextFlags(anamnesis({ age: 70, severity: 7 }), messages).some(
+        ({ code }) => code === "elderly_severe",
+      ),
+    ).toBe(true);
   });
 });

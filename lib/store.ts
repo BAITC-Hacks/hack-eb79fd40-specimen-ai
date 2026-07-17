@@ -11,7 +11,10 @@ import type {
 export interface SessionStore {
   createDoctorToken(): Promise<string>;
   isValidDoctorToken(token: string): Promise<boolean>;
-  createSession(doctorToken: string): Promise<Session>;
+  createSession(
+    doctorToken: string,
+    language?: Session["language"],
+  ): Promise<Session>;
   getSession(id: string): Promise<ReadonlySession | undefined>;
   appendMessage(id: string, message: ChatMessage): Promise<void>;
   completeSession(id: string, result: TriageResult): Promise<void>;
@@ -88,11 +91,14 @@ export class MemorySessionStore implements SessionStore {
     return false;
   }
 
-  async createSession(doctorToken: string): Promise<Session> {
+  async createSession(
+    doctorToken: string,
+    language: Session["language"] = "ru",
+  ): Promise<Session> {
     const session: Session = {
       id: randomUUID(),
       doctorToken,
-      language: "ru",
+      language,
       messages: [],
       status: "collecting",
       turnCount: 0,

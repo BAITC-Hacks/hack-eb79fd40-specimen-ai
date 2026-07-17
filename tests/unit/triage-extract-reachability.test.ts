@@ -64,6 +64,12 @@ describe("production extraction reachability", () => {
     expect(mocks.extractAll).toHaveBeenCalledOnce();
     expect(mocks.extractAll).toHaveBeenCalledWith(MESSAGES);
     expect(modelCalls.calls).toBe(1);
-    expect(result.source).toBe("model");
+    expect(result.source).toBe("llm_fallback");
+    expect(result.model).toMatchObject({
+      abstained: true,
+      abstain_reason: "out_of_label_space",
+      pathologies: [],
+      top_contributions: [],
+    });
   });
 });

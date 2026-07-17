@@ -17,9 +17,12 @@ import {
   type SessionStore,
 } from "@/lib/store";
 import { detectRedFlags } from "@/lib/redflags";
-import type { ChatMessage } from "@/lib/types";
+import type { ChatMessage, Session } from "@/lib/types";
 
-type RunTurnPort = (messages: ChatMessage[]) => Promise<TurnResult>;
+type RunTurnPort = (
+  messages: ChatMessage[],
+  language: Session["language"],
+) => Promise<TurnResult>;
 
 export interface ChatRouteDeps {
   sessionStore: SessionStore;
@@ -41,11 +44,24 @@ function apiError(
   );
 }
 
-function lastAssistantReply(messages: readonly ChatMessage[]): string {
+const COMPLETION_REPLY: Record<Session["language"], string> = {
+  ru: "Спасибо, я передаю данные врачу.",
+  kk: "Рақмет, жауаптарыңыз дәрігерге жіберілді.",
+};
+
+const HARD_CAP_REPLY: Record<Session["language"], string> = {
+  ru: "Спасибо, этого достаточно — передаю данные врачу.",
+  kk: "Жеткілікті мәлімет жиналды. Рақмет!",
+};
+
+function lastAssistantReply(
+  messages: readonly ChatMessage[],
+  language: Session["language"],
+): string {
   for (let index = messages.length - 1; index >= 0; index -= 1) {
     if (messages[index].role === "assistant") return messages[index].content;
   }
-  return "Спасибо, я передаю данные врачу.";
+  return COMPLETION_REPLY[language];
 }
 
 async function finalizedChatResponse(
@@ -139,7 +155,7 @@ export async function handleChat(req: NextRequest, deps: ChatRouteDeps) {
   if (session.turnCount >= HARD_TURN_CAP) {
     return finalizedChatResponse(
       session.id,
-      lastAssistantReply(session.messages),
+      lastAssistantReply(session.messages, session.language),
       requestId,
       deps,
     );
@@ -152,7 +168,9 @@ export async function handleChat(req: NextRequest, deps: ChatRouteDeps) {
   const candidate = [...session.messages, userMessage];
   let turn: TurnResult;
   try {
-    turn = await (deps.runTurn ?? runAnamnesisTurn)(candidate);
+    turn = deps.runTurn
+      ? await deps.runTurn(candidate, session.language)
+      : await runAnamnesisTurn(candidate, {}, session.language);
   } catch {
     return apiError(
       500,
@@ -168,7 +186,7 @@ export async function handleChat(req: NextRequest, deps: ChatRouteDeps) {
   );
   const reply =
     forcedByCap && !turn.done
-      ? `${turn.reply}\n\nСпасибо, этого достаточно — передаю данные врачу.`.trim()
+      ? `${turn.reply}\n\n${HARD_CAP_REPLY[session.language]}`.trim()
       : turn.reply;
 
   try {

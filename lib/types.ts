@@ -13,7 +13,7 @@ export interface Anamnesis {
     onset: string;
     location: string;
     quality: string;
-    severity: number; // 0..10
+    severity: number | null; // 0..10 со слов пациента; null, если сила не названа
     modifiers: string;
     associated: string[];
   };

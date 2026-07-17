@@ -69,9 +69,7 @@ export default function DoctorPanel({ result }: { result: TriageResult }) {
       </ul>
 
       <h2>Маршрутизация</h2>
-      {result.routing.length === 0 ? (
-        <p className="muted">Маршрут не определён.</p>
-      ) : (
+      {result.source === "model" && result.routing.length > 0 ? (
         result.routing.map((route) => (
           <div key={route.specialty} className="routing-row">
             <span>{route.specialty}</span>
@@ -81,6 +79,17 @@ export default function DoctorPanel({ result }: { result: TriageResult }) {
             <span className="pct">{percent(route.confidence)}</span>
           </div>
         ))
+      ) : result.source === "llm_fallback" && result.routing.length > 0 ? (
+        <div>
+          <ul className="reasons">
+            {result.routing.map((route) => (
+              <li key={route.specialty}>{route.specialty}</li>
+            ))}
+          </ul>
+          <p className="muted">Ориентировочный маршрут, без числовой оценки</p>
+        </div>
+      ) : (
+        <p className="muted">Маршрут не определён.</p>
       )}
 
       <h2>Предварительная гипотеза</h2>
@@ -130,7 +139,12 @@ export default function DoctorPanel({ result }: { result: TriageResult }) {
         <dt>Начало</dt><dd>{anamnesis.symptom.onset || "—"}</dd>
         <dt>Локализация</dt><dd>{anamnesis.symptom.location || "—"}</dd>
         <dt>Характер</dt><dd>{anamnesis.symptom.quality || "—"}</dd>
-        <dt>Сила</dt><dd>{anamnesis.symptom.severity}/10</dd>
+        <dt>Сила</dt>
+        <dd>
+          {anamnesis.symptom.severity === null
+            ? "—"
+            : `${anamnesis.symptom.severity}/10`}
+        </dd>
         <dt>Сопутствующее</dt><dd>{anamnesis.symptom.associated.join(", ") || "—"}</dd>
         <dt>Хроника</dt><dd>{anamnesis.chronic.join(", ") || "—"}</dd>
         <dt>Аллергии</dt><dd>{anamnesis.allergies.join(", ") || "—"}</dd>

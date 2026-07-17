@@ -124,4 +124,24 @@ describe("четыре золотых инварианта аналитичес�
     expect(result.hypothesis.text).not.toHaveLength(0);
     expect(() => assertTriageInvariants(result, EMERGENCY_MESSAGES)).not.toThrow();
   });
+
+  it("accepts nullable or explicit-zero severity and rejects non-finite severity", async () => {
+    const result = await analyze(EMERGENCY_MESSAGES, {
+      llm: failingLlm({ calls: 0 }),
+    });
+    expect(result.anamnesis.symptom.severity).toBeNull();
+    expect(() => assertTriageInvariants(result, EMERGENCY_MESSAGES)).not.toThrow();
+
+    const explicitZero = structuredClone(result);
+    explicitZero.anamnesis.symptom.severity = 0;
+    expect(() =>
+      assertTriageInvariants(explicitZero, EMERGENCY_MESSAGES),
+    ).not.toThrow();
+
+    const nonFinite = structuredClone(result);
+    nonFinite.anamnesis.symptom.severity = Number.NaN;
+    expect(() =>
+      assertTriageInvariants(nonFinite, EMERGENCY_MESSAGES),
+    ).toThrow(/severity/u);
+  });
 });

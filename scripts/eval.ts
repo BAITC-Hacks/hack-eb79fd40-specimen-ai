@@ -141,7 +141,7 @@ const EMPTY_ANAMNESIS: Anamnesis = {
     onset: "",
     location: "",
     quality: "",
-    severity: 0,
+    severity: null,
     modifiers: "",
     associated: [],
   },

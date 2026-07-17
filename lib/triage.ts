@@ -66,6 +66,7 @@ const RANK: Record<Urgency, number> = {
 const SIGNIFICANT_PATHOLOGY_PROBABILITY = 0.15;
 const MAX_MODEL_PATHOLOGIES = 5;
 const MAX_ROUTES = 3;
+const DEMOGRAPHIC_FEATURES = new Set(["age_norm", "sex_m", "sex_f"]);
 
 interface PathologyMapRow {
   pathology: string;
@@ -133,21 +134,18 @@ export function createProductionLlm(
         throw new Error("production extraction unavailable");
       }
       const complaint = extraction.anamnesis.chief_complaint.trim();
-      const primaryRoute = /груд/iu.test(complaint)
-        ? "кардиология"
-        : "терапевт";
       return {
         anamnesis: extraction.anamnesis,
         evidence: extraction.evidence,
         unmapped: extraction.unmapped,
         urgency: "planned",
         urgency_reasons: ["Срочность уточняется моделью и правилами."],
-        routing: [{ specialty: primaryRoute, confidence: 0.25 }],
+        routing: [],
         hypothesis: {
           text: complaint
             ? `Требуется оценка жалобы: ${complaint}`
             : "Собранные данные требуют уточнения врачом.",
-          confidence: 0.25,
+          confidence: 0,
         },
       };
     },
@@ -174,7 +172,7 @@ const EMPTY_ANAMNESIS: Anamnesis = {
     onset: "",
     location: "",
     quality: "",
-    severity: 0,
+    severity: null,
     modifiers: "",
     associated: [],
   },
@@ -198,19 +196,40 @@ function sortedRouting(
     .slice(0, 3);
 }
 
+function fallbackRouting(
+  urgency: Urgency,
+): { specialty: string; confidence: number }[] {
+  return [
+    {
+      specialty: urgency === "emergency"
+        ? "скорая/приёмный покой"
+        : "терапевт",
+      confidence: 0,
+    },
+  ];
+}
+
 export function shouldAbstain(
   evidence: EvidenceVector,
   unmapped: readonly string[],
   prediction: ModelPrediction,
   threshold: number,
+  artifact: ModelArtifact = PRODUCTION_ARTIFACT,
 ): ModelPrediction["abstain_reason"] | undefined {
   if (!Number.isFinite(threshold) || threshold <= 0 || threshold >= 1) {
     throw new Error("Model abstain threshold must be inside (0, 1)");
   }
-  const mappedCount = evidence.evidences.length;
+  const vector = buildVector(evidence, artifact);
+  const activeEvidenceColumns = artifact.feature_order.reduce(
+    (count, feature, index) =>
+      !DEMOGRAPHIC_FEATURES.has(feature) && vector[index] !== 0
+        ? count + 1
+        : count,
+    0,
+  );
   if (
-    mappedCount === 0 ||
-    unmapped.length / (mappedCount + unmapped.length) > 0.5
+    activeEvidenceColumns < 2 ||
+    unmapped.length / (activeEvidenceColumns + unmapped.length) > 0.5
   ) {
     return "out_of_label_space";
   }
@@ -433,7 +452,7 @@ export async function analyze(
   let source: TriageResult["source"] = "llm_fallback";
   let baseUrgency = out.urgency;
   let baseReasons = [...out.urgency_reasons];
-  let routing = sortedRouting(out.routing);
+  let routing: { specialty: string; confidence: number }[] = [];
   let model: ModelPrediction | undefined;
   let modelConfidence: number | undefined;
 
@@ -492,6 +511,9 @@ export async function analyze(
     typeof out.hypothesis?.text === "string" && out.hypothesis.text.trim()
       ? out.hypothesis.text
       : "Данные собраны; предварительную гипотезу уточняет врач.";
+  if (source === "llm_fallback") {
+    routing = fallbackRouting(merged.urgency);
+  }
 
   return {
     anamnesis: out.anamnesis,

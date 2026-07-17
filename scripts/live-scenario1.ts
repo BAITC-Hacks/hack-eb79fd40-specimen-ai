@@ -20,6 +20,7 @@ import { store } from "../lib/store";
 import {
   TelegramClient,
   TelegramNotifier,
+  parseTelegramDoctorChatIds,
   type TelegramFetch,
 } from "../lib/telegram";
 import { analyze, createProductionLlm } from "../lib/triage";
@@ -35,7 +36,6 @@ const REPORT_PATH = new URL(
 const REQUIRED_ENV = [
   "ANTHROPIC_API_KEY",
   "TELEGRAM_BOT_TOKEN",
-  "TELEGRAM_DOCTOR_CHAT_ID",
 ] as const;
 
 type Operation = "chat" | "structured";
@@ -60,6 +60,21 @@ export function createAnthropicCallBudget(
       actual += 1;
     },
   };
+}
+
+export function resolveLiveTelegramRecipients(
+  env: {
+    TELEGRAM_DOCTOR_CHAT_IDS?: string;
+    TELEGRAM_DOCTOR_CHAT_ID?: string;
+  } = process.env as {
+    TELEGRAM_DOCTOR_CHAT_IDS?: string;
+    TELEGRAM_DOCTOR_CHAT_ID?: string;
+  },
+): readonly string[] {
+  return parseTelegramDoctorChatIds(
+    env.TELEGRAM_DOCTOR_CHAT_IDS,
+    env.TELEGRAM_DOCTOR_CHAT_ID,
+  );
 }
 
 interface TelegramObservation {
@@ -135,6 +150,8 @@ async function main(): Promise<void> {
     REQUIRED_ENV.every((name) => Boolean(process.env[name]?.trim())),
     "required_credentials_missing",
   );
+  const telegramChatIds = resolveLiveTelegramRecipients();
+  assert(telegramChatIds.length > 0, "required_credentials_missing");
   assert(OUTER_GUARD_MS > STRUCTURED_TIMEOUT_MS, "invalid_outer_guard");
 
   await mkdir(new URL("../reports/live-e2e/", import.meta.url), { recursive: true });
@@ -205,7 +222,7 @@ async function main(): Promise<void> {
 
   const notifier = new TelegramNotifier(
     new TelegramClient(process.env.TELEGRAM_BOT_TOKEN!, { fetcher: observingFetch }),
-    process.env.TELEGRAM_DOCTOR_CHAT_ID!,
+    telegramChatIds,
     async (session, triageResult) => {
       const pdf = await renderSummaryPdf(session, triageResult);
       pdfBytes = pdf.byteLength;
@@ -294,13 +311,18 @@ async function main(): Promise<void> {
       "model_source_incoherent",
     );
     assert(pdfBytes > 0, "pdf_not_generated");
+    const telegramPairsConfirmed =
+      telegram.length === telegramChatIds.length * 2 &&
+      telegramChatIds.every(
+        (_chatId, index) =>
+          telegram[index * 2]?.method === "sendMessage" &&
+          telegram[index * 2 + 1]?.method === "sendDocument" &&
+          typeof telegram[index * 2 + 1]?.document_file_id === "string",
+      );
     assert(
-      telegram.length === 2 &&
-        telegram[0].method === "sendMessage" &&
-        telegram[1].method === "sendDocument" &&
+      telegramPairsConfirmed &&
         telegram.every((observation) => observation.ok) &&
-        telegram.every((observation) => typeof observation.message_id === "number") &&
-        typeof telegram[1].document_file_id === "string",
+        telegram.every((observation) => typeof observation.message_id === "number"),
       "telegram_delivery_unconfirmed",
     );
 

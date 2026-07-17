@@ -1,5 +1,7 @@
 import { chatTurn } from "./llm";
-import type { ChatMessage } from "./types";
+import type { ChatMessage, Session } from "./types";
+
+type SessionLanguage = Session["language"];
 
 // Маркер, которым агент сигналит, что анамнез собран полностью.
 export const DONE_MARKER = "[ANAMNESIS_COMPLETE]";
@@ -8,14 +10,26 @@ export const GREETING_RU =
   "Здравствуйте! Я помощник вашей поликлиники. Задам несколько коротких вопросов " +
   "о самочувствии, чтобы врач подготовился к приёму. Что вас беспокоит?";
 
+export const GREETING_KK =
+  "Сәлеметсіз бе! Мен дәрігеріңіздің көмекшісімін. Дәрігер қабылдауға алдын ала дайындалуы үшін бірнеше сұрақ қоямын. Сізді не мазалайды?";
+
+const GREETINGS: Record<SessionLanguage, string> = {
+  ru: GREETING_RU,
+  kk: GREETING_KK,
+};
+
+export function greetingForLanguage(language: SessionLanguage): string {
+  return GREETINGS[language];
+}
+
 // System prompt агента-опросника. Основан на
 // «Specimen AI/Docs/GovTech Camp/Сценарий - Агент-опросник анамнеза».
-export const ANAMNESIS_SYSTEM = `Ты — ассистент первичного опроса пациента для государственной поликлиники.
+const ANAMNESIS_SYSTEM_BASE = `Ты — ассистент первичного опроса пациента для государственной поликлиники.
 Твоя задача — собрать структурированный анамнез ПЕРЕД приёмом врача.
 
 СТРОГИЕ ПРАВИЛА:
 - Ты НЕ ставишь диагноз и не назначаешь лечение.
-- Говоришь просто, спокойно, на языке пациента (русский или казахский — подстраивайся).
+- Говоришь просто и спокойно.
 - Задаёшь ПО ОДНОМУ вопросу за реплику, коротко, без списков.
 - Финальное решение всегда за врачом.
 
@@ -47,6 +61,17 @@ export const ANAMNESIS_SYSTEM = `Ты — ассистент первичног�
 не переспрашивай третий раз, переходи к следующей стадии. Лучше неполный анамнез вовремя,
 чем полный никогда.`;
 
+const LANGUAGE_INSTRUCTION: Record<SessionLanguage, string> = {
+  ru: "Отвечай пациенту ТОЛЬКО на русском языке. Не переходи на казахский или другой язык.",
+  kk: "Пациент выбрал казахский язык. Отвечай ТОЛЬКО на казахском языке. Не переходи на русский или другой язык.",
+};
+
+export function anamnesisSystem(language: SessionLanguage): string {
+  return `${ANAMNESIS_SYSTEM_BASE}\n\nЯЗЫК СЕССИИ:\n${LANGUAGE_INSTRUCTION[language]}`;
+}
+
+export const ANAMNESIS_SYSTEM = anamnesisSystem("ru");
+
 export interface TurnResult {
   reply: string;
   done: boolean;
@@ -57,18 +82,26 @@ export type ChatTurnPort = (
   messages: ChatMessage[],
 ) => Promise<string>;
 
-const ANAMNESIS_TURN_SYSTEM = `${ANAMNESIS_SYSTEM}\n\nТы уже отправил пациенту приветствие: «${GREETING_RU}». Не здоровайся повторно.`;
+export function anamnesisTurnSystem(language: SessionLanguage): string {
+  return `${anamnesisSystem(language)}\n\nТы уже отправил пациенту приветствие: «${greetingForLanguage(language)}». Не здоровайся повторно.`;
+}
 
 const DONE_RE =
   /(?<!\S)[*_`~]*\s*(?:\[\s*)?ANAMNESIS[\s_-]*COMPLETE(?:\s*\])?\s*[*_`~]*(?!\S)/iu;
-const COMPLETE_REPLY = "Спасибо, я передаю данные врачу.";
+const COMPLETE_REPLY: Record<SessionLanguage, string> = {
+  ru: "Спасибо, я передаю данные врачу.",
+  kk: "Рақмет, жауаптарыңыз дәрігерге жіберілді.",
+};
 
-export function stripDoneMarker(raw: string): TurnResult {
+export function stripDoneMarker(
+  raw: string,
+  language: SessionLanguage = "ru",
+): TurnResult {
   const done = DONE_RE.test(raw);
   if (!done) return { reply: raw.trim(), done: false };
 
   const reply = raw.replace(DONE_RE, " ").trim();
-  return { reply: reply || COMPLETE_REPLY, done: true };
+  return { reply: reply || COMPLETE_REPLY[language], done: true };
 }
 
 // Полный транскрипт начинается со статического приветствия ассистента, а
@@ -86,6 +119,7 @@ export function toApiMessages(
 export async function runAnamnesisTurn(
   messages: readonly ChatMessage[],
   deps: { chatTurn?: ChatTurnPort } = {},
+  language: SessionLanguage = "ru",
 ): Promise<TurnResult> {
   const apiMessages = toApiMessages(messages);
   if (apiMessages.length === 0) {
@@ -93,8 +127,8 @@ export async function runAnamnesisTurn(
   }
 
   const raw = await (deps.chatTurn ?? chatTurn)(
-    ANAMNESIS_TURN_SYSTEM,
+    anamnesisTurnSystem(language),
     apiMessages,
   );
-  return stripDoneMarker(raw);
+  return stripDoneMarker(raw, language);
 }

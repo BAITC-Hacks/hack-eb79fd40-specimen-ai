@@ -177,11 +177,15 @@ validate_server_config() {
   APP_PORT="$configured_port"
   TLS_BRANCH="$configured_branch"
   APP_BASE_URL="$configured_base_url"
+  if [ "$DEMEU_DOMAIN" = "109.123.248.16" ] \
+    && [ "$TLS_BRANCH" != "branch-b-caddy" ]; then
+    die "109.123.248.16 requires TLS_BRANCH=branch-b-caddy"
+  fi
   [ "$APP_BASE_URL" = "https://${DEMEU_DOMAIN}" ] \
     || die "APP_BASE_URL must exactly match the selected HTTPS domain"
   export DEMEU_DOMAIN APP_PORT TLS_BRANCH APP_BASE_URL
 
-  DEMEU_DOMAIN="$DEMEU_DOMAIN" APP_PORT="$APP_PORT" \
+  DEMEU_DOMAIN="$DEMEU_DOMAIN" APP_PORT="$APP_PORT" TLS_BRANCH="$TLS_BRANCH" \
     ./deploy/tls.sh preflight >/dev/null
 }
 
@@ -190,7 +194,7 @@ configure_compose() {
   case "$TLS_BRANCH" in
     branch-b-caddy)
       COMPOSE_ARGS+=(-f deploy/compose.caddy.yml)
-      DEMEU_DOMAIN="$DEMEU_DOMAIN" APP_PORT="$APP_PORT" \
+      DEMEU_DOMAIN="$DEMEU_DOMAIN" APP_PORT="$APP_PORT" TLS_BRANCH="$TLS_BRANCH" \
         ./deploy/tls.sh branch-b-config
       ;;
     branch-a-nginx|branch-a-caddy)

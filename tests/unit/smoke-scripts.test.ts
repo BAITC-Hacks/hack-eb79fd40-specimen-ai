@@ -19,6 +19,7 @@ import {
   assertSmokeResult,
   runL1,
   runL2,
+  validateProductionOrigin,
 } from "../../deploy/smoke.mjs";
 
 type FetchCall = { url: string; init?: RequestInit };
@@ -70,6 +71,32 @@ describe("production smoke scripts", () => {
     expect(calls.every(({ url }) => url.startsWith(`${CANONICAL_BASE}/`))).toBe(true);
     expect(calls.every(({ init }) => init?.redirect === "error")).toBe(true);
     expect(calls.some(({ url }) => url.includes("-k"))).toBe(false);
+  });
+
+  it("binds every custom-domain L1 request to the explicit trusted origin", async () => {
+    const expectedOrigin = "https://demo.example.kz";
+    const token = "1234567890abcdef";
+    const calls: string[] = [];
+    const fetchImpl = async (input: string | URL | Request) => {
+      const url = String(input);
+      calls.push(url);
+      const path = new URL(url).pathname;
+      if (path === "/" || path === `/c/${token}`) return html();
+      if (path === "/api/healthz") return json(health);
+      if (path === "/api/link") return json({ token });
+      if (path === "/api/chat/start") return json({ code: "TOKEN_NOT_FOUND" }, 404);
+      throw new Error(`unexpected path ${path}`);
+    };
+
+    const result = await runL1({
+      baseUrl: expectedOrigin,
+      expectedOrigin,
+      fetchImpl,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(calls).toHaveLength(5);
+    expect(calls.every((url) => new URL(url).origin === expectedOrigin)).toBe(true);
   });
 
   it.each([
@@ -145,6 +172,9 @@ describe("production smoke scripts", () => {
   });
 
   it.each([
+    "http://109.123.248.16",
+    "https://109.123.248.16:443",
+    "https://109.123.248.16/extra",
     "http://109-123-248-16.sslip.io",
     "https://109-123-248-16.sslip.io:443",
     "https://109-123-248-16.sslip.io/extra",
@@ -156,7 +186,7 @@ describe("production smoke scripts", () => {
     "https://109-123-248-16%2Esslip.io",
     "https://109-123-248-16.sslip.io;touch /tmp/pwned",
     "https://example.org",
-  ])("rejects a non-canonical or injection-shaped target: %s", async (baseUrl) => {
+  ])("rejects an unexpected or injection-shaped target: %s", async (baseUrl) => {
     let called = false;
     await expect(runL1({
       baseUrl,
@@ -164,11 +194,61 @@ describe("production smoke scripts", () => {
         called = true;
         return html();
       },
-    })).rejects.toThrow("canonical production origin");
+    })).rejects.toThrow();
     expect(called).toBe(false);
   });
 
+  it.each([
+    "https://demo.example.kz",
+    "https://triage.gov.example.kz",
+    CANONICAL_BASE,
+    "https://109-123-248-16.sslip.io",
+    "https://109-123-248-16.nip.io",
+  ])("accepts a normalized trusted production origin: %s", (origin) => {
+    expect(validateProductionOrigin(origin)).toBe(origin);
+  });
+
+  it.each([
+    "http://demo.example.kz",
+    "https://demo.example.kz:443",
+    "https://demo.example.kz/path",
+    "https://user@demo.example.kz",
+    "https://*.example.kz",
+    "https://demo..example.kz",
+    "https://-demo.example.kz",
+    "https://demo-.example.kz",
+    "https://109.123.248.17",
+    "https://1.1.1.1",
+    "https://127.1",
+    "https://127.0.1",
+    "https://10.1",
+    "https://169.254",
+    "https://192.168.1",
+    "https://0x7f.0.0.1",
+    "https://0x.1",
+    "https://0x.999",
+    "https://1.0x",
+    "https://0x0.0x",
+    "https://0xg.1",
+    "https://00x1.1",
+    "https://demo.1",
+    "https://demo.0x",
+    "https://10.0.0.1",
+    "https://127.0.0.1",
+    "https://169.254.1.1",
+    "https://192.168.1.1",
+    "https://[2001:db8::1]",
+    "https://localhost",
+    "https://xn--e1afmkfd.example",
+    "https://демеу.example.kz",
+    `https://${"a".repeat(64)}.example.kz`,
+    `https://${Array.from({ length: 43 }, () => "aaaaa").join(".")}.kz`,
+  ])("rejects an unsafe production origin: %s", (origin) => {
+    expect(() => validateProductionOrigin(origin)).toThrow();
+  });
+
   it("L2 drives all frozen scenarios, finalizes twice, and emits only sanitized summaries", async () => {
+    const expectedOrigin = "https://demo.example.kz";
     const fixtureIds = [
       "scenario-1-chest-pain",
       "scenario-2-back-pain",
@@ -186,7 +266,9 @@ describe("production smoke scripts", () => {
     const fetchImpl = async (input: string | URL | Request, init?: RequestInit) => {
       calls += 1;
       expect(init?.redirect).toBe("error");
-      const path = new URL(String(input)).pathname;
+      const requestUrl = new URL(String(input));
+      expect(requestUrl.origin).toBe(expectedOrigin);
+      const path = requestUrl.pathname;
       const body = init?.body ? JSON.parse(String(init.body)) : {};
       if (path === "/api/healthz") return json({ ...health, llm_ok: true });
       if (path === "/api/link") {
@@ -222,7 +304,11 @@ describe("production smoke scripts", () => {
       throw new Error(`unexpected path ${path}`);
     };
 
-    const result = await runL2({ baseUrl: CANONICAL_BASE, fetchImpl });
+    const result = await runL2({
+      baseUrl: expectedOrigin,
+      expectedOrigin,
+      fetchImpl,
+    });
 
     expect(result.ok).toBe(true);
     expect(result.scenarios).toHaveLength(3);
@@ -279,6 +365,36 @@ describe("production smoke scripts", () => {
       result.source = "model";
       result.model!.abstained = true;
     })).toThrow("abstained");
+  });
+
+  it("requires nullable integer severity and preserves explicit zero", () => {
+    const fixture = JSON.parse(readFileSync(
+      "tests/fixtures/transcripts/scenario-1-chest-pain.mock.json",
+      "utf8",
+    )) as { result: TriageResult; messages: ChatMessage[] };
+    const withSeverity = (severity: unknown, present = true) => {
+      const result = structuredClone(fixture.result) as TriageResult & {
+        anamnesis: TriageResult["anamnesis"] & {
+          symptom: TriageResult["anamnesis"]["symptom"] & Record<string, unknown>;
+        };
+      };
+      if (present) result.anamnesis.symptom.severity = severity as number | null;
+      else {
+        delete (result.anamnesis.symptom as Partial<
+          TriageResult["anamnesis"]["symptom"]
+        >).severity;
+      }
+      return () => assertSmokeResult(result, fixture.messages);
+    };
+
+    expect(withSeverity(null)).not.toThrow();
+    expect(withSeverity(0)).not.toThrow();
+    expect(withSeverity(undefined, false)).toThrow("severity is missing");
+    for (const invalid of ["5", Number.NaN, -1, 11, 0.5]) {
+      expect(withSeverity(invalid)).toThrow(
+        "severity must be null or an integer from 0 to 10",
+      );
+    }
   });
 
   it.each(["deploy/smoke-l1.sh", "deploy/smoke-scenarios.sh"])(

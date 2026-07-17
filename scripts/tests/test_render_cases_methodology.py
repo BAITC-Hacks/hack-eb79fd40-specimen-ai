@@ -151,7 +151,7 @@ class RenderCasesMethodologyTest(unittest.TestCase):
         self.assertEqual(set(phrases), required)
         self.assertEqual(
             Counter(entry["source"] for entry in phrases.values()),
-            {"manual_reviewed": 17, "deterministic_generator": 304},
+            {"manual_reviewed": 33, "deterministic_generator": 288},
         )
         for key, entry in phrases.items():
             with self.subTest(key=key):
@@ -170,7 +170,7 @@ class RenderCasesMethodologyTest(unittest.TestCase):
         self.assertEqual(dependency["selected_key_count"], 321)
         self.assertEqual(
             dependency["source_counts"],
-            {"manual_reviewed": 17, "deterministic_generator": 304},
+            {"manual_reviewed": 33, "deterministic_generator": 288},
         )
         self.assertEqual(
             dependency["sha256"], hashlib.sha256(phrase_path.read_bytes()).hexdigest()

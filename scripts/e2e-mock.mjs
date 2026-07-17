@@ -129,6 +129,7 @@ async function main() {
     delete isolatedEnv.DOCTOR_ACCESS_CODE;
     delete isolatedEnv.TELEGRAM_BOT_TOKEN;
     delete isolatedEnv.TELEGRAM_DOCTOR_CHAT_ID;
+    delete isolatedEnv.TELEGRAM_DOCTOR_CHAT_IDS;
 
     build = spawnCaptured(
       process.execPath,
@@ -162,6 +163,7 @@ async function main() {
     delete appEnv.DOCTOR_ACCESS_CODE;
     delete appEnv.TELEGRAM_BOT_TOKEN;
     delete appEnv.TELEGRAM_DOCTOR_CHAT_ID;
+    delete appEnv.TELEGRAM_DOCTOR_CHAT_IDS;
     app = spawnCaptured(
       process.execPath,
       [join(snapshot, ".next/standalone/server.js")],

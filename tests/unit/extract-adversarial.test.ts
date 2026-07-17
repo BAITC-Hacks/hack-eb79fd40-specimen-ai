@@ -35,7 +35,7 @@ const EMPTY_ANAMNESIS: Anamnesis = {
     onset: "",
     location: "",
     quality: "",
-    severity: 0,
+    severity: null,
     modifiers: "",
     associated: [],
   },
@@ -60,6 +60,27 @@ function extraction(evidences: unknown[], unmapped: unknown[] = []): unknown {
 }
 
 describe("EvidenceVector adapter adversarial boundary", () => {
+  it("rejects a non-JSON NaN severity instead of treating it as missing", async () => {
+    const invalid = JSON.stringify(extraction([])).replace(
+      '"severity":null',
+      '"severity":NaN',
+    );
+    const createMessage: MessageCreatePort = async () => response(invalid);
+
+    const result = await extractAll(
+      [{ role: "user", content: "Сила симптома не названа." }],
+      {
+        createMessage,
+        log: () => undefined,
+        warn: () => undefined,
+      },
+    );
+
+    expect(result.extraction_ok).toBe(false);
+    expect(result.audit.failure).toBe("llm_error");
+    expect(result.anamnesis.symptom.severity).toBeNull();
+  });
+
   it("keeps assistant questions as context and an explicit patient negation absent", async () => {
     const messages: ChatMessage[] = [
       { role: "assistant", content: "Есть выраженная одышка?" },

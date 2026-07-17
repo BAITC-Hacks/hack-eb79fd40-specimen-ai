@@ -74,20 +74,32 @@ describe("model integration adversarial boundaries", () => {
     const belowThreshold = prediction([
       { code: "Bronchitis", label_ru: "Бронхит", prob: 0.499999 },
     ]);
-    const oneMapped: EvidenceVector = {
+    const oneActive: EvidenceVector = {
       evidences: [{ code: "E_14" }],
+      age: null,
+      sex: "unknown",
+    };
+    const twoActive: EvidenceVector = {
+      evidences: [{ code: "E_14" }, { code: "E_66" }],
       age: null,
       sex: "unknown",
     };
 
     expect(
-      shouldAbstain({ ...oneMapped, evidences: [] }, [], highConfidence, 0.5),
+      shouldAbstain({ ...oneActive, evidences: [] }, [], highConfidence, 0.5),
     ).toBe("out_of_label_space");
-    expect(shouldAbstain(oneMapped, ["one", "two"], highConfidence, 0.95)).toBe(
+    expect(shouldAbstain(oneActive, [], highConfidence, 0.5)).toBe(
       "out_of_label_space",
     );
-    expect(shouldAbstain(oneMapped, ["one"], exactThreshold, 0.5)).toBeUndefined();
-    expect(shouldAbstain(oneMapped, [], belowThreshold, 0.5)).toBe("low_confidence");
+    expect(
+      shouldAbstain(twoActive, ["one", "two", "three"], highConfidence, 0.5),
+    ).toBe("out_of_label_space");
+    expect(
+      shouldAbstain(twoActive, ["one", "two"], exactThreshold, 0.5),
+    ).toBeUndefined();
+    expect(shouldAbstain(twoActive, [], belowThreshold, 0.5)).toBe(
+      "low_confidence",
+    );
   });
 
   it("sums top-5 probabilities by primary specialty without alt routes or renormalization", async () => {
@@ -106,6 +118,13 @@ describe("model integration adversarial boundaries", () => {
       { specialty: "терапевт", confidence: 0.45 },
       { specialty: "ЛОР", confidence: 0.4 },
     ]);
+    expect(new Set(result.routing.map(({ specialty }) => specialty)).size).toBe(
+      result.routing.length,
+    );
+    expect(result.routing).toHaveLength(2);
+    expect(result.routing[0].confidence).toBeGreaterThanOrEqual(
+      result.routing[1].confidence,
+    );
     expect(result.routing.map(({ specialty }) => specialty)).not.toContain("пульмонология");
   });
 

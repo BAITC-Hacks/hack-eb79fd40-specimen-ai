@@ -7,7 +7,7 @@
     "title": "Насморк один день"
   },
   "completed_via": "chat",
-  "session_id": "c6dfc0ad-b956-4d13-b0a7-91ceb165e4c9",
+  "session_id": "423ea6f2-4740-4643-a927-95d67dd5d885",
   "health": {
     "ok": true,
     "commit": "unknown",
@@ -83,20 +83,20 @@
       }
     },
     "red_flags": [],
-    "urgency": "routine",
+    "urgency": "planned",
     "urgency_reasons": [
       "Модель воздержалась от ранжирования.",
-      "лёгкие симптомы продолжаются один день"
+      "Срочность уточняется моделью и правилами."
     ],
     "routing": [
       {
         "specialty": "терапевт",
-        "confidence": 0.55
+        "confidence": 0
       }
     ],
     "hypothesis": {
-      "text": "Картина соответствует лёгкому состоянию верхних дыхательных путей.",
-      "confidence": 0.35,
+      "text": "Требуется оценка жалобы: насморк и чихание один день",
+      "confidence": 0,
       "disclaimer": "Это предварительная гипотеза, это не диагноз, решает врач."
     },
     "model": {

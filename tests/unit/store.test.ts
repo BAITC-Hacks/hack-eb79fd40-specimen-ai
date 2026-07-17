@@ -49,6 +49,23 @@ describe("MemorySessionStore", () => {
     expect(stored?.messages).toEqual([]);
   });
 
+  it("stores the requested session language atomically and defaults to Russian", async () => {
+    const sessionStore = new MemorySessionStore();
+    const token = await sessionStore.createDoctorToken();
+
+    const defaultSession = await sessionStore.createSession(token);
+    const kazakhSession = await sessionStore.createSession(token, "kk");
+
+    expect(defaultSession.language).toBe("ru");
+    expect(kazakhSession.language).toBe("kk");
+    expect((await sessionStore.getSession(defaultSession.id))?.language).toBe(
+      "ru",
+    );
+    expect((await sessionStore.getSession(kazakhSession.id))?.language).toBe(
+      "kk",
+    );
+  });
+
   it("increments turnCount only for patient messages", async () => {
     const sessionStore = new MemorySessionStore();
     const token = await sessionStore.createDoctorToken();

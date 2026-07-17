@@ -1,10 +1,10 @@
 {
-  "cases_sha256": "49cefd34395f89126543c1279fe7ba6da22fe33f41c162d3f3126890ddc4a3f9",
+  "cases_sha256": "d2fb9292b1d85a92261ad48466dee348a21826549ed72ea63b729acf8de6aa95",
   "caveats": [
     "top-1/top-3 измерены при ИДЕАЛЬНОМ извлечении (mode=no-llm): LLM-адаптер не участвовал, сквозное качество ниже; extraction_f1 не измерялся",
     "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`"
   ],
-  "commit": "1cc637d",
+  "commit": "6f54902",
   "invariants": {
     "all_passed": true,
     "checks": [
@@ -1663,7 +1663,7 @@
       "model_abstained": true,
       "predicted_pathologies": [],
       "predicted_routing": [
-        "не измерено"
+        "скорая/приёмный покой"
       ],
       "predicted_urgency": "emergency",
       "source": "llm_fallback"
@@ -1683,7 +1683,7 @@
       "model_abstained": true,
       "predicted_pathologies": [],
       "predicted_routing": [
-        "не измерено"
+        "скорая/приёмный покой"
       ],
       "predicted_urgency": "emergency",
       "source": "llm_fallback"
@@ -1703,7 +1703,7 @@
       "model_abstained": true,
       "predicted_pathologies": [],
       "predicted_routing": [
-        "не измерено"
+        "скорая/приёмный покой"
       ],
       "predicted_urgency": "emergency",
       "source": "llm_fallback"
@@ -1723,7 +1723,7 @@
       "model_abstained": true,
       "predicted_pathologies": [],
       "predicted_routing": [
-        "не измерено"
+        "скорая/приёмный покой"
       ],
       "predicted_urgency": "emergency",
       "source": "llm_fallback"
@@ -1743,7 +1743,7 @@
       "model_abstained": true,
       "predicted_pathologies": [],
       "predicted_routing": [
-        "не измерено"
+        "скорая/приёмный покой"
       ],
       "predicted_urgency": "emergency",
       "source": "llm_fallback"
@@ -1761,7 +1761,7 @@
       "model_abstained": true,
       "predicted_pathologies": [],
       "predicted_routing": [
-        "не измерено"
+        "терапевт"
       ],
       "predicted_urgency": "planned",
       "source": "llm_fallback"
@@ -1779,7 +1779,7 @@
       "model_abstained": true,
       "predicted_pathologies": [],
       "predicted_routing": [
-        "не измерено"
+        "терапевт"
       ],
       "predicted_urgency": "planned",
       "source": "llm_fallback"
@@ -1797,7 +1797,7 @@
       "model_abstained": true,
       "predicted_pathologies": [],
       "predicted_routing": [
-        "не измерено"
+        "терапевт"
       ],
       "predicted_urgency": "planned",
       "source": "llm_fallback"
@@ -1806,19 +1806,19 @@
   "provenance": {
     "cases": {
       "path": "eval/cases.jsonl",
-      "sha256": "49cefd34395f89126543c1279fe7ba6da22fe33f41c162d3f3126890ddc4a3f9"
+      "sha256": "d2fb9292b1d85a92261ad48466dee348a21826549ed72ea63b729acf8de6aa95"
     },
     "dictionary": {
       "path": "data/evidences_ru.json",
-      "sha256": "8a168fbbd5a3e844ec33ad909d7c04b9bddb5b6e791daf8a13af131a67d01496"
+      "sha256": "162e4d00b322dec293a47b5ae994f35d0f834929b93a42efaafea0fe54b2430a"
     },
     "evaluator": {
       "path": "scripts/eval.ts",
-      "sha256": "b93be5daa41d2dff3a2ea00b1ec629e199d9f65584a899494c5748ef16fcfb08"
+      "sha256": "17a5f41a67ef9fca0b84bcbdb0281d9360f240c90f424605020c1659e318b59d"
     },
     "manifest": {
       "path": "eval/manifest.json",
-      "sha256": "4de7deb59d1e552b676031852603c1becb48d66e1f59e22f8f30f3206024a2f2"
+      "sha256": "64d3bea2ad3ce9bb39cb13f5ac2ce474ae090db43a98826c7c2e4e8403af2efc"
     },
     "model": {
       "path": "models/triage-lr-v1.json",
@@ -1849,16 +1849,16 @@
       "urgency_accuracy": "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`"
     },
     "required_hashes": {
-      "cases": "49cefd34395f89126543c1279fe7ba6da22fe33f41c162d3f3126890ddc4a3f9",
-      "dictionary": "8a168fbbd5a3e844ec33ad909d7c04b9bddb5b6e791daf8a13af131a67d01496",
-      "evaluator": "b93be5daa41d2dff3a2ea00b1ec629e199d9f65584a899494c5748ef16fcfb08",
-      "manifest": "4de7deb59d1e552b676031852603c1becb48d66e1f59e22f8f30f3206024a2f2",
+      "cases": "d2fb9292b1d85a92261ad48466dee348a21826549ed72ea63b729acf8de6aa95",
+      "dictionary": "162e4d00b322dec293a47b5ae994f35d0f834929b93a42efaafea0fe54b2430a",
+      "evaluator": "17a5f41a67ef9fca0b84bcbdb0281d9360f240c90f424605020c1659e318b59d",
+      "manifest": "64d3bea2ad3ce9bb39cb13f5ac2ce474ae090db43a98826c7c2e4e8403af2efc",
       "model": "3ddc467e753ef325a3bb83ddbe1997bd7ad8b108659c9cf72e37e50eeb7142ab",
       "pathology_map": "83cda24f6ac4b828bf5cad6d01086e939c009123e6cbc4976313f221b6fab7bc"
     },
     "required_mode": "no-llm",
     "status": "PARTIAL"
   },
-  "run_id": "no-llm-e1b367afffae834a",
+  "run_id": "no-llm-6642581bd716b170",
   "schema_version": 1
 }

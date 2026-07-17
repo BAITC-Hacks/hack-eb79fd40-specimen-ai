@@ -57,6 +57,10 @@ function joined(values: readonly string[]): string {
   return values.length > 0 ? values.join(", ") : "нет данных";
 }
 
+function severity(value: number | null): string {
+  return value === null ? "—" : `${value}/10`;
+}
+
 function verifiedFlags(
   session: ReadonlySession,
   result: TriageResult,
@@ -151,12 +155,19 @@ function summaryBlocks(
     { heading: "2. КРАСНЫЕ ФЛАГИ", lines: flagLines },
     {
       heading: "3. МАРШРУТИЗАЦИЯ",
-      lines: result.routing.length > 0
+      lines: result.source === "model" && result.routing.length > 0
         ? result.routing.slice(0, 3).map(
             ({ specialty, confidence }, index) =>
               `${index + 1}. ${specialty} — ${Math.round(confidence * 100)}%`,
           )
-        : ["Маршрутизация недоступна."],
+        : result.source === "llm_fallback" && result.routing.length > 0
+          ? [
+              ...result.routing
+                .slice(0, 3)
+                .map(({ specialty }, index) => `${index + 1}. ${specialty}`),
+              "Ориентировочный маршрут, без числовой оценки",
+            ]
+          : ["Маршрутизация недоступна."],
     },
     {
       heading: "4. ПРЕДВАРИТЕЛЬНАЯ ГИПОТЕЗА",
@@ -178,7 +189,7 @@ function summaryBlocks(
         `Начало: ${anamnesis.symptom.onset || "не указано"}`,
         `Локализация: ${anamnesis.symptom.location || "не указана"}`,
         `Характер: ${anamnesis.symptom.quality || "не указан"}`,
-        `Сила: ${anamnesis.symptom.severity}/10`,
+        `Сила: ${severity(anamnesis.symptom.severity)}`,
         `Модификаторы: ${anamnesis.symptom.modifiers || "не указаны"}`,
         `Сопутствующее: ${joined(anamnesis.symptom.associated)}`,
         `Перенесённое: ${joined(anamnesis.past_history)}`,

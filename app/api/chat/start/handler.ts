@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { GREETING_RU } from "@/lib/anamnesis";
+import { greetingForLanguage } from "@/lib/anamnesis";
 import { HARD_TURN_CAP } from "@/lib/config";
 import type { SessionStore } from "@/lib/store";
+import type { Session } from "@/lib/types";
 
 export async function handleChatStart(
   req: NextRequest,
@@ -16,6 +17,10 @@ export async function handleChatStart(
       typeof body === "object" && body !== null && "token" in body
         ? (body as { token?: unknown }).token
         : undefined;
+    const requestedLanguage =
+      typeof body === "object" && body !== null && "language" in body
+        ? (body as { language?: unknown }).language
+        : undefined;
 
     if (typeof token !== "string" || !/^[0-9a-f]{16}$/.test(token)) {
       return NextResponse.json(
@@ -28,6 +33,22 @@ export async function handleChatStart(
       );
     }
 
+    if (
+      requestedLanguage !== undefined &&
+      requestedLanguage !== "ru" &&
+      requestedLanguage !== "kk"
+    ) {
+      return NextResponse.json(
+        {
+          error: "Некорректный язык сессии",
+          code: "BAD_REQUEST",
+          request_id: requestId,
+        },
+        { status: 400 },
+      );
+    }
+    const language: Session["language"] = requestedLanguage ?? "ru";
+
     if (!(await sessionStore.isValidDoctorToken(token))) {
       return NextResponse.json(
         {
@@ -39,14 +60,15 @@ export async function handleChatStart(
       );
     }
 
-    const session = await sessionStore.createSession(token);
+    const session = await sessionStore.createSession(token, language);
+    const greeting = greetingForLanguage(session.language);
     await sessionStore.appendMessage(session.id, {
       role: "assistant",
-      content: GREETING_RU,
+      content: greeting,
     });
     return NextResponse.json({
       sessionId: session.id,
-      reply: GREETING_RU,
+      reply: greeting,
       turnsLeft: HARD_TURN_CAP,
     });
   } catch {

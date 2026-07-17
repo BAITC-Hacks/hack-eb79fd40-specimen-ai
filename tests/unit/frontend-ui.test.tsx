@@ -105,9 +105,63 @@ describe("Ardan frontend states", () => {
   it("renders a doctor panel only from the supplied factual result", () => {
     const html = render(createElement(DoctorPanel, { result: FRONTEND_RESULT }));
     expect(html).toContain("Сводка для врача");
-    expect(html).toContain("кардиология");
+    expect(html).toContain("Маршрут не определён");
     expect(html).toContain(FRONTEND_RESULT.hypothesis.disclaimer);
     expect(html).toContain("только правила");
+  });
+
+  it("shows numeric routing only for the model source", () => {
+    const model = structuredClone(FRONTEND_RESULT);
+    model.source = "model";
+    model.hypothesis.confidence = 0.72;
+    model.model = {
+      pathologies: [
+        { code: "p1", label_ru: "Кардиологическое состояние", prob: 0.72 },
+      ],
+      top_contributions: [
+        { feature: "E_14", label_ru: "боль в груди", contribution: 1.2 },
+      ],
+      abstained: false,
+      model_version: "test-lr-v1",
+    };
+    const fallback = structuredClone(FRONTEND_RESULT);
+    fallback.source = "llm_fallback";
+    fallback.routing = [{ specialty: "скорая/приёмный покой", confidence: 0 }];
+    fallback.hypothesis.confidence = 0.35;
+    fallback.model = {
+      pathologies: [],
+      top_contributions: [],
+      abstained: true,
+      abstain_reason: "low_confidence",
+      model_version: "test-lr-v1",
+    };
+
+    const modelHtml = render(createElement(DoctorPanel, { result: model }));
+    const fallbackHtml = render(createElement(DoctorPanel, { result: fallback }));
+
+    expect(modelHtml).toContain("72%");
+    expect(modelHtml).toContain('class="bar"');
+    expect(fallbackHtml).toContain("скорая/приёмный покой");
+    expect(fallbackHtml).toContain(
+      "Ориентировочный маршрут, без числовой оценки",
+    );
+    expect(fallbackHtml).not.toContain('class="bar"');
+    expect(fallbackHtml).not.toContain('class="pct"');
+    expect(fallbackHtml).not.toContain("0%");
+  });
+
+  it("shows an em dash for unknown intensity and preserves an explicit zero", () => {
+    const unknown = structuredClone(FRONTEND_RESULT);
+    unknown.anamnesis.symptom.severity = null;
+    const zero = structuredClone(FRONTEND_RESULT);
+    zero.anamnesis.symptom.severity = 0;
+
+    expect(render(createElement(DoctorPanel, { result: unknown }))).toContain(
+      "<dt>Сила</dt><dd>—</dd>",
+    );
+    expect(render(createElement(DoctorPanel, { result: zero }))).toContain(
+      "<dt>Сила</dt><dd>0/10</dd>",
+    );
   });
 
   it("exposes a network-free design-system surface", () => {

@@ -1,0 +1,35 @@
+(demeu_backend) {
+	encode gzip
+
+	@health path /api/healthz
+	log_skip @health
+
+	reverse_proxy app:3000 {
+		transport http {
+			response_header_timeout 120s
+			read_timeout 120s
+		}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}
+
+https://109.123.248.16 {
+	tls {
+		issuer acme {
+			profile shortlived
+			disable_tlsalpn_challenge
+		}
+	}
+
+	import demeu_backend
+}
+
+https://109-123-248-16.sslip.io {
+	import demeu_backend
+}

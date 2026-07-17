@@ -2,7 +2,7 @@
   "artifact": {
     "format": "jsonl",
     "path": "eval/cases.jsonl",
-    "sha256": "49cefd34395f89126543c1279fe7ba6da22fe33f41c162d3f3126890ddc4a3f9"
+    "sha256": "d2fb9292b1d85a92261ad48466dee348a21826549ed72ea63b729acf8de6aa95"
   },
   "coverage": {
     "class_count": 40,
@@ -80,7 +80,7 @@
     "dictionary": {
       "feature_order_source": "triage-lr-v1.json sha256:3ddc467e753ef325a3bb83ddbe1997bd7ad8b108659c9cf72e37e50eeb7142ab",
       "path": "data/evidences_ru.json",
-      "sha256": "8a168fbbd5a3e844ec33ad909d7c04b9bddb5b6e791daf8a13af131a67d01496",
+      "sha256": "162e4d00b322dec293a47b5ae994f35d0f834929b93a42efaafea0fe54b2430a",
       "source": "release_evidences.json sha256:980f7020ec068b290b49cca7f2ab0a2058faae37f9a94b113e10b6fe0c882f31"
     },
     "evidence_phrases": {
@@ -88,7 +88,7 @@
         "deterministic": true,
         "generator": "scripts/build_eval_phrases.py",
         "source_dictionary": "data/evidences_ru.json",
-        "source_dictionary_sha256": "8a168fbbd5a3e844ec33ad909d7c04b9bddb5b6e791daf8a13af131a67d01496"
+        "source_dictionary_sha256": "162e4d00b322dec293a47b5ae994f35d0f834929b93a42efaafea0fe54b2430a"
       },
       "manual_review": {
         "date": "2026-07-14",
@@ -98,10 +98,10 @@
       },
       "path": "data/evidence_phrases_ru.json",
       "selected_key_count": 321,
-      "sha256": "6905e78f6f2f6f4c2868de50a66038be0bc3e157633d215dd12b5ca036590e89",
+      "sha256": "052013ef93bb3aa8c3a5342c404f3ec6606bd54b6ce0edabcb0fdc3031c47c48",
       "source_counts": {
-        "deterministic_generator": 304,
-        "manual_reviewed": 17
+        "deterministic_generator": 288,
+        "manual_reviewed": 33
       }
     },
     "feature_spec": {

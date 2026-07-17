@@ -2,7 +2,7 @@ services:
   app:
     ports: !reset []
     environment:
-      APP_BASE_URL: https://${DEMEU_DOMAIN-109-123-248-16.sslip.io}
+      APP_BASE_URL: https://${DEMEU_DOMAIN-109.123.248.16}
 
   caddy:
     image: caddy:2.10.2-alpine
@@ -11,12 +11,14 @@ services:
     entrypoint: ["/bin/sh", "/usr/local/bin/demeu-tls"]
     command: ["caddy-run"]
     environment:
-      DEMEU_DOMAIN: ${DEMEU_DOMAIN-109-123-248-16.sslip.io}
+      DEMEU_DOMAIN: ${DEMEU_DOMAIN-109.123.248.16}
+      TLS_BRANCH: branch-b-caddy
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile.fqdn:ro
+      - ./deploy/Caddyfile.ip:/etc/caddy/Caddyfile.ip:ro
       - ./deploy/tls.sh:/usr/local/bin/demeu-tls:ro
       - caddy_data:/data
       - caddy_config:/config

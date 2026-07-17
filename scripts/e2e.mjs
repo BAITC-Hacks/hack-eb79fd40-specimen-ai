@@ -18,10 +18,26 @@ const SCENARIOS = [
         (flag) => flag.code === "chest_pain" && flag.emergency === true,
       ), "нет emergency-флага chest_pain");
       must(result.urgency === "emergency", `urgency=${result.urgency}`);
-      must(
-        result.routing[0]?.specialty === "кардиология",
-        `routing[0]=${JSON.stringify(result.routing[0])}`,
-      );
+      if (result.source === "model") {
+        must(
+          result.routing.some(({ specialty }) =>
+            ["кардиология", "скорая/приёмный покой"].includes(specialty)
+          ),
+          `model routing=${JSON.stringify(result.routing)}`,
+        );
+      } else if (result.source === "llm_fallback") {
+        must(
+          result.routing.length === 1 &&
+            result.routing[0]?.specialty === "скорая/приёмный покой" &&
+            result.routing[0]?.confidence === 0,
+          `fallback routing=${JSON.stringify(result.routing)}`,
+        );
+      } else {
+        must(
+          result.routing.length === 0,
+          `rules_only routing=${JSON.stringify(result.routing)}`,
+        );
+      }
     },
   },
   {

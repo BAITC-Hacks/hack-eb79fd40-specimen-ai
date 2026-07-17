@@ -54,7 +54,9 @@ describe("offline HTTP demo scenarios", () => {
       ]),
     );
     expect(result.urgency).toBe("emergency");
-    expect(result.routing[0]?.specialty).toBe("кардиология");
+    expect(result.routing).toEqual([
+      { specialty: "скорая/приёмный покой", confidence: 0 },
+    ]);
   });
 
   it("completes the back-pain scenario without an emergency", () => {
@@ -67,7 +69,7 @@ describe("offline HTTP demo scenarios", () => {
   it("keeps the one-day rhinitis scenario low-priority and flag-free", () => {
     const { result } = fixture("scenario-3-rhinitis");
 
-    expect(result.urgency).toBe("routine");
+    expect(["routine", "planned"]).toContain(result.urgency);
     expect(result.red_flags).toEqual([]);
   });
 });

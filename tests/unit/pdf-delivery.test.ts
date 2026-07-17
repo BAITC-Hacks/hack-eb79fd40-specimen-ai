@@ -19,7 +19,7 @@ describe("optional PDF delivery", () => {
     const renderPdf = vi.fn(async () => new Uint8Array([37, 80, 68, 70]));
     const notifier = new TelegramNotifier(
       new TelegramClient("bot-token", { fetcher: successfulFetch(calls) }),
-      "chat-1",
+      ["1001"],
       renderPdf,
     );
 
@@ -34,7 +34,7 @@ describe("optional PDF delivery", () => {
     const calls: { url: string; init?: RequestInit }[] = [];
     const notifier = new TelegramNotifier(
       new TelegramClient("bot-token", { fetcher: successfulFetch(calls) }),
-      "chat-1",
+      ["1001"],
       async () => {
         throw new Error("PDF unavailable");
       },
@@ -58,7 +58,7 @@ describe("optional PDF delivery", () => {
     };
     const notifier = new TelegramNotifier(
       new TelegramClient("bot-token", { fetcher }),
-      "chat-1",
+      ["1001"],
       async () => new Uint8Array([37, 80, 68, 70]),
     );
 
@@ -76,7 +76,7 @@ describe("optional PDF delivery", () => {
     const renderPdf = vi.fn(async () => new Uint8Array([37, 80, 68, 70]));
     const notifier = new TelegramNotifier(
       new TelegramClient("bot-token", { fetcher: successfulFetch(calls) }),
-      "chat-1",
+      ["1001"],
       renderPdf,
     );
 

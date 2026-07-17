@@ -88,9 +88,11 @@ function isAnamnesis(value: unknown): boolean {
     typeof symptom.onset === "string" &&
     typeof symptom.location === "string" &&
     typeof symptom.quality === "string" &&
-    finiteNumber(symptom.severity) &&
-    symptom.severity >= 0 &&
-    symptom.severity <= 10 &&
+    (symptom.severity === null ||
+      (finiteNumber(symptom.severity) &&
+        Number.isInteger(symptom.severity) &&
+        symptom.severity >= 0 &&
+        symptom.severity <= 10)) &&
     typeof symptom.modifiers === "string" &&
     stringArray(symptom.associated) &&
     stringArray(value.past_history) &&

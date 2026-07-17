@@ -140,6 +140,71 @@ describe("frontend API adapter", () => {
   });
 
   it.each([
+    ["unknown intensity", null, true],
+    ["explicit zero", 0, true],
+    ["maximum ten", 10, true],
+    ["fraction", 7.5, false],
+    ["below range", -1, false],
+    ["above range", 11, false],
+    ["string", "7", false],
+    ["missing field", undefined, false],
+  ])(
+    "validates anamnesis severity at the frontend boundary: %s",
+    async (_label, severity, accepted) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async () =>
+          json({
+            reply: "готово",
+            done: true,
+            turnsLeft: 0,
+            result: {
+              ...FRONTEND_RESULT,
+              anamnesis: {
+                ...FRONTEND_RESULT.anamnesis,
+                symptom: {
+                  ...FRONTEND_RESULT.anamnesis.symptom,
+                  severity,
+                },
+              },
+            },
+          }),
+        ),
+      );
+
+      await expect(sendChat("session", "text")).resolves.toEqual(
+        accepted
+          ? expect.objectContaining({ ok: true })
+          : { ok: false, failure: { kind: "bad_json" } },
+      );
+    },
+  );
+
+  it("rejects a non-finite severity even if a mocked JSON decoder returns it", async () => {
+    const result = structuredClone(FRONTEND_RESULT);
+    result.anamnesis.symptom.severity = Number.NaN;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({
+          reply: "готово",
+          done: true,
+          turnsLeft: 0,
+          result,
+        }),
+      })),
+    );
+
+    await expect(sendChat("session", "text")).resolves.toEqual({
+      ok: false,
+      failure: { kind: "bad_json" },
+    });
+  });
+
+  it.each([
     [
       "rules_only confidence is non-zero",
       {

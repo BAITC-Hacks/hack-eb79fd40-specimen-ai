@@ -101,11 +101,13 @@ export function assertTriageInvariants(
   if (!Array.isArray(result.anamnesis.symptom.associated)) fail("associated не массив");
   if (!Array.isArray(result.anamnesis.context.risk_factors)) fail("risk_factors не массив");
   if (
-    !Number.isFinite(result.anamnesis.symptom.severity) ||
-    result.anamnesis.symptom.severity < 0 ||
-    result.anamnesis.symptom.severity > 10
+    result.anamnesis.symptom.severity !== null &&
+    (!Number.isFinite(result.anamnesis.symptom.severity) ||
+      !Number.isInteger(result.anamnesis.symptom.severity) ||
+      result.anamnesis.symptom.severity < 0 ||
+      result.anamnesis.symptom.severity > 10)
   ) {
-    fail("severity вне 0..10");
+    fail("severity вне 0..10 или null");
   }
   const { age, sex, pregnancy } = result.anamnesis.context;
   if (age !== null && (!Number.isFinite(age) || age < 0 || age > 120)) {

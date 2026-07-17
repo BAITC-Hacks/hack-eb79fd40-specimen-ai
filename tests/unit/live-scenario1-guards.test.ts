@@ -4,6 +4,7 @@ import {
   MAX_ANTHROPIC_CALLS,
   OUTER_GUARD_MS,
   createAnthropicCallBudget,
+  resolveLiveTelegramRecipients,
 } from "../../scripts/live-scenario1";
 
 describe("one-shot live scenario guards", () => {
@@ -27,5 +28,20 @@ describe("one-shot live scenario guards", () => {
       expect.objectContaining({ stage: "anthropic_call_cap" }),
     );
     expect(budget.actual).toBe(3);
+  });
+
+  it("accepts plural-only Telegram recipients and keeps legacy fallback", () => {
+    expect(
+      resolveLiveTelegramRecipients({
+        TELEGRAM_DOCTOR_CHAT_IDS: "1001,1002",
+        TELEGRAM_DOCTOR_CHAT_ID: undefined,
+      }),
+    ).toEqual(["1001", "1002"]);
+    expect(
+      resolveLiveTelegramRecipients({
+        TELEGRAM_DOCTOR_CHAT_IDS: " ",
+        TELEGRAM_DOCTOR_CHAT_ID: "1003",
+      }),
+    ).toEqual(["1003"]);
   });
 });

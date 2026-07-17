@@ -87,7 +87,11 @@ const ANAMNESIS_SCHEMA: Record<string, unknown> = {
         onset: { type: "string" },
         location: { type: "string" },
         quality: { type: "string" },
-        severity: { type: "integer" },
+        severity: {
+          type: ["integer", "null"],
+          minimum: 0,
+          maximum: 10,
+        },
         modifiers: { type: "string" },
         associated: { type: "array", items: { type: "string" } },
       },
@@ -167,8 +171,12 @@ const EXTRACT_SYSTEM = `Ты — модуль извлечения призна�
 3. Код ставится только по подтверждённым словам пациента. Вопрос ассистента сам по себе не является признаком.
 4. Отрицание означает отсутствие: отрицавшийся признак не добавляй. Не выводи значения «нет», «nowhere» и другие значения отсутствия как присутствующий признак.
 5. Короткий ответ пациента можно раскрыть только через непосредственно предшествующий вопрос ассистента.
-6. Симптом без точного кода запиши дословно в unmapped. Не заменяй его похожим кодом.
-7. Ничего не додумывай. Возраст и пол оставляй unknown/null, если пациент их не сообщил.
+6. Перебери весь диалог и выведи КАЖДЫЙ поддерживаемый подтверждённый признак, а не только основную жалобу. Отдельно проверь локализацию, характер и распространение боли, условия усиления или облегчения, сопутствующие симптомы и явно сообщённый анамнез.
+7. Одна фраза может подтверждать несколько совместимых кодов, если каждый из них буквально следует из слов пациента. Например, явно сообщённая боль в верхней части груди в покое может одновременно подтверждать наличие боли, её локализацию и боль в груди в покое.
+8. Симптом без точного кода запиши дословно в unmapped. Наличие unmapped не отменяет поддерживаемые признаки из той же реплики. Не заменяй неподдерживаемый симптом ближайшим или похожим кодом.
+9. Не делай вывод по названию болезни или разговорному термину без подтверждающих признаков. В частности, слово «ангина» без контекста не выбирает автоматически ни сердечный, ни ЛОР-признак.
+10. Ничего не додумывай. Возраст и пол оставляй unknown/null, если пациент их не сообщил.
+11. severity — только целая оценка 0–10, которую пациент назвал явно. Если силу симптома пациент не называл, верни null; никогда не подставляй 0 вместо отсутствующего ответа.
 
 ЕДИНСТВЕННО ДОПУСТИМЫЙ СЛОВАРЬ:
 ${EVIDENCE_DICTIONARY.prompt}`;
@@ -224,6 +232,21 @@ function pregnancy(value: unknown): Anamnesis["context"]["pregnancy"] {
   return value;
 }
 
+function severity(value: unknown): Anamnesis["symptom"]["severity"] {
+  if (value === null) return null;
+  if (
+    typeof value !== "number" ||
+    !Number.isInteger(value) ||
+    value < 0 ||
+    value > 10
+  ) {
+    throw new Error(
+      "anamnesis.symptom.severity must be null or an integer from 0 to 10",
+    );
+  }
+  return value;
+}
+
 function parseAnamnesis(raw: unknown): Anamnesis {
   if (!isRecord(raw)) throw new Error("anamnesis must be an object");
   assertExactKeys(
@@ -245,15 +268,7 @@ function parseAnamnesis(raw: unknown): Anamnesis {
     ["onset", "location", "quality", "severity", "modifiers", "associated"],
     "anamnesis.symptom",
   );
-  const severity = raw.symptom.severity;
-  if (
-    typeof severity !== "number" ||
-    !Number.isInteger(severity) ||
-    severity < 0 ||
-    severity > 10
-  ) {
-    throw new Error("anamnesis.symptom.severity must be an integer from 0 to 10");
-  }
+  const parsedSeverity = severity(raw.symptom.severity);
   if (!isRecord(raw.context)) throw new Error("anamnesis.context must be an object");
   assertExactKeys(raw.context, ["age", "sex", "pregnancy", "risk_factors"], "anamnesis.context");
 
@@ -263,7 +278,7 @@ function parseAnamnesis(raw: unknown): Anamnesis {
       onset: stringField(raw.symptom, "onset", "anamnesis.symptom"),
       location: stringField(raw.symptom, "location", "anamnesis.symptom"),
       quality: stringField(raw.symptom, "quality", "anamnesis.symptom"),
-      severity,
+      severity: parsedSeverity,
       modifiers: stringField(raw.symptom, "modifiers", "anamnesis.symptom"),
       associated: stringArray(raw.symptom.associated, "anamnesis.symptom.associated"),
     },
@@ -474,7 +489,7 @@ function emptyAnamnesis(): Anamnesis {
       onset: "",
       location: "",
       quality: "",
-      severity: 0,
+      severity: null,
       modifiers: "",
       associated: [],
     },

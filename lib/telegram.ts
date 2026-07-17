@@ -22,10 +22,21 @@ export class TelegramDeliveryError extends Error {
   constructor(
     message: string,
     readonly kind: "api" | "network" | "timeout",
-    options?: ErrorOptions,
   ) {
-    super(message, options);
+    super(message);
     this.name = "TelegramDeliveryError";
+  }
+}
+
+export class TelegramBroadcastError extends Error {
+  constructor(
+    readonly delivery: "completed" | "aborted",
+    readonly failedRecipientCount: number,
+  ) {
+    super(
+      `Telegram ${delivery} broadcast mandatory text delivery failed for ${failedRecipientCount} recipient(s)`,
+    );
+    this.name = "TelegramBroadcastError";
   }
 }
 
@@ -36,7 +47,6 @@ interface TelegramClientOptions {
 
 interface TelegramApiResponse {
   ok?: boolean;
-  description?: string;
 }
 
 export class TelegramClient {
@@ -88,18 +98,16 @@ export class TelegramClient {
         `https://api.telegram.org/bot${this.token}/${method}`,
         { method: "POST", ...init, signal },
       );
-    } catch (error) {
+    } catch {
       if (signal.aborted) {
         throw new TelegramDeliveryError(
           `Telegram ${method} timed out`,
           "timeout",
-          { cause: error },
         );
       }
       throw new TelegramDeliveryError(
         `Telegram ${method} network request failed`,
         "network",
-        { cause: error },
       );
     }
 
@@ -107,11 +115,8 @@ export class TelegramClient {
       .json()
       .catch(() => ({}))) as TelegramApiResponse;
     if (!response.ok || payload.ok !== true) {
-      const detail = payload.description
-        ? `: ${payload.description}`
-        : "";
       throw new TelegramDeliveryError(
-        `Telegram ${method} failed with HTTP ${response.status}${detail}`,
+        `Telegram ${method} failed with HTTP ${response.status}`,
         "api",
       );
     }
@@ -140,6 +145,10 @@ function value(value: string): string {
 
 function list(values: readonly string[]): string {
   return values.length > 0 ? values.join(", ") : "нет данных";
+}
+
+function severity(value: number | null): string {
+  return value === null ? "—" : `${value}/10`;
 }
 
 function sourceLine(result: TriageResult): string {
@@ -264,14 +273,21 @@ export function renderSummary(
   ];
   const age = result.anamnesis.context.age ?? "не указан";
   const routing =
-    result.routing.length > 0
+    result.source === "model" && result.routing.length > 0
       ? result.routing
           .slice(0, 3)
           .map(
             ({ specialty, confidence }, index) =>
               `${index + 1}. ${specialty} — ${Math.round(confidence * 100)}%`,
           )
-      : ["Недоступна."];
+      : result.source === "llm_fallback" && result.routing.length > 0
+        ? [
+            ...result.routing
+              .slice(0, 3)
+              .map(({ specialty }, index) => `${index + 1}. ${specialty}`),
+            "Ориентировочный маршрут, без числовой оценки",
+          ]
+        : ["Недоступна."];
   const reasons =
     result.urgency_reasons.length > 0
       ? result.urgency_reasons.map((reason) => `• ${reason}`)
@@ -300,7 +316,7 @@ export function renderSummary(
     [
       "АНАМНЕЗ",
       `Начало: ${value(anamnesis.symptom.onset)} · локализация: ${value(anamnesis.symptom.location)}`,
-      `Характер: ${value(anamnesis.symptom.quality)} · сила: ${anamnesis.symptom.severity}/10`,
+      `Характер: ${value(anamnesis.symptom.quality)} · сила: ${severity(anamnesis.symptom.severity)}`,
       `Сопутствующее: ${list(anamnesis.symptom.associated)}`,
       `Хронические: ${list(anamnesis.chronic)} · лекарства: ${list(anamnesis.medications)} · аллергии: ${list(anamnesis.allergies)}`,
     ],
@@ -338,6 +354,30 @@ export function splitForTelegram(
   return chunks;
 }
 
+export function splitForTelegramWithDisclaimer(
+  text: string,
+  disclaimer: string,
+  limit = TELEGRAM_MESSAGE_LIMIT,
+): string[] {
+  const normalizedDisclaimer = disclaimer.trim();
+  if (!normalizedDisclaimer) {
+    throw new Error("Telegram summary disclaimer is required");
+  }
+  const disclaimerLine = `⚠️ ${normalizedDisclaimer}`;
+  const footer = `\n\n${disclaimerLine}`;
+  if (footer.length >= limit) {
+    throw new Error("Telegram summary disclaimer leaves no room for content");
+  }
+
+  const body = text
+    .split("\n")
+    .filter((line) => line.trim() !== disclaimerLine)
+    .join("\n")
+    .trimEnd();
+  const chunks = splitForTelegram(body, limit - footer.length);
+  return chunks.map((chunk) => `${chunk.trimEnd()}${footer}`);
+}
+
 export async function sendDoctorSummary(
   client: TelegramClient,
   chatId: string,
@@ -345,7 +385,10 @@ export async function sendDoctorSummary(
   result: TriageResult,
   pdf?: Uint8Array,
 ): Promise<void> {
-  for (const chunk of splitForTelegram(renderSummary(session, result))) {
+  for (const chunk of splitForTelegramWithDisclaimer(
+    renderSummary(session, result),
+    result.hypothesis.disclaimer,
+  )) {
     await client.sendMessage(chatId, chunk);
   }
   if (pdf) await client.sendDocument(chatId, pdf);
@@ -370,13 +413,59 @@ export async function sendAbortedNotice(
   await client.sendMessage(chatId, renderAbortedNotice(notice));
 }
 
+const MIN_TELEGRAM_CHAT_ID = -(2n ** 63n);
+const MAX_TELEGRAM_CHAT_ID = 2n ** 63n - 1n;
+
+function assertTelegramChatId(value: string): void {
+  if (!/^-?[1-9]\d*$/.test(value)) {
+    throw new Error("Telegram doctor chat IDs must be non-zero integers");
+  }
+  const parsed = BigInt(value);
+  if (parsed < MIN_TELEGRAM_CHAT_ID || parsed > MAX_TELEGRAM_CHAT_ID) {
+    throw new Error("Telegram doctor chat IDs must fit signed 64-bit integers");
+  }
+}
+
+function normalizeTelegramChatIds(values: readonly string[]): readonly string[] {
+  const unique: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of values) {
+    const value = raw.trim();
+    if (!value) continue;
+    assertTelegramChatId(value);
+    if (!seen.has(value)) {
+      seen.add(value);
+      unique.push(value);
+    }
+  }
+  if (unique.length === 0) {
+    throw new Error("At least one Telegram doctor chat ID is required");
+  }
+  return Object.freeze(unique);
+}
+
+export function parseTelegramDoctorChatIds(
+  plural: string | undefined,
+  legacy: string | undefined,
+): readonly string[] {
+  if (plural?.trim()) {
+    return normalizeTelegramChatIds(plural.split(","));
+  }
+  if (legacy?.trim()) {
+    return normalizeTelegramChatIds([legacy]);
+  }
+  return [];
+}
+
 export class TelegramNotifier implements AbortedNoticePort {
+  private readonly chatIds: readonly string[];
+
   constructor(
     private readonly client: TelegramClient,
-    private readonly chatId: string,
+    chatIds: readonly string[],
     private readonly pdfRenderer: PdfRenderer = renderSummaryPdf,
   ) {
-    if (!chatId.trim()) throw new Error("TELEGRAM_DOCTOR_CHAT_ID is required");
+    this.chatIds = normalizeTelegramChatIds(chatIds);
   }
 
   async sendDoctorSummary(
@@ -384,32 +473,72 @@ export class TelegramNotifier implements AbortedNoticePort {
     result: TriageResult,
     pdf?: Uint8Array,
   ): Promise<void> {
-    await sendDoctorSummary(this.client, this.chatId, session, result);
-
+    const chunks = splitForTelegramWithDisclaimer(
+      renderSummary(session, result),
+      result.hypothesis.disclaimer,
+    );
     let document = pdf;
     if (!document) {
       try {
         document = await this.pdfRenderer(session, result);
       } catch {
-        return;
+        console.error("Telegram PDF rendering failed");
       }
     }
 
-    try {
-      await this.client.sendDocument(this.chatId, document);
-    } catch {
-      // PDF is optional: the complete plain-text summary has already arrived.
+    let failedRecipientCount = 0;
+    for (const chatId of this.chatIds) {
+      let recipientTextFailed = false;
+      for (const chunk of chunks) {
+        try {
+          await this.client.sendMessage(chatId, chunk);
+        } catch {
+          recipientTextFailed = true;
+          console.error("Telegram completed text chunk delivery failed");
+        }
+      }
+      if (recipientTextFailed) {
+        failedRecipientCount += 1;
+      }
+
+      if (document) {
+        try {
+          await this.client.sendDocument(chatId, document);
+        } catch {
+          console.error("Telegram PDF delivery failed");
+        }
+      }
+    }
+
+    if (failedRecipientCount > 0) {
+      throw new TelegramBroadcastError("completed", failedRecipientCount);
     }
   }
 
-  sendAbortedNotice(notice: AbortedSessionNotice): Promise<void> {
-    return sendAbortedNotice(this.client, this.chatId, notice);
+  async sendAbortedNotice(notice: AbortedSessionNotice): Promise<void> {
+    const text = renderAbortedNotice(notice);
+    let failedRecipientCount = 0;
+    for (const chatId of this.chatIds) {
+      try {
+        await this.client.sendMessage(chatId, text);
+      } catch {
+        failedRecipientCount += 1;
+        console.error("Telegram aborted text delivery failed");
+      }
+    }
+    if (failedRecipientCount > 0) {
+      throw new TelegramBroadcastError("aborted", failedRecipientCount);
+    }
   }
 }
 
 export function telegramNotifierFromEnv(): TelegramNotifier | undefined {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
-  const chatId = process.env.TELEGRAM_DOCTOR_CHAT_ID?.trim();
-  if (!token || !chatId) return undefined;
-  return new TelegramNotifier(new TelegramClient(token), chatId);
+  if (!token) return undefined;
+  const chatIds = parseTelegramDoctorChatIds(
+    process.env.TELEGRAM_DOCTOR_CHAT_IDS,
+    process.env.TELEGRAM_DOCTOR_CHAT_ID,
+  );
+  if (chatIds.length === 0) return undefined;
+  return new TelegramNotifier(new TelegramClient(token), chatIds);
 }

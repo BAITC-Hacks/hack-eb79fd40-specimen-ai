@@ -40,11 +40,35 @@ class CuratedValue:
 # translation service. Each is pinned to the exact English source text so a new
 # DDXPlus release fails loudly instead of silently reusing stale wording.
 CURATED_BASE: dict[str, CuratedBase] = {
+    "E_9": CuratedBase(
+        "Do you have swollen or painful lymph nodes?",
+        "увеличенные или болезненные лимфоузлы",
+        "Есть ли увеличенные или болезненные лимфоузлы?",
+        ("demo_ent_sore_throat",),
+    ),
     "E_14": CuratedBase(
         "Do you have chest pain even at rest?",
         "боль в груди в покое",
         "Есть ли боль в груди даже в покое?",
         ("demo1_chest_pain",),
+    ),
+    "E_50": CuratedBase(
+        "Have you had significantly increased sweating?",
+        "значительно усиленное потоотделение",
+        "Было ли значительно усиленное потоотделение?",
+        ("demo1_chest_pain",),
+    ),
+    "E_53": CuratedBase(
+        "Do you have pain somewhere, related to your reason for consulting?",
+        "боль, связанная с текущим обращением",
+        "Есть ли боль, связанная с причиной текущего обращения?",
+        ("demo1_chest_pain", "demo2_low_back"),
+    ),
+    "E_54": CuratedBase(
+        "Characterize your pain:",
+        "характер боли",
+        "Какой характер у боли?",
+        ("demo1_chest_pain", "demo2_low_back"),
     ),
     "E_55": CuratedBase(
         "Do you feel pain somewhere?",
@@ -70,6 +94,12 @@ CURATED_BASE: dict[str, CuratedBase] = {
         "Возникает ли одышка при минимальной физической нагрузке?",
         ("demo1_chest_pain",),
     ),
+    "E_65": CuratedBase(
+        "Do you have difficulty swallowing, or have a feeling of discomfort/blockage when swallowing?",
+        "затруднение или дискомфорт при глотании",
+        "Есть ли затруднение, дискомфорт или ощущение препятствия при глотании?",
+        ("demo_ent_sore_throat",),
+    ),
     "E_66": CuratedBase(
         "Are you experiencing shortness of breath or difficulty breathing in a significant way?",
         "выраженная одышка или затруднение дыхания",
@@ -82,17 +112,53 @@ CURATED_BASE: dict[str, CuratedBase] = {
         "Есть ли слабость в обеих руках или обеих ногах?",
         ("demo1_neurologic_negative",),
     ),
+    "E_76": CuratedBase(
+        "Do you feel slightly dizzy or lightheaded?",
+        "лёгкое головокружение",
+        "Есть ли лёгкое головокружение?",
+        ("demo_dizziness",),
+    ),
+    "E_82": CuratedBase(
+        "Do you feel lightheaded and dizzy or do you feel like you are about to faint?",
+        "головокружение или предобморочное состояние",
+        "Есть ли головокружение или ощущение приближающегося обморока?",
+        ("demo_dizziness",),
+    ),
     "E_91": CuratedBase(
         "Do you have a fever (either felt or measured with a thermometer)?",
         "повышенная температура",
         "Есть ли повышенная температура по ощущениям или измерению?",
         ("demo3_common_cold",),
     ),
+    "E_97": CuratedBase(
+        "Do you have a sore throat?",
+        "боль в горле",
+        "Есть ли боль в горле?",
+        ("demo_ent_sore_throat",),
+    ),
+    "E_102": CuratedBase(
+        "Are you consulting because you have high blood pressure?",
+        "обращение из-за повышенного давления",
+        "Связано ли текущее обращение с повышенным артериальным давлением?",
+        ("demo_blood_pressure",),
+    ),
+    "E_104": CuratedBase(
+        "Do you have high blood pressure or do you take medications to treat high blood pressure?",
+        "повышенное давление или приём препаратов от давления",
+        "Есть ли повышенное артериальное давление или приём препаратов для его снижения?",
+        ("demo_blood_pressure", "demo_dizziness"),
+    ),
     "E_156": CuratedBase(
         "Have you had weakness or paralysis on one side of the face, which may still be present or completely resolved?",
         "односторонняя слабость лица",
         "Была ли слабость или неподвижность одной стороны лица, даже если она уже прошла?",
         ("demo1_neurologic_negative",),
+    ),
+    "E_155": CuratedBase(
+        "Do you feel your heart is beating fast (racing), irregularly (missing a beat) or do you feel palpitations?",
+        "учащённое или нерегулярное сердцебиение",
+        "Есть ли учащённое или нерегулярное сердцебиение либо ощущение перебоев?",
+        ("demo1_chest_pain", "demo_dizziness"),
     ),
     "E_169": CuratedBase(
         "Is your nose or the back of your throat itchy?",
@@ -130,10 +196,31 @@ CURATED_BASE: dict[str, CuratedBase] = {
         "Есть ли одновременно светлый стул и тёмная моча?",
         ("demo2_urinary_context",),
     ),
+    "E_201": CuratedBase(
+        "Do you have a cough?",
+        "кашель",
+        "Есть ли кашель?",
+        ("demo3_common_cold", "demo_ent_sore_throat"),
+    ),
+    "E_218": CuratedBase(
+        "Do you have symptoms that are increased with physical exertion but alleviated with rest?",
+        "усиление симптомов при нагрузке и облегчение в покое",
+        "Усиливаются ли симптомы при физической нагрузке и уменьшаются ли в покое?",
+        ("demo1_chest_pain",),
+    ),
+    "E_220": CuratedBase(
+        "Do you have pain that is increased when you breathe in deeply?",
+        "усиление боли при глубоком вдохе",
+        "Усиливается ли боль при глубоком вдохе?",
+        ("demo1_chest_pain",),
+    ),
 }
 
 
 CURATED_VALUES: dict[str, CuratedValue] = {
+    "E_54@V_181": CuratedValue("burning", "жгучая"),
+    "E_54@V_183": CuratedValue("heavy", "тяжёлая"),
+    "E_54@V_192": CuratedValue("sharp", "резкая"),
     "E_55@V_29": CuratedValue("lower chest", "нижняя часть груди"),
     "E_55@V_40": CuratedValue("lumbar spine", "поясничный отдел позвоночника"),
     "E_55@V_55": CuratedValue("side of the chest(R)", "правая сторона груди"),
@@ -344,7 +431,7 @@ def build_dictionary(
         "feature_order_source": f"triage-lr-v1.json sha256:{model_hash}",
         "frozen": True,
         "translation_policy": (
-            "Ручная вычитка кодов трёх демо; остальные записи используют "
+            "Ручная вычитка высокозначимых полей демо и safety-сценариев; остальные записи используют "
             "нейтральный механический шаблон без добавления медицинского смысла."
         ),
         "source_evidence_count": len(evidences),

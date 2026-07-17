@@ -5,28 +5,45 @@
 
 Read-only разведка VPS принята: на момент двух проверок порты 80, 443 и 3100
 были свободны, Docker/Compose доступны, поэтому для Demeu выбрана ветка B с
-отдельным Caddy. Выдача публичного сертификата, доступность 80/443 через
-внешний firewall и публичный HTTPS/smoke ещё **не проверены**. Перед активацией
-нужно повторить preflight, потому что состояние listeners может измениться.
+отдельным pinned Caddy `2.10.2-alpine`. Текущий magic-DNS production получил
+публичный сертификат и прошёл независимый L1 smoke без обхода TLS. Новый
+bare-IP origin подготовлен offline, но live-сертификат и L1 для него ещё
+**не проверены**.
 
 Один параметр управляет доменом и `APP_BASE_URL` во всех конфигурациях:
 
 ```dotenv
-DEMEU_DOMAIN=109-123-248-16.sslip.io
+DEMEU_DOMAIN=109.123.248.16
+APP_BASE_URL=https://109.123.248.16
 ```
 
-Если Let's Encrypt не выдаст сертификат для общего `sslip.io`, единственная правка:
+Прежний magic-DNS остаётся rollback origin и автоматически обслуживается тем
+же backend во время IP rollout:
 
 ```dotenv
-DEMEU_DOMAIN=109-123-248-16.nip.io
+DEMEU_DOMAIN=109-123-248-16.sslip.io
+APP_BASE_URL=https://109-123-248-16.sslip.io
 ```
 
-Rate limit Let's Encrypt и доступность magic-DNS в момент деплоя проверяются только на VPS.
+Без отдельного изменения поддерживается и нормализованный FQDN, например:
 
-`deploy/tls.sh` — обязательная fail-closed точка входа для обеих веток. Она принимает только два
-указанных выше bare hostname, проверяет `APP_PORT` и прекращает работу до compose/render при схеме,
-пути, порте в hostname, пробелах или любом другом значении. Не запускайте показанные внутри overlay
-команды напрямую. Контейнер Caddy повторяет эту проверку при каждом старте.
+```dotenv
+DEMEU_DOMAIN=demo.example.kz
+APP_BASE_URL=https://demo.example.kz
+```
+
+`deploy/tls.sh` — обязательная fail-closed точка входа для обеих веток. Она принимает только
+точный публичный IPv4 `109.123.248.16` либо нормализованный lowercase ASCII DNS FQDN. Любой другой
+IPv4, private/loopback/link-local адрес, IPv6, схема, путь, порт, wildcard, `localhost`, пробел,
+shell-метасимвол, Unicode и `xn--`-метка отвергаются до Docker. IP разрешён только с
+`TLS_BRANCH=branch-b-caddy`; host-proxy ветки A остаются FQDN-only.
+`APP_BASE_URL` в deploy/rollback обязан быть точным `https://${DEMEU_DOMAIN}`. Не запускайте
+показанные внутри overlay команды напрямую. Контейнер Caddy повторяет проверку при каждом старте.
+
+Vercel для текущего MVP не рекомендуется: сессии хранятся в памяти процесса, а serverless
+instances/cold starts разрывают цепочку link → start → chat → finalize; долгий structured-вызов
+также превышает безопасный бюджет тонкого proxy. Канонический runtime остаётся на существующем
+VPS+Caddy.
 
 ## Ветка B: порты 80/443 свободны
 
@@ -37,7 +54,8 @@ Rate limit Let's Encrypt и доступность magic-DNS в момент д�
 
 ```bash
 docker compose version
-export DEMEU_DOMAIN="${DEMEU_DOMAIN-109-123-248-16.sslip.io}"
+export DEMEU_DOMAIN="${DEMEU_DOMAIN-109.123.248.16}"
+export TLS_BRANCH=branch-b-caddy
 ./deploy/tls.sh preflight
 ./deploy/tls.sh branch-b-config
 ./deploy/tls.sh branch-b-up
@@ -48,7 +66,11 @@ curl -fsS "https://${DEMEU_DOMAIN}/api/healthz"
 ```
 
 HTTP-01 требует доступного извне порта 80. Данные ACME и конфигурация Caddy сохраняются в named volumes
-`caddy_data` и `caddy_config`.
+`caddy_data` и `caddy_config`. Для IP Caddy запрашивает профиль ACME `shortlived`, явно отключает
+TLS-ALPN challenge и оставляет HTTP-01 включённым. Срок такого сертификата около 160 часов;
+нативный Caddy использует ACME Renewal Information и автоматически обновляет его. Отдельный cron,
+Certbot, новая инфраструктура или upgrade Caddy не нужны. Никогда не выполняйте `docker compose down -v`:
+это удалит ACME state и сертификаты.
 
 ## Ветка A: 80/443 уже обслуживает host nginx
 
@@ -59,7 +81,7 @@ HTTP-01 требует доступного извне порта 80. Данны
 set -a
 . ./.env
 set +a
-export DEMEU_DOMAIN="${DEMEU_DOMAIN-109-123-248-16.sslip.io}"
+export DEMEU_DOMAIN="${DEMEU_DOMAIN-demo.example.kz}"
 export APP_PORT="${APP_PORT-3100}"
 ./deploy/tls.sh preflight
 ./deploy/tls.sh host-app-up
@@ -73,16 +95,8 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-После зелёного HTTP и DNS пользователь задаёт контактный email и вручную запускает certbot:
-
-```bash
-read -r -p 'Certbot contact email: ' CERTBOT_EMAIL
-case "${CERTBOT_EMAIL}" in *@*.*) ;; *) echo 'Некорректный email' >&2; exit 1;; esac
-sudo apt-get install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d "${DEMEU_DOMAIN}" --agree-tos \
-  --email "${CERTBOT_EMAIL}" --non-interactive --redirect
-curl -fsS "https://${DEMEU_DOMAIN}/api/healthz"
-```
+Получение публичного сертификата в этой ветке остаётся ответственностью уже установленного host
+nginx и его существующего ACME-процесса; данный change не устанавливает Certbot и не меняет host.
 
 `proxy_read_timeout` и `proxy_send_timeout` равны 120 секундам для долгих LLM-ходов.
 
@@ -95,7 +109,7 @@ curl -fsS "https://${DEMEU_DOMAIN}/api/healthz"
 set -a
 . ./.env
 set +a
-export DEMEU_DOMAIN="${DEMEU_DOMAIN-109-123-248-16.sslip.io}"
+export DEMEU_DOMAIN="${DEMEU_DOMAIN-demo.example.kz}"
 export APP_PORT="${APP_PORT-3100}"
 ./deploy/tls.sh preflight
 ./deploy/tls.sh host-app-up
@@ -113,8 +127,11 @@ curl -fsS "https://${DEMEU_DOMAIN}/api/healthz"
 
 ## Что остаётся подтвердить с VPS
 
-- неизменность принятой ветки B повторным preflight перед активацией;
-- доступность 80/443 через внешний firewall;
-- DNS в момент запуска;
-- получение публичного сертификата без обхода проверки TLS;
-- `200` от публичного `/api/healthz`.
+- повторный read-only preflight listeners и доступность TCP 80/443;
+- выдачу short-lived сертификата с SAN `109.123.248.16` через HTTP-01;
+- `curl` без `-k` → `200` на `https://109.123.248.16/api/healthz` и HTTP→HTTPS redirect;
+- L1 через точный IP origin и сохранение sslip rollback-alias.
+
+Переключение домена требует recreate приложения, потому что меняется server-only `APP_BASE_URL`.
+`SessionStore` in-memory: активные ссылки и опросы при recreate теряются. Переключайте в окно без
+активных пациентов и после старта сгенерируйте новые ссылки.

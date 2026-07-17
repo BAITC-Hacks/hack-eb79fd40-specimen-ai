@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import {
   ANAMNESIS_SYSTEM,
   DONE_MARKER,
+  GREETING_KK,
   GREETING_RU,
+  anamnesisTurnSystem,
   runAnamnesisTurn,
   stripDoneMarker,
   toApiMessages,
@@ -98,6 +100,16 @@ describe("DONE marker", () => {
     });
   });
 
+  it("uses the accepted Kazakh closing when the model returns only the marker", () => {
+    const turn = stripDoneMarker(DONE_MARKER, "kk");
+
+    expect(turn).toEqual({
+      reply: "Рақмет, жауаптарыңыз дәрігерге жіберілді.",
+      done: true,
+    });
+    expect(turn.reply).not.toMatch(/Спасибо|передаю|врачу/iu);
+  });
+
   it.each([
     "XANAMNESIS_COMPLETEY",
     "ANAMNESIS_COMPLETE_PENDING",
@@ -136,5 +148,13 @@ describe("DONE marker", () => {
       expect.any(Array),
     );
     expect(fakeChatTurn.mock.calls[0]?.[0]).toContain(GREETING_RU);
+  });
+
+  it("builds a strict Kazakh turn prompt with the exact accepted greeting", () => {
+    const system = anamnesisTurnSystem("kk");
+
+    expect(system).toContain(`«${GREETING_KK}»`);
+    expect(system).toContain("Отвечай ТОЛЬКО на казахском языке");
+    expect(system).not.toContain(`«${GREETING_RU}»`);
   });
 });

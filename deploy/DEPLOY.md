@@ -1,8 +1,9 @@
 # Demeu deployment runbook
 
-Read-only SSH reconnaissance and a repeat preflight have been accepted. Live mutation remains an
-explicit operator action through `deploy/deploy.sh`; the accepted attempt stopped before transfer or
-build because the dirty worktree had no truthful commit provenance.
+Read-only SSH reconnaissance, exact-SHA branch-B deployment, public certificate and independent L1
+smoke have been accepted for the current magic-DNS production. Every subsequent mutation remains an
+explicit operator action through `deploy/deploy.sh`. Bare-IP support is verified offline; live
+certificate issuance and cutover remain a separate accepted operator phase.
 
 ## Required server state
 
@@ -12,7 +13,8 @@ selected target configuration is branch B. Put these values in the server-only `
 ```dotenv
 VPS_RECON_CONFIRMED=yes
 TLS_BRANCH=branch-b-caddy
-DEMEU_DOMAIN=109-123-248-16.sslip.io
+DEMEU_DOMAIN=109.123.248.16
+APP_BASE_URL=https://109.123.248.16
 APP_PORT=3100
 ```
 
@@ -22,6 +24,16 @@ read-only preflight immediately before activation because listener state can cha
 credentials in the same server-only `.env`, mode `0600`. Rotate every previously exposed token before
 the first live deployment. The script validates credentials without printing their values and verifies
 that the running container has exactly one `ANTHROPIC_API_KEY` variable.
+
+Set `TELEGRAM_DOCTOR_CHAT_IDS` to a comma-separated ordered list of numeric Telegram `chat_id`
+values for broadcast delivery. Duplicate values are removed while preserving first occurrence.
+The plural variable wins whenever it is nonblank; an unset or blank plural variable falls back to
+the legacy `TELEGRAM_DOCTOR_CHAT_ID` singleton. Empty list elements are ignored, but any other
+malformed or out-of-signed-64-bit value fails closed. A mandatory text failure for one recipient
+does not block later recipients, but marks the session-level aggregate delivery as failed. PDF
+delivery is best-effort. Every independently delivered text chunk carries the mandatory disclaimer
+inside the 4096-character budget. Recipient-specific delivery state is intentionally not stored in
+this MVP.
 
 ## Default mode: Git on the server
 
@@ -88,20 +100,25 @@ SHA, and the original markers. Both candidate and recovered containers must inde
 exact health contract and exactly one `ANTHROPIC_API_KEY` environment entry before either path is
 called verified. The temporary secret snapshot is removed on every success or failure path.
 
-## Still requires live evidence
+## Bare-IP live evidence still required
 
-Reconnaissance, branch selection, repeat preflight, and dry-run rsync are accepted. Live acceptance
-remains blocked until the accepted worktree has an explicitly authorized commit/push whose SHA
-describes the deployed bytes. After that, the operator installs server-only credentials, activates
-branch B, confirms external firewall reachability and certificate issuance, and verifies public HTTPS
-without `-k`. L1 and the separately authorized L2 must then pass; none of those production claims is
-currently complete.
+The current `sslip.io` runtime remains accepted until cutover. After this change has an explicitly
+authorized commit/push, the operator keeps the old `.env` for the first code-only deploy. A second
+activation of the same commit atomically changes the non-secret origin values to exact
+`109.123.248.16`, obtains the public short-lived certificate through HTTP-01, verifies SAN/redirect
+and public HTTPS without `-k`, then runs L1 against the explicit IP origin. The IP Caddy config keeps
+the exact old sslip hostname as a rollback alias to the same backend. L2 remains separately
+cost-authorized and is not required merely to prove the origin switch.
 
 ## Public smoke after deployment
 
-Both smoke levels are hard-pinned to `https://109-123-248-16.sslip.io`; another host, HTTP, a port,
-path, redirect, certificate error, DNS error, timeout, non-JSON API response, or unexpected status
-fails closed. The scripts do not retry. The smoke wrapper is the single owner of its default artifact
+Both smoke levels are pinned to an explicit trusted production origin. The default is
+`https://109.123.248.16`; for a custom domain set
+`EXPECTED_PRODUCTION_ORIGIN=https://demo.example.kz`. `BASE_URL`, when supplied, must equal that
+origin exactly. HTTP, a different host, a port, path, redirect, certificate error, DNS error,
+timeout, non-JSON API response, or unexpected status fails closed. Accepted hosts use the same
+validator as `deploy/tls.sh`: only the exact production IP or a normalized lowercase ASCII FQDN is
+accepted; every other IP, wildcard, localhost, Unicode and punycode is rejected. The scripts do not retry. The smoke wrapper is the single owner of its default artifact
 root in both Git and rsync deployments: before the first request it creates exactly project-relative
 `reports/` and `reports/live-e2e/` with mode `0700` when absent, then validates them. It does not create
 arbitrary custom parents. Existing components must be real directories owned by the current deploy
@@ -123,6 +140,7 @@ well-formed unknown token returning `404`, and the patient page returning HTML. 
 LLM readiness and is deliberately not counted as the sixth check.
 
 ```bash
+EXPECTED_PRODUCTION_ORIGIN="https://${DEMEU_DOMAIN}" \
 DEMEU_SMOKE_LIVE=I_ACCEPT_PRODUCTION_SMOKE \
   bash deploy/smoke-l1.sh
 ```
@@ -138,6 +156,7 @@ bound is 24 Anthropic requests. A previous local scenario-1 run already spent tw
 repeated by this procedure.
 
 ```bash
+EXPECTED_PRODUCTION_ORIGIN="https://${DEMEU_DOMAIN}" \
 DEMEU_SMOKE_LIVE=I_AUTHORIZE_3_SCENARIOS_AND_UP_TO_24_ANTHROPIC_REQUESTS \
   bash deploy/smoke-scenarios.sh
 ```
@@ -153,12 +172,16 @@ result identifiers proves API acceptance, not that a person read the summary.
 
 For a newly deployed commit, `deploy/smoke-scenario1-once.sh` persists the exact seven-request
 scenario-1 sequence: health, link, start, one chat line, finalize, finalize replay, and completed-chat
-`409`. It requires the canonical host, an exact seven-character lowercase `EXPECTED_COMMIT`, and a
-separate production opt-in. The fixed marker is
-`reports/live-e2e/prod-s1-<commit>-once.json`; it is reserved with exclusive mode `0600` before the
-first request. An existing marker fails before fetch, so there is no automatic rerun.
+`409`. It requires an explicit trusted production origin, an exact seven-character lowercase
+`EXPECTED_COMMIT`, and a separate production opt-in. Only the historical sslip origin retains
+`reports/live-e2e/prod-s1-<commit>-once.json`; the new IP and every other origin are bound into the marker name as
+`prod-s1-<commit>-<bounded-hostname-slug>-<origin-sha256>-once.json`. The full SHA-256 prevents two
+different valid hostnames with the same slug from sharing a marker. It is reserved with exclusive
+mode `0600` before the first request. An existing marker fails before fetch, so there is no automatic
+rerun.
 
 ```bash
+EXPECTED_PRODUCTION_ORIGIN="https://${DEMEU_DOMAIN}" \
 EXPECTED_COMMIT=<deployed-short-sha> \
 DEMEU_SCENARIO1_LIVE=I_AUTHORIZE_ONE_PRODUCTION_SCENARIO1_ONCE \
   npm run e2e:scenario1:production-once
@@ -169,3 +192,28 @@ harness. The existing `prod-s1-e0f3f43-once.json` artifact remains untouched and
 semantics and privacy were independently accepted and are now cross-corroborated by the persisted
 harness, which was added after that run; the repository does not claim the historical run was
 retroactively executed by this code.
+
+## Bare-IP production rollout and rollback
+
+Phase 1 deploys the accepted code while the server-only `.env` still contains the old sslip origin.
+This proves that the new binary and dual Caddy mounts preserve the current service. Phase 2 prepares
+a mode-`0600` temporary env with the exact non-secret origin pair, atomically replaces `.env`, and
+activates the same commit:
+
+```dotenv
+DEMEU_DOMAIN=109.123.248.16
+APP_BASE_URL=https://109.123.248.16
+TLS_BRANCH=branch-b-caddy
+```
+
+Run `./deploy/tls.sh preflight`, quiet compose validation, activation, certificate SAN inspection,
+HTTP→HTTPS check, public HTTPS and L1 with `EXPECTED_PRODUCTION_ORIGIN=https://109.123.248.16`.
+The ACME `shortlived` certificate lifetime is about 160 hours; Caddy renews it natively using ARI and
+persists state in `caddy_data`/`caddy_config`. Do not use `down -v`.
+
+Changing `APP_BASE_URL` recreates the app. Because sessions are process-local, schedule the switch
+with no active patients and regenerate all links afterward. Config rollback is separate from code
+rollback: atomically restore exact sslip `DEMEU_DOMAIN`/`APP_BASE_URL`, run the same guarded deploy,
+and verify L1. `deploy/rollback.sh` remains the exact-SHA code rollback tool and validates either
+accepted origin. The IP config also serves sslip throughout, so the old URL remains an emergency
+alias even before canonical-link rollback.

@@ -94,6 +94,7 @@ describe("PDF Cyrillic smoke", () => {
     result.anamnesis.symptom.onset = "";
     result.anamnesis.symptom.location = "";
     result.anamnesis.symptom.quality = "";
+    result.anamnesis.symptom.severity = null;
     result.anamnesis.symptom.modifiers = "";
     result.anamnesis.symptom.associated = [];
     result.anamnesis.past_history = [];
@@ -118,8 +119,23 @@ describe("PDF Cyrillic smoke", () => {
     expect(extracted.stdout).toContain("Проверяемые красные флаги не выявлены.");
     expect(extracted.stdout).toContain("Маршрутизация недоступна.");
     expect(extracted.stdout).toContain("Жалоба: не указана");
+    expect(extracted.stdout).toContain("Сила: —");
+    expect(extracted.stdout).not.toContain("Сила: 0/10");
     expect(extracted.stdout).toContain("Транскрипт пуст.");
     expect(extracted.stdout).toMatch(/не диагноз/iu);
+  });
+
+  it("preserves an explicit zero intensity in the PDF", async () => {
+    const result = structuredClone(PDF_RESULT);
+    result.anamnesis.symptom.severity = 0;
+    const path = "/tmp/demeu-summary-zero-severity.pdf";
+    await writeFile(path, await renderSummaryPdf(PDF_SESSION, result));
+    const extracted = spawnSync("pdftotext", [path, "-"], {
+      encoding: "utf8",
+    });
+
+    expect(extracted.status).toBe(0);
+    expect(extracted.stdout).toContain("Сила: 0/10");
   });
 
   it.each(["llm_fallback", "rules_only"] as const)(
@@ -154,9 +170,15 @@ describe("PDF Cyrillic smoke", () => {
       if (source === "rules_only") {
         expect(extracted.stdout).toContain("Обученная модель не запускалась.");
         expect(extracted.stdout).not.toContain("Варианты модели:");
+        expect(extracted.stdout).toContain("Маршрутизация недоступна.");
       } else {
         expect(extracted.stdout).toContain("Модель воздержалась:");
         expect(extracted.stdout).not.toContain("Варианты модели:");
+        expect(extracted.stdout).toContain(
+          "Ориентировочный маршрут, без числовой оценки",
+        );
+        expect(extracted.stdout).not.toContain("кардиология — 72%");
+        expect(extracted.stdout).not.toContain("кардиология — 0%");
       }
     },
   );

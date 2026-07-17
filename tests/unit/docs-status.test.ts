@@ -16,7 +16,8 @@ describe("release documentation status", () => {
     expect(readme).toContain("воздержалась с `low_confidence`");
     expect(readme).toContain("`llm_fallback`");
     expect(readme).toContain("parity зелёный\n  на 150/150 примерах");
-    expect(readme).toContain("публичные HTTPS/TLS, L1/L2\nsmoke и три сценария на production пока не заявляются как выполненные");
+    expect(readme).toContain("публичный сертификат и независимый L1 smoke");
+    expect(readme).toContain("сценарии 2–3 не\n  запускались без отдельного разрешения стоимости");
   });
 
   it("keeps the handoff aligned with completed and remaining work", () => {
@@ -28,14 +29,33 @@ describe("release documentation status", () => {
     expect(handoff).not.toMatch(/Живой прогон против API ещё\s+не выполнялся/iu);
   });
 
-  it("pins accepted branch B while leaving public acceptance pending", () => {
+  it("pins accepted branch B and distinguishes current live evidence from bare-IP work", () => {
     expect(envExample).toContain("TLS_BRANCH=branch-b-caddy");
     expect(envExample).not.toContain("TLS_BRANCH=branch-a-nginx");
     expect(deploy).toContain("ports 80, 443, and 3100 free");
     expect(deploy).toContain("TLS_BRANCH=branch-b-caddy");
-    expect(deploy).toContain("stopped before transfer or\nbuild");
+    expect(deploy).toContain("exact-SHA branch-B deployment");
+    expect(deploy).toContain("Bare-IP support is verified offline");
     expect(tls).toContain("выбрана ветка B");
-    expect(tls).toContain("публичный HTTPS/smoke ещё **не проверены**");
+    expect(tls).toContain("прошёл независимый L1 smoke");
+    expect(tls).toContain("bare-IP origin подготовлен offline");
+    expect(envExample).toContain("DEMEU_DOMAIN=109.123.248.16");
+    expect(readme).toContain("`https://109.123.248.16`");
+    expect(deploy).toContain("about 160 hours");
+    expect(deploy).toContain("Do not use `down -v`");
+    expect(deploy).toContain("sslip hostname as a rollback alias");
     expect(deploy).not.toContain("Agents do not connect to the VPS");
+  });
+
+  it("documents plural Telegram broadcast and legacy fallback consistently", () => {
+    expect(envExample).toContain("TELEGRAM_DOCTOR_CHAT_IDS=");
+    expect(envExample).toContain("TELEGRAM_DOCTOR_CHAT_ID=");
+    expect(readme).toContain("`TELEGRAM_DOCTOR_CHAT_IDS`");
+    expect(readme).toContain("Сбой одного получателя не блокирует остальных");
+    expect(handoff).toContain("статус доставки остаётся агрегатным");
+    expect(deploy).toContain("plural variable wins");
+    expect(deploy).toContain(
+      "Recipient-specific delivery state is intentionally not stored",
+    );
   });
 });
