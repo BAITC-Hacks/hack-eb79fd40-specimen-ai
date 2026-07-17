@@ -1,0 +1,130 @@
+# Implementation status
+
+This is the authoritative mutable snapshot for what the repository and accepted
+evidence show now. It is not a replacement for SPINE: frozen contract changes
+still require an explicit contract decision.
+
+| Field | Value |
+|---|---|
+| Updated | 2026-07-17 |
+| Implementation baseline | `19aa75528974582de44e5d8b1e7027289776f6e4` |
+| Contract canon | SPINE v2 |
+| New repository | `demeu-ai/demeu`, private, default branch `main` |
+| Evidence rule | Code proves implementation; reports prove only their timestamped observation |
+
+## Current snapshot
+
+| Area | State at `19aa755` | Evidence anchor |
+|---|---|---|
+| Web application | Next.js 15.5, React 19, TypeScript implementation present | [`app/`](../app/), [`package.json`](../package.json) |
+| Dialogue/extraction | Anthropic adapter and structured extraction implemented | [`lib/llm.ts`](../lib/llm.ts), [`lib/extract.ts`](../lib/extract.ts) |
+| Urgent rules | Patient-only quote rules plus derived context flags implemented | [`lib/redflags.ts`](../lib/redflags.ts) |
+| Local ML | JSON-backed multinomial LR scorer integrated | [`lib/model.ts`](../lib/model.ts), [`models/triage-lr-v1.json`](../models/triage-lr-v1.json) |
+| Routing | Committed pathology-to-specialty table used at runtime | [`data/pathology_map.json`](../data/pathology_map.json) |
+| State | In-process `MemoryStore`; no durable sessions | [`lib/store.ts`](../lib/store.ts) |
+| Physician output | Telegram summary and PDF adapters implemented | [`lib/telegram.ts`](../lib/telegram.ts), [`lib/pdf.ts`](../lib/pdf.ts) |
+| Deployment | Node 24 standalone container and Caddy topologies implemented | [`deploy/`](../deploy/), [Deployment](deployment.md) |
+| CI/CD | No repository automation; operator-run scripts only | [Deployment](deployment.md#deploy-flow) |
+
+## Production evidence
+
+The accepted L1 deployment report is
+[`reports/live-e2e/live-deploy-tester-l1-20260715.json`](../reports/live-e2e/live-deploy-tester-l1-20260715.json).
+It records production evidence dated 2026-07-15 for exact revision
+`19aa75528974582de44e5d8b1e7027289776f6e4` at the bare-IP origin.
+
+That report supports an as-observed statement only. This document does not claim
+that the service is currently reachable, that certificates have since renewed,
+or that external providers are currently healthy.
+
+| Evidence item | Accepted statement |
+|---|---|
+| Revision | Production reported exact SHA `19aa75528974582de44e5d8b1e7027289776f6e4` |
+| Public origin | Bare-IP HTTPS was the report-backed canonical origin |
+| L1 scope | TLS, shallow health, basic HTTP/link/token/page checks were exercised |
+| Excluded inference | L1 is not perpetual uptime, clinical validation, or full Telegram proof |
+
+The `109-123-248-16.sslip.io` address is now a rollback alias. Historical SPINE
+text naming it canonical is superseded operationally for this snapshot, not
+silently edited.
+
+## Artifact and evaluation ledger
+
+| Artifact | Snapshot state | Claim boundary |
+|---|---|---|
+| [`models/triage-lr-v1.json`](../models/triage-lr-v1.json) | Present and consumed by TypeScript | Training metrics inside it are not public eval metrics |
+| [`data/evidences_ru.json`](../data/evidences_ru.json) | Present | Supplies human-readable contribution labels |
+| [`data/pathology_map.json`](../data/pathology_map.json) | Present | Clinical validation state must be read from the artifact/report |
+| [`eval/report.json`](../eval/report.json) | Present | Sole source for published production-path metrics |
+| [`eval/report.md`](../eval/report.md) | Human-readable rendering present | Must remain consistent with JSON |
+| [`reports/training_report.json`](../reports/training_report.json) | Training evidence present | Does not replace TypeScript-path evaluation |
+| [`reports/pathology_map_validation.json`](../reports/pathology_map_validation.json) | Validation report present | Consult [Evaluation](evaluation.md) before claims |
+
+Use [Data and ML pipeline](data-ml-pipeline.md) for provenance and
+[Evaluation](evaluation.md) for exact metrics, denominators, and limitations.
+
+## Known contract and runtime divergences
+
+These are explicit differences, not undocumented “improvements”.
+
+| Topic | SPINE intent | Baseline reality / consequence |
+|---|---|---|
+| `/api/link` auth | Optional `DOCTOR_ACCESS_CODE` enforcement | Variable is declared but unused; link creation is not protected by it |
+| `429` | Reserved for rate limiting with `Retry-After` | Runtime does not fully implement the specified rate-limit mapping/contract |
+| Symptom severity | Required numeric field | Runtime structured path permits nullable severity |
+| Post-model hypothesis | LLM narrative after abstention/model decision | Runtime builds a deterministic hypothesis without a second LLM call |
+| Public origin | `sslip.io` canonical in frozen text | Accepted production report uses bare-IP HTTPS; `sslip.io` is rollback alias |
+| Consent | No stored `consentAt` in the session contract | UI has a consent gate, but it is not persisted as session consent evidence |
+| Health | Shallow `/api/healthz` contract | Runtime adds an opt-in deep probe; shallow behavior remains the base contract |
+| Link semantics | Doctor token can create sessions | UI copy can imply one patient, but the token is reusable |
+
+The full final result also reaches the patient browser response while remaining
+hidden in the default UI. This is an acknowledged MVP exposure, not a supported
+patient-facing feature.
+
+## Operational limitations
+
+- Recreate, deploy, rollback, or crash loses every in-memory token and session.
+- Browser timeout is shorter than the backend's full LLM retry allowance.
+- Browser completion does not independently prove Telegram/PDF delivery.
+- Reloading the patient page does not restore the active interview.
+- The hypothesis renderer is deterministic and has limited narrative synthesis.
+- No CI automatically verifies or deploys `main`.
+- Deep health can fail because of a dependency while shallow liveness remains green.
+
+## Unverified items
+
+The following require new evidence rather than confident prose:
+
+1. Current production reachability after the accepted 2026-07-15 report.
+2. Continued automatic renewal and broad client compatibility of the IP certificate.
+3. Current no-SNI behavior after any Caddy or certificate change.
+4. End-to-end Telegram delivery for a newly created real session.
+5. Equal clinical extraction and rule quality for Kazakh patient text.
+6. Clinical validity outside the evaluated corpus and reviewed routing rows.
+7. Label-space coverage for the planned low-acuity demo scenarios.
+8. Effective abuse protection while `DOCTOR_ACCESS_CODE` remains unused.
+9. Recovery behavior under concurrent deploys with active patient sessions.
+
+## Superseded statements
+
+| Earlier statement | Snapshot correction |
+|---|---|
+| “The prototype has never run live” | Superseded for exact SHA `19aa755` by the accepted 2026-07-15 L1 report |
+| “The VPS and ports are uninspected” | Superseded only to the extent recorded by the accepted deployment report |
+| “`sslip.io` is the production canonical origin” | Bare IP is report-backed canonical; `sslip.io` is the rollback alias |
+| “The old GitHub repository is the project home” | `demeu-ai/demeu` is the accepted private repository with default `main` |
+| “A generated link is necessarily single-patient” | The underlying doctor token is reusable across sessions |
+
+Statements about unavailable external services, missing credentials, or absent
+artifacts in early planning documents should be treated as historical unless a
+current code artifact or accepted report confirms them.
+
+## Updating this snapshot
+
+1. Name the exact commit and evidence timestamp.
+2. Link a repository artifact or accepted report for every changed status.
+3. Keep observed production facts separate from current-live assertions.
+4. Add new SPINE drift here before changing explanatory docs.
+5. Never include credentials, patient transcripts, or Telegram identifiers.
+6. Re-run terminology, relative-link, lint, TypeScript, and relevant test audits.
