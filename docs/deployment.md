@@ -34,12 +34,12 @@ part of the production runtime contract.
 
 | Branch | Compose/config anchors | Use when |
 |---|---|---|
-| A: bundled edge | [`compose.caddy.yml`](../deploy/compose.caddy.yml), [`Caddyfile`](../deploy/Caddyfile) | This stack owns ports 80 and 443 |
-| B: host edge | [`compose.host-proxy.yml`](../deploy/compose.host-proxy.yml), [`Caddyfile.host.template`](../deploy/Caddyfile.host.template) | An existing host Caddy owns 80 and 443 |
+| A: host proxy | [`compose.host-proxy.yml`](../deploy/compose.host-proxy.yml), [`Caddyfile.host.template`](../deploy/Caddyfile.host.template) | Host Caddy owns 80/443; the app has a loopback-only host port |
+| B: bundled Caddy | [`compose.caddy.yml`](../deploy/compose.caddy.yml), [`Caddyfile`](../deploy/Caddyfile) | Compose Caddy owns 80/443; the app publishes no host port |
 
-Both branches keep the Next.js application off the public interface. Caddy is
-the supported ingress and forwards to the application over a private bind or
-container network. Do not expose port 3000 directly.
+Both branches keep the Next.js application off the public interface. Branch A
+uses a loopback application port behind host Caddy. Branch B uses only the
+compose network between bundled Caddy and the app, with no host application port.
 
 The nginx template is retained as an operational reference, not the accepted
 production ingress for this baseline.
@@ -75,7 +75,7 @@ logs, screenshots, or documentation.
 | `NODE_ENV` | Next.js runtime mode | `production` in the container |
 | `COMMIT_SHA` | Health/build provenance | Supplied at build/deploy time |
 | `DOCTOR_ACCESS_CODE` | Planned `/api/link` protection | Declared but unused by the baseline route |
-| `APP_PORT` | Host-side private application port | Deployment setting; keep loopback-only |
+| `APP_PORT` | Branch A host-side application port | Keep loopback-only; branch B does not publish it |
 
 Do not describe `DOCTOR_ACCESS_CODE` as active protection until the route reads
 and validates it. See [Status](status.md#known-contract-and-runtime-divergences).
@@ -87,9 +87,15 @@ process state, build commit, model version, and whether required configuration
 is present without spending an Anthropic request.
 
 The implementation also has an opt-in deep health probe on the same health
-surface. Deep health is additive: it may test dependencies and fail while the
-shallow process remains alive. Deployment automation must not turn a paid or
-transient dependency probe into a restart loop.
+surface. Its proof is an HMAC bound to the exact commit. A missing or incorrect
+proof returns `404` and makes zero provider calls. An uncached valid probe makes
+exactly one structured provider request; a cache and singleflight coalesce
+repeated or concurrent probes.
+
+Deep health is additive: it may fail while the shallow process remains alive.
+Deploy runs the authenticated deep probe before declaring a revision green. A
+deep failure enters recovery toward the recorded last-green revision rather
+than publishing success or creating a dependency-driven restart loop.
 
 | Layer | Purpose | Appropriate consumer |
 |---|---|---|
@@ -104,8 +110,8 @@ transient dependency probe into a restart loop.
 2. Build the multi-stage image with commit provenance.
 3. Start or recreate the selected compose stack.
 4. Wait for shallow health and compare the returned commit.
-5. Run the required smoke level.
-6. Return non-zero rather than declaring success on a mismatch.
+5. Run the commit-bound deep probe before marking the revision green.
+6. Recover toward last-green on deep failure and return non-zero on any mismatch.
 
 Use [`DEPLOY.md`](../deploy/DEPLOY.md) for operator commands and
 [`TLS.md`](../deploy/TLS.md) for certificate/topology details.
@@ -113,9 +119,10 @@ Use [`DEPLOY.md`](../deploy/DEPLOY.md) for operator commands and
 ## Rollback flow
 
 [`deploy/rollback.sh`](../deploy/rollback.sh) is also fail-closed. It selects an
-explicit prior revision, rebuilds/recreates, and verifies health before reporting
-success. A failed rollback remains a failure requiring operator action; scripts
-must not mask it with the previous container's status.
+explicit prior revision, rebuilds/recreates, and verifies only commit-matched
+shallow health before reporting success. Rollback does not run the deep probe
+and therefore is not proof that structured extraction is ready. A failed
+rollback remains a failure requiring operator action.
 
 The `sslip.io` configuration is an address rollback option, while source rollback
 selects a prior commit. They solve different failures and should not be conflated.

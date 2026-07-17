@@ -28,9 +28,9 @@ still require an explicit contract decision.
 
 ## Production evidence
 
-The accepted L1 deployment report is
-[`reports/live-e2e/live-deploy-tester-l1-20260715.json`](../reports/live-e2e/live-deploy-tester-l1-20260715.json).
-It records production evidence dated 2026-07-15 for exact revision
+The latest accepted P0 production report is local, untracked evidence under
+`reports/live-e2e/`; it is not part of baseline commit `19aa755`. The report is
+dated 2026-07-17 and records exact revision
 `19aa75528974582de44e5d8b1e7027289776f6e4` at the bare-IP origin.
 
 That report supports an as-observed statement only. This document does not claim
@@ -40,9 +40,10 @@ or that external providers are currently healthy.
 | Evidence item | Accepted statement |
 |---|---|
 | Revision | Production reported exact SHA `19aa75528974582de44e5d8b1e7027289776f6e4` |
+| Current pointer | `current` matched the recorded last-green revision |
 | Public origin | Bare-IP HTTPS was the report-backed canonical origin |
-| L1 scope | TLS, shallow health, basic HTTP/link/token/page checks were exercised |
-| Excluded inference | L1 is not perpetual uptime, clinical validation, or full Telegram proof |
+| P0 scope | Shallow and authenticated deep health, TLS, no-SNI, and application isolation were exercised |
+| Excluded inference | P0 is not perpetual uptime, clinical validation, or full Telegram proof |
 
 The `109-123-248-16.sslip.io` address is now a rollback alias. Historical SPINE
 text naming it canonical is superseded operationally for this snapshot, not
@@ -82,6 +83,10 @@ The full final result also reaches the patient browser response while remaining
 hidden in the default UI. This is an acknowledged MVP exposure, not a supported
 patient-facing feature.
 
+Low-back label absence and sparse-evidence out-of-label-space behavior are
+verified by current artifact/evaluation evidence. Only the exact live rhinitis
+path remains unverified among the named low-acuity scenarios.
+
 ## Operational limitations
 
 - Recreate, deploy, rollback, or crash loses every in-memory token and session.
@@ -96,13 +101,13 @@ patient-facing feature.
 
 The following require new evidence rather than confident prose:
 
-1. Current production reachability after the accepted 2026-07-15 report.
+1. Current production reachability after the accepted 2026-07-17 P0 report.
 2. Continued automatic renewal and broad client compatibility of the IP certificate.
 3. Current no-SNI behavior after any Caddy or certificate change.
 4. End-to-end Telegram delivery for a newly created real session.
 5. Equal clinical extraction and rule quality for Kazakh patient text.
 6. Clinical validity outside the evaluated corpus and reviewed routing rows.
-7. Label-space coverage for the planned low-acuity demo scenarios.
+7. Exact live rhinitis behavior on the current production revision.
 8. Effective abuse protection while `DOCTOR_ACCESS_CODE` remains unused.
 9. Recovery behavior under concurrent deploys with active patient sessions.
 
@@ -110,7 +115,7 @@ The following require new evidence rather than confident prose:
 
 | Earlier statement | Snapshot correction |
 |---|---|
-| “The prototype has never run live” | Superseded for exact SHA `19aa755` by the accepted 2026-07-15 L1 report |
+| “The prototype has never run live” | Superseded for exact SHA `19aa755` by the accepted 2026-07-17 P0 report |
 | “The VPS and ports are uninspected” | Superseded only to the extent recorded by the accepted deployment report |
 | “`sslip.io` is the production canonical origin” | Bare IP is report-backed canonical; `sslip.io` is the rollback alias |
 | “The old GitHub repository is the project home” | `demeu-ai/demeu` is the accepted private repository with default `main` |

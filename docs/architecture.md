@@ -91,10 +91,10 @@ so urgent patient wording remains available if the external adapter fails.
 2. Ask Anthropic for structured `Anamnesis` and `EvidenceVector`.
 3. Derive context flags from the successful structured result.
 4. Build the feature vector from artifact-owned preprocessing and score local LR.
-5. Sum pathology probabilities by specialty and choose the ranked route.
-6. Apply abstention and then let emergency rules dominate model priority.
-7. Build a deterministic preliminary hypothesis and mandatory disclaimer.
-8. Persist `TriageResult`; render Telegram text and PDF for delivery.
+5. Apply out-of-label-space and low-confidence abstention to the prediction.
+6. Only for an accepted model result, sum probabilities by specialty and rank routes.
+7. Let emergency rules dominate every model-derived priority.
+8. Build a deterministic preliminary hypothesis, persist it, and attempt delivery.
 
 ```mermaid
 flowchart TD
@@ -103,7 +103,10 @@ flowchart TD
   E -->|success| C[Context flags]
   E -->|success| V[Artifact-driven feature vector]
   V --> L[Local LR prediction]
-  L --> Q[Routing and abstention]
+  L --> A[OOL and confidence abstention]
+  A -->|accepted| Q[Routing]
+  A -->|abstained| SF[llm_fallback]
+  L -->|scorer or prediction failure| SF
   E -->|failure| O[rules_only]
   Q --> S{Source}
   S -->|usable model| SM[model]
@@ -121,7 +124,7 @@ flowchart TD
 | `source` | Model object | Meaning |
 |---|---|---|
 | `model` | Present | Extraction and model scoring produced a usable result |
-| `llm_fallback` | Present but abstained | The model ran but refused the case under abstention rules |
+| `llm_fallback` | Redacted model after abstention; absent after scorer/prediction failure | Extraction succeeded, but the model result was rejected or could not be produced |
 | `rules_only` | Absent | Structured extraction failed; patient-message rules still produced a summary |
 
 The current hypothesis is deterministic, assembled after model/rule resolution.
@@ -141,7 +144,8 @@ repeatable but limits narrative synthesis; see [Status](status.md#known-contract
 ## Data and artifact boundary
 
 Python is offline-only. Production reads the committed JSON model artifact,
-evidence labels, routing table, and evaluation report. Feature ordering and
+evidence labels, and routing table. It does **not** read `eval/report.json`;
+evaluation is excluded from the runtime dependency set. Feature ordering and
 normalization come from the artifact to prevent train/serve skew.
 
 See [Data and ML pipeline](data-ml-pipeline.md) and [Evaluation](evaluation.md).

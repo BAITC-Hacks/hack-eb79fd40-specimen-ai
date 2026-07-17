@@ -46,9 +46,8 @@ difference in [Status](status.md#known-contract-and-runtime-divergences).
 | [Evaluation](evaluation.md) | Eval corpus, metrics, and claim rules | You report model quality |
 | [Testing](testing.md) | Test layers, commands, and release gates | You verify a change |
 
-The index intentionally links planned documents even while another writer is
-preparing them. A temporarily missing link is not permission to invent its
-content elsewhere.
+All twelve entries are required documentation. Every relative link in this
+index must resolve before a documentation release is accepted.
 
 ## Reading paths
 
