@@ -141,9 +141,15 @@ Standalone runner не входит в Vitest из-за расширения `.m
 
 ### Live и production
 
-Live-команды в `package.json` исключены из routine pass. Они требуют явной cost/network-authorisation, корректного внешнего окружения и отдельного evidence artifact. Их нельзя запускать как автоматический fallback после offline failure.
+Live-команды в `package.json` исключены из routine pass. Они требуют явной cost/network-authorisation и корректного внешнего окружения. Их нельзя запускать как автоматический fallback после offline failure.
 
-К live-категории относятся LLM smoke, analytics extraction, scenario1 и deployment smoke. Секреты не печатаются, `.env` не читается ради документационного или unit-аудита, а результат всегда привязывается к commit и endpoint. См. [deployment.md](./deployment.md) и [security-privacy.md](./security-privacy.md).
+| Live runner | Фактический результат |
+|---|---|
+| [`tests/live/llm.smoke.ts`](../tests/live/llm.smoke.ts) | только console output; evidence artifact не записывается |
+| [`scripts/live-analytics-smoke.ts`](../scripts/live-analytics-smoke.ts) | только console output; evidence artifact не записывается |
+| [`scripts/live-scenario1.ts`](../scripts/live-scenario1.ts) | записывает artifact, но в нём нет обязательных полей commit и endpoint |
+
+Поэтому live-результат не получает commit/endpoint provenance автоматически: console-only вывод нужно сохранять отдельно, а scenario1 artifact — дополнять внешней commit-bound записью. К live-категории также относятся deployment smoke. Секреты не печатаются, а `.env` не читается ради документационного или unit-аудита. См. [deployment.md](./deployment.md) и [security-privacy.md](./security-privacy.md).
 
 ## Протокол известного parallel PDF timeout
 

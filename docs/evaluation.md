@@ -165,13 +165,15 @@ LLM не использовался для генерации или разме�
 
 ## Воспроизведение без provider-вызовов
 
-Read-only проверка замороженного отчёта:
+Read-only drift-check замороженного отчёта:
 
 ```bash
 npm run eval -- --allow-unvalidated --check
 ```
 
-Команда пересчитывает ожидаемые hashes/метрики и сравнивает их с tracked `eval/report.json`; `--allow-unvalidated` не меняет статус таблицы. Без `--check` evaluator записывает `eval/report.json` и `eval/report.md`, поэтому такой запуск выполняют только при осознанной регенерации.
+На exact baseline `19aa755` эта команда **ожидаемо завершается с exit 1**: tracked report сохраняет `commit=6f54902`, evaluator формирует ожидаемое представление с текущим `19aa755` и выполняет точное byte-сравнение. Это stale commit provenance, а не зелёный reproducibility-check и не свидетельство изменения самих опубликованных метрик.
+
+`--allow-unvalidated` не меняет статус таблицы. Запуск без `--check` перезаписывает `eval/report.json` и `eval/report.md`, обновляя commit/provenance; такую регенерацию делают только осознанно и затем повторно принимают artifact snapshot. До этого публичные числа остаются замороженным snapshot текущего tracked report со всеми его mode/status/caveats.
 
 Короткая проверка статусов:
 
