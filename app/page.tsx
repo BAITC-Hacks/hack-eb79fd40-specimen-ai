@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { buildPatientLink, isDoctorUnauthorized } from "@/lib/doctor-ui";
 import { createLink, type ApiFailure } from "@/lib/http";
 import { DOCTOR as text } from "@/lib/i18n";
@@ -161,6 +162,7 @@ export default function DoctorHome() {
       </section>
 
       <p className="footnote">{text.openHint}</p>
+      <p className="footnote"><Link href="/workspace">Кабинет команды · направления и сводка</Link></p>
     </main>
   );
 }

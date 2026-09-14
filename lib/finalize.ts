@@ -1,6 +1,6 @@
 import { after } from "next/server";
 import { analyze as analyzeResult } from "./triage";
-import { telegramNotifierFromEnv } from "./telegram";
+import { workspaceNotifierFromEnv } from "./workspace-notifier";
 import {
   SessionNotCollectingError,
   SessionNotFoundError,
@@ -115,7 +115,7 @@ export async function finalizeSession(
   const analyze = deps.analyze ?? analyzeResult;
   const doctorSummary =
     deps.doctorSummary ??
-    telegramNotifierFromEnv() ??
+    workspaceNotifierFromEnv() ??
     unconfiguredDoctorSummary;
   let inFlight = inFlightByStore.get(sessionStore);
   if (!inFlight) {

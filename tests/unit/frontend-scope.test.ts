@@ -12,11 +12,11 @@ const FRONTEND_FILES = [
 ];
 
 describe("frontend scope guard", () => {
-  it("uses exactly the four supported network endpoints", () => {
+  it("uses exactly the five supported network endpoints including protected resume", () => {
     const source = FRONTEND_FILES.map((file) => readFileSync(`${ROOT}/${file}`, "utf8")).join("\n");
     const endpoints = [...source.matchAll(/["`](\/api\/[a-z/]+)["`]/g)].map((match) => match[1]);
     expect(new Set(endpoints)).toEqual(
-      new Set(["/api/link", "/api/chat/start", "/api/chat", "/api/chat/finalize"]),
+      new Set(["/api/link", "/api/chat/start", "/api/chat", "/api/chat/finalize", "/api/chat/resume"]),
     );
     expect(source).not.toMatch(/\/api\/(?:booking|reminder|after|faq|doctor)/);
     expect(source).not.toContain("input_hint");

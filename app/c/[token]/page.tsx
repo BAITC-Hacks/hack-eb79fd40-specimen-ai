@@ -13,6 +13,7 @@ import { MAX_MESSAGE_LEN } from "@/lib/config";
 import { decodePatientToken } from "@/lib/doctor-ui";
 import {
   finalizeChat,
+  resumeChat,
   sendChat,
   startChat,
   type ApiFailure,
@@ -38,6 +39,8 @@ import {
 
 type Phase =
   | "consent"
+  | "restoring"
+  | "restore_error"
   | "starting"
   | "invalid"
   | "start_error"
@@ -81,6 +84,7 @@ export default function PatientChat() {
   const [autoFinalized, setAutoFinalized] = useState(false);
   const [waitLine, setWaitLine] = useState(0);
   const [retryBlocked, setRetryBlocked] = useState(false);
+  const [restoreAttempt, setRestoreAttempt] = useState(0);
   const nextMessageId = useRef(0);
   const endRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -89,11 +93,49 @@ export default function PatientChat() {
   const text = PATIENT[language];
 
   useEffect(() => {
+    let disposed = false;
     const query = new URLSearchParams(window.location.search);
     setLanguage(query.get("lang") === "kk" ? "kk" : "ru");
     setDemo(query.get("demo") === "1");
-    setQueryReady(true);
-  }, []);
+    const key = token === null ? null : `demeu:session:${token}`;
+    let saved: string | null = null;
+    try { if (key) saved = window.sessionStorage.getItem(key); } catch { /* Storage can be disabled. */ }
+    if (!saved || token === null) {
+      setPhase(token === null ? "invalid" : "consent");
+      setQueryReady(true);
+      return;
+    }
+    setPhase("restoring");
+    setQueryReady(false);
+    void resumeChat(saved, token).then((response) => {
+      if (disposed) return;
+      setQueryReady(true);
+      if (!response.ok) {
+        if (response.failure.kind === "http" && [401, 404].includes(response.failure.status)) {
+          try { if (key) window.sessionStorage.removeItem(key); } catch { /* No persistent fallback. */ }
+          setSessionId(null);
+          setPhase("consent");
+        } else {
+          setStartFailure(response.failure);
+          setPhase("restore_error");
+        }
+        return;
+      }
+      const restored = response.data;
+      setSessionId(restored.sessionId);
+      setLanguage(restored.language);
+      setMessages(restored.messages.map((message) => ({ ...message, id: nextMessageId.current++ })));
+      setTurnsLeft(restored.turnsLeft);
+      setResult(restored.result ?? null);
+      if (restored.status === "aborted") {
+        try { if (key) window.sessionStorage.removeItem(key); } catch { /* No persistent fallback. */ }
+        setPhase("expired");
+      } else {
+        setPhase(restored.status === "completed" ? "done" : "chat");
+      }
+    });
+    return () => { disposed = true; };
+  }, [token, restoreAttempt]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -145,6 +187,7 @@ export default function PatientChat() {
     }
 
     setSessionId(response.data.sessionId);
+    try { window.sessionStorage.setItem(`demeu:session:${token}`, response.data.sessionId); } catch { /* Resume is optional when browser storage is disabled. */ }
     setTurnsLeft(response.data.turnsLeft);
     setMessages([
       {
@@ -318,7 +361,15 @@ export default function PatientChat() {
           onConsent={() => void openSession()}
         />
       )}
-      {phase === "starting" && <LoadingState language={language} />}
+      {(phase === "starting" || phase === "restoring") && <LoadingState language={language} />}
+      {phase === "restore_error" && (
+        <TerminalState
+          title={text.startErrorTitle}
+          body={startFailure ? patientFailureText(startFailure, language) : text.startErrorBody}
+          action={text.retry}
+          onAction={() => setRestoreAttempt((value) => value + 1)}
+        />
+      )}
       {phase === "invalid" && (
         <TerminalState title={text.invalidTitle} body={text.invalidBody} />
       )}

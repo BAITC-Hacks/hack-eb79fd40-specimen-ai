@@ -28,7 +28,7 @@ function sourceFilter(source: string): boolean {
   if (parts.some((part) => part.startsWith(".env") && part !== ".env.example")) {
     return false;
   }
-  return !(parts[0] === "data" && ["raw", "processed"].includes(parts[1]));
+  return !(parts[0] === "data" && ["raw", "processed", "runtime"].includes(parts[1]));
 }
 
 function run(command: string, args: string[], cwd: string): Promise<{

@@ -1,4 +1,4 @@
-import type { TriageResult } from "@/lib/types";
+import type { ChatMessage, TriageResult } from "@/lib/types";
 
 export type Language = "ru" | "kk";
 
@@ -35,6 +35,27 @@ export interface FinalizeChatResponse {
   result: TriageResult;
   source: TriageResult["source"];
   replayed: boolean;
+}
+
+export interface ResumeChatResponse {
+  sessionId: string;
+  language: Language;
+  messages: ChatMessage[];
+  turnsLeft: number;
+  status: "collecting" | "completed" | "aborted";
+  result?: TriageResult;
+}
+
+export function resumeChat(sessionId: string, token: string): Promise<ApiResult<ResumeChatResponse>> {
+  return requestJson({
+    url: "/api/chat/resume", body: { sessionId, token }, timeoutMs: 10_000,
+    guard: (value): value is ResumeChatResponse => isRecord(value) &&
+      value.sessionId === sessionId && (value.language === "ru" || value.language === "kk") &&
+      turnsLeft(value.turnsLeft) && ["collecting", "completed", "aborted"].includes(String(value.status)) &&
+      Array.isArray(value.messages) && value.messages.every((message) => isRecord(message) &&
+        (message.role === "user" || message.role === "assistant") && typeof message.content === "string") &&
+      (value.status === "completed" ? isTriageResult(value.result) : value.result === undefined),
+  });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -139,7 +160,7 @@ function isModel(value: unknown): value is NonNullable<TriageResult["model"]> {
   );
 }
 
-function hasMandatoryDisclaimer(value: string): boolean {
+export function hasMandatoryDisclaimer(value: string): boolean {
   return (
     /(?:^|[^\p{L}])(?:это\s+)?(?:не|а\s+не)\s+диагноз(?!\p{L})/iu.test(value) &&
     /(?:^|[^\p{L}])(?:решает|решение\s+принимает)\s+врач(?!\p{L})/iu.test(value)
@@ -150,7 +171,7 @@ function nearlyEqual(left: number, right: number): boolean {
   return Math.abs(left - right) <= 1e-9;
 }
 
-function isTriageResult(value: unknown): value is TriageResult {
+export function isTriageResult(value: unknown): value is TriageResult {
   if (
     !isRecord(value) ||
     !isAnamnesis(value.anamnesis) ||

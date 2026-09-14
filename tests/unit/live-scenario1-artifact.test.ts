@@ -1,7 +1,8 @@
-import { readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const REPORT_PATH = "reports/live-e2e/scenario1-structured-telegram.json";
+const hasLiveEvidence = existsSync(REPORT_PATH);
 
 interface LiveArtifact {
   schema_version: number;
@@ -51,7 +52,13 @@ function artifact(): { raw: string; value: LiveArtifact } {
   return { raw, value: JSON.parse(raw) as LiveArtifact };
 }
 
-describe("one-shot live scenario artifact (read-only)", () => {
+// This suite verifies a local paid-run record, not a fixture required by checkout.
+// Missing evidence is an explicit skip; a present but invalid record still fails.
+describe.skipIf(!hasLiveEvidence)(
+  hasLiveEvidence
+    ? "one-shot live scenario artifact (read-only)"
+    : `one-shot live scenario artifact (skipped: local evidence absent at ${REPORT_PATH})`,
+  () => {
   it("is private, final, and time-coherent", () => {
     const { value } = artifact();
     const mode = statSync(REPORT_PATH).mode & 0o777;
@@ -145,4 +152,5 @@ describe("one-shot live scenario artifact (read-only)", () => {
       expect(raw).not.toMatch(forbidden);
     }
   });
-});
+  },
+);

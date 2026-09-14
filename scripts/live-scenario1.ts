@@ -251,7 +251,11 @@ async function main(): Promise<void> {
     assert(health.model_version === "lr-v1", "health_model_version");
 
     stage = "link";
-    const link = await jsonResponse<{ token: string }>(stage, await createLink());
+    const linkRequest = request("/api/link", {});
+    if (process.env.DOCTOR_ACCESS_CODE) {
+      linkRequest.headers.set("x-doctor-code", process.env.DOCTOR_ACCESS_CODE);
+    }
+    const link = await jsonResponse<{ token: string }>(stage, await createLink(linkRequest));
 
     stage = "start";
     const started = await jsonResponse<{ sessionId: string; turnsLeft: number }>(

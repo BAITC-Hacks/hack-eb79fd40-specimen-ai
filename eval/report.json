@@ -4,7 +4,7 @@
     "top-1/top-3 измерены при ИДЕАЛЬНОМ извлечении (mode=no-llm): LLM-адаптер не участвовал, сквозное качество ниже; extraction_f1 не измерялся",
     "метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`"
   ],
-  "commit": "6f54902",
+  "commit": "7076e8a",
   "invariants": {
     "all_passed": true,
     "checks": [
@@ -1814,7 +1814,7 @@
     },
     "evaluator": {
       "path": "scripts/eval.ts",
-      "sha256": "17a5f41a67ef9fca0b84bcbdb0281d9360f240c90f424605020c1659e318b59d"
+      "sha256": "4da271099122e390fd1e7908c5d80e919c7465fbf99655cdaf76817bf608b742"
     },
     "manifest": {
       "path": "eval/manifest.json",
@@ -1827,6 +1827,66 @@
     "pathology_map": {
       "path": "data/pathology_map.json",
       "sha256": "83cda24f6ac4b828bf5cad6d01086e939c009123e6cbc4976313f221b6fab7bc"
+    },
+    "runtime:data/evidences_ru.json": {
+      "path": "data/evidences_ru.json",
+      "sha256": "162e4d00b322dec293a47b5ae994f35d0f834929b93a42efaafea0fe54b2430a"
+    },
+    "runtime:data/pathology_map.json": {
+      "path": "data/pathology_map.json",
+      "sha256": "83cda24f6ac4b828bf5cad6d01086e939c009123e6cbc4976313f221b6fab7bc"
+    },
+    "runtime:lib/evidence-dictionary.ts": {
+      "path": "lib/evidence-dictionary.ts",
+      "sha256": "fb3b96df6a841ef2c6b1dc68b6f47da2adfea7eea1e6be8e9f378b39ba390e25"
+    },
+    "runtime:lib/extract.ts": {
+      "path": "lib/extract.ts",
+      "sha256": "fd370f4e932f63bb33c86e6e458c7f6543a4d07f19976d8e601988e45c97ec09"
+    },
+    "runtime:lib/llm.ts": {
+      "path": "lib/llm.ts",
+      "sha256": "7f9a12cc5665ea96cdf134ca729924d0e74f26db4aed5dadb81eb1006471c47c"
+    },
+    "runtime:lib/model.ts": {
+      "path": "lib/model.ts",
+      "sha256": "35b9abc4ee224b9ab779529e66ca076772d9984ff3f0895e122fb321bb85a7b9"
+    },
+    "runtime:lib/redflags.ts": {
+      "path": "lib/redflags.ts",
+      "sha256": "85e8cb6d18e1bcd0a1f5c2222bbaf09b5556a7b5016a1e6b21d9c670d3464eff"
+    },
+    "runtime:lib/structured-schema.ts": {
+      "path": "lib/structured-schema.ts",
+      "sha256": "d24a16ba69226f2a1dff70de181612b5052a9e823ced684b3c1f4c6058f59ba3"
+    },
+    "runtime:lib/triage.ts": {
+      "path": "lib/triage.ts",
+      "sha256": "5bb985ead3994d2a6a778fd26442d5361e7d71d46d16498c199bc822f3b4ae96"
+    },
+    "runtime:lib/types.ts": {
+      "path": "lib/types.ts",
+      "sha256": "6da2705f84d5fe9788385eebcd71ea5b1e590b8dd207c7bbbd2da0d16fa2fddd"
+    },
+    "runtime:models/triage-lr-v1.json": {
+      "path": "models/triage-lr-v1.json",
+      "sha256": "3ddc467e753ef325a3bb83ddbe1997bd7ad8b108659c9cf72e37e50eeb7142ab"
+    },
+    "runtime:package-lock.json": {
+      "path": "package-lock.json",
+      "sha256": "44ad2c4eb9df4d618213d6f29d2125661d48228983366ff51af50ec4f6f168d6"
+    },
+    "runtime:package.json": {
+      "path": "package.json",
+      "sha256": "6b0566d9cb97c3bfa9d6f817e1bb1f6851940951f1eb9fe22e907d59b248d28a"
+    },
+    "runtime:scripts/eval.ts": {
+      "path": "scripts/eval.ts",
+      "sha256": "4da271099122e390fd1e7908c5d80e919c7465fbf99655cdaf76817bf608b742"
+    },
+    "runtime:tsconfig.json": {
+      "path": "tsconfig.json",
+      "sha256": "3da8ad0df16ef8da321a2bf3aa786c8d0c4695391f4831d4c29270199e3b3052"
     }
   },
   "readme_guard": {
@@ -1851,14 +1911,29 @@
     "required_hashes": {
       "cases": "d2fb9292b1d85a92261ad48466dee348a21826549ed72ea63b729acf8de6aa95",
       "dictionary": "162e4d00b322dec293a47b5ae994f35d0f834929b93a42efaafea0fe54b2430a",
-      "evaluator": "17a5f41a67ef9fca0b84bcbdb0281d9360f240c90f424605020c1659e318b59d",
+      "evaluator": "4da271099122e390fd1e7908c5d80e919c7465fbf99655cdaf76817bf608b742",
       "manifest": "64d3bea2ad3ce9bb39cb13f5ac2ce474ae090db43a98826c7c2e4e8403af2efc",
       "model": "3ddc467e753ef325a3bb83ddbe1997bd7ad8b108659c9cf72e37e50eeb7142ab",
-      "pathology_map": "83cda24f6ac4b828bf5cad6d01086e939c009123e6cbc4976313f221b6fab7bc"
+      "pathology_map": "83cda24f6ac4b828bf5cad6d01086e939c009123e6cbc4976313f221b6fab7bc",
+      "runtime:data/evidences_ru.json": "162e4d00b322dec293a47b5ae994f35d0f834929b93a42efaafea0fe54b2430a",
+      "runtime:data/pathology_map.json": "83cda24f6ac4b828bf5cad6d01086e939c009123e6cbc4976313f221b6fab7bc",
+      "runtime:lib/evidence-dictionary.ts": "fb3b96df6a841ef2c6b1dc68b6f47da2adfea7eea1e6be8e9f378b39ba390e25",
+      "runtime:lib/extract.ts": "fd370f4e932f63bb33c86e6e458c7f6543a4d07f19976d8e601988e45c97ec09",
+      "runtime:lib/llm.ts": "7f9a12cc5665ea96cdf134ca729924d0e74f26db4aed5dadb81eb1006471c47c",
+      "runtime:lib/model.ts": "35b9abc4ee224b9ab779529e66ca076772d9984ff3f0895e122fb321bb85a7b9",
+      "runtime:lib/redflags.ts": "85e8cb6d18e1bcd0a1f5c2222bbaf09b5556a7b5016a1e6b21d9c670d3464eff",
+      "runtime:lib/structured-schema.ts": "d24a16ba69226f2a1dff70de181612b5052a9e823ced684b3c1f4c6058f59ba3",
+      "runtime:lib/triage.ts": "5bb985ead3994d2a6a778fd26442d5361e7d71d46d16498c199bc822f3b4ae96",
+      "runtime:lib/types.ts": "6da2705f84d5fe9788385eebcd71ea5b1e590b8dd207c7bbbd2da0d16fa2fddd",
+      "runtime:models/triage-lr-v1.json": "3ddc467e753ef325a3bb83ddbe1997bd7ad8b108659c9cf72e37e50eeb7142ab",
+      "runtime:package-lock.json": "44ad2c4eb9df4d618213d6f29d2125661d48228983366ff51af50ec4f6f168d6",
+      "runtime:package.json": "6b0566d9cb97c3bfa9d6f817e1bb1f6851940951f1eb9fe22e907d59b248d28a",
+      "runtime:scripts/eval.ts": "4da271099122e390fd1e7908c5d80e919c7465fbf99655cdaf76817bf608b742",
+      "runtime:tsconfig.json": "3da8ad0df16ef8da321a2bf3aa786c8d0c4695391f4831d4c29270199e3b3052"
     },
     "required_mode": "no-llm",
     "status": "PARTIAL"
   },
-  "run_id": "no-llm-6642581bd716b170",
+  "run_id": "no-llm-ba840f9b0b921b78",
   "schema_version": 1
 }

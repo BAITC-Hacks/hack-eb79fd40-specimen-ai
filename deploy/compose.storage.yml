@@ -1,0 +1,11 @@
+# Optional: add this overlay only after the host directory and access policy exist.
+services:
+  app:
+    environment:
+      DEMEU_DATA_DIR: /var/lib/demeu
+    volumes:
+      - type: bind
+        source: ${DEMEU_HOST_DATA_DIR:?Set an existing private absolute host data directory}
+        target: /var/lib/demeu
+        bind:
+          create_host_path: false

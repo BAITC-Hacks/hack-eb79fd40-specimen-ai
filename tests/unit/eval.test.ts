@@ -5,6 +5,7 @@ import { analyze, type LlmAnalysis } from "../../lib/triage";
 import type { EvidenceVector, ModelPrediction } from "../../lib/types";
 import {
   assertPredictionIntegrity,
+  checkStoredReports,
   runEvaluation,
   validateReportForReadme,
 } from "../../scripts/eval";
@@ -35,6 +36,45 @@ const EMPTY_ANALYSIS: LlmAnalysis = {
 };
 
 describe("offline evaluation", () => {
+  it("checks measured content across commits without rewriting recorded provenance", async () => {
+    const { report, markdown } = await runEvaluation();
+    const canonical = (value: unknown): string => {
+      const sort = (item: unknown): unknown => Array.isArray(item)
+        ? item.map(sort)
+        : item !== null && typeof item === "object"
+          ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b)).map(([key, child]) => [key, sort(child)]))
+          : item;
+      return `${JSON.stringify(sort(value), null, 2)}\n`;
+    };
+    const stored = { ...report, commit: "123abcd" };
+    const json = canonical(stored);
+    expect(() => checkStoredReports(json, markdown, { ...report, commit: "456abcd" })).not.toThrow();
+    expect(stored.commit).toBe("123abcd");
+    expect(() => checkStoredReports(canonical({ ...stored, commit: "invalid" }), markdown, report)).toThrow(/commit/u);
+    expect(() => checkStoredReports(json, `${markdown}tampered`, report)).toThrow(/stale/u);
+    const wrongRun = structuredClone(stored);
+    wrongRun.run_id = "fabricated";
+    expect(() => checkStoredReports(canonical(wrongRun), markdown, report)).toThrow(/stale/u);
+    const wrongMetric = structuredClone(stored);
+    wrongMetric.metrics.pathology_top1 = 0;
+    expect(() => checkStoredReports(canonical(wrongMetric), markdown, report)).toThrow();
+
+    const sourceFiles = Object.values(report.provenance).map((entry) => entry.path);
+    for (const filename of ["lib/model.ts", "lib/triage.ts", "lib/redflags.ts", "lib/extract.ts", "lib/llm.ts", "lib/structured-schema.ts", "lib/evidence-dictionary.ts", "lib/types.ts", "package-lock.json", "tsconfig.json"]) {
+      expect(sourceFiles).toContain(filename);
+    }
+    for (const name of ["cases", "model", "dictionary", "pathology_map", "evaluator", "runtime:lib/triage.ts", "runtime:lib/model.ts", "runtime:lib/redflags.ts"]) {
+      const tampered = structuredClone(stored);
+      tampered.provenance[name].sha256 = "0".repeat(64);
+      tampered.readme_guard.required_hashes[name] = "0".repeat(64);
+      expect(() => checkStoredReports(canonical(tampered), markdown, report), name).toThrow(/stale/u);
+    }
+    const missingSource = structuredClone(stored);
+    delete missingSource.provenance["runtime:lib/triage.ts"];
+    delete missingSource.readme_guard.required_hashes["runtime:lib/triage.ts"];
+    expect(() => checkStoredReports(canonical(missingSource), markdown, report)).toThrow(/missing/u);
+  });
+
   it("runs every canonical case deterministically and labels unavailable metrics honestly", async () => {
     const first = await runEvaluation();
     const second = await runEvaluation();

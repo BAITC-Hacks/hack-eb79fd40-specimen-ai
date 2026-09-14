@@ -1,5 +1,26 @@
 # Implementation status
 
+## September local working state — 2026-09-13
+
+Uncommitted worktree `codex/september-foundation`, based on `7076e8a`:
+
+- [Foundation](september-foundation.md): link access-code enforcement and rate limiting, bounded historical symptom handling, content-based eval checks.
+- [Workspace and referrals](september-contracts.md): authenticated doctor/owner/analyst scopes, independent doctor-confirmed facts, immutable correction history, examinations and patient-safe memo.
+- [Workspace redesign](workspace-redesign.md): role-specific overview and eight navigation sections, responsive shell, record identity and authorization failure guards.
+- [File storage](file-storage.md): opt-in durable local snapshots for one process; in-memory behavior remains only when not configured. Delivery journal is part of backup scope.
+- [Patient resume](patient-resume.md): active interview restoration with a separate patient capability in workspace mode.
+
+These local changes supersede the corresponding limitations below. They do not
+prove deployment, live AI/Telegram delivery, validated examination requirements,
+or readiness for real patient data. ClickUp tasks are the PRD; a separate PRD
+document is not a blocker. Outstanding product questions are in
+[Ardan questions](ardan-questions.md).
+
+## Historical July snapshot
+
+All tables and operational limitations below describe the named July revision,
+not the current September worktree.
+
 This is the authoritative mutable snapshot for what the repository and accepted
 evidence show now. It is not a replacement for SPINE: frozen contract changes
 still require an explicit contract decision.

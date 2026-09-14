@@ -110,8 +110,8 @@ describe("README publication contract", () => {
     }
     const envNames = readFileSync(".env.example", "utf8")
       .split(/\r?\n/u)
-      .filter((line) => line.includes("="))
-      .map((line) => line.slice(0, line.indexOf("=")));
+      .map((line) => /^\s*(?:#\s*)?([A-Z][A-Z0-9_]*)\s*=/u.exec(line)?.[1])
+      .filter((name): name is string => name !== undefined);
     for (const name of envNames) expect(readme).toContain(`\`${name}\``);
 
     expect(readme).toContain("docker compose up --build -d");

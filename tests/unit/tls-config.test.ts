@@ -411,6 +411,8 @@ describe("TLS branch configuration", () => {
     expect(nginx).toContain("proxy_pass http://127.0.0.1:${APP_PORT}");
     expect(nginx).toContain("proxy_read_timeout 120s");
     expect(nginx).toContain("proxy_send_timeout 120s");
+    expect(nginx).toMatch(/proxy_set_header\s+X-Forwarded-For\s+\$remote_addr;/);
+    expect(nginx).not.toContain("$proxy_add_x_forwarded_for");
     expect(nginx).toContain("Strict-Transport-Security");
     expect(caddy).toContain("reverse_proxy 127.0.0.1:${APP_PORT}");
     expect(caddy).toContain("response_header_timeout 120s");

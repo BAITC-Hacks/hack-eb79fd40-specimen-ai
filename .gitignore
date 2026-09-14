@@ -9,6 +9,7 @@ next-env.d.ts
 # DDXPlus raw and derived data
 data/raw/
 data/processed/
+data/runtime/
 *.csv
 *.parquet
 *.zip

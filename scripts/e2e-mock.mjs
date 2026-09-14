@@ -31,7 +31,17 @@ export function snapshotFilter(source, root = ROOT) {
   if (parts.some((part) => part.startsWith(".env") && part !== ".env.example")) {
     return false;
   }
-  return !(parts[0] === "data" && ["raw", "processed"].includes(parts[1]));
+  return !(parts[0] === "data" && ["raw", "processed", "runtime"].includes(parts[1]));
+}
+
+export function isolatedMockEnv(environment, guardImport) {
+  const isolated = { ...environment, NEXT_TELEMETRY_DISABLED: "1", NODE_OPTIONS: guardImport };
+  for (const key of [
+    "ANTHROPIC_AUTH_TOKEN", "DOCTOR_ACCESS_CODE", "TELEGRAM_BOT_TOKEN",
+    "TELEGRAM_DOCTOR_CHAT_ID", "TELEGRAM_DOCTOR_CHAT_IDS",
+    "DEMEU_DATA_DIR", "DEMEU_ACCOUNTS_FILE", "DEMEU_AUTH_SECRET",
+  ]) delete isolated[key];
+  return isolated;
 }
 
 async function assertSnapshotEnvIsolation(snapshot) {
@@ -120,16 +130,7 @@ async function main() {
     await symlink(join(ROOT, "node_modules"), join(snapshot, "node_modules"), "dir");
 
     const guardImport = `--import=${join(snapshot, "scripts/e2e-fetch-guard.mjs")}`;
-    const isolatedEnv = {
-      ...process.env,
-      NEXT_TELEMETRY_DISABLED: "1",
-      NODE_OPTIONS: guardImport,
-    };
-    delete isolatedEnv.ANTHROPIC_AUTH_TOKEN;
-    delete isolatedEnv.DOCTOR_ACCESS_CODE;
-    delete isolatedEnv.TELEGRAM_BOT_TOKEN;
-    delete isolatedEnv.TELEGRAM_DOCTOR_CHAT_ID;
-    delete isolatedEnv.TELEGRAM_DOCTOR_CHAT_IDS;
+    const isolatedEnv = isolatedMockEnv(process.env, guardImport);
 
     build = spawnCaptured(
       process.execPath,

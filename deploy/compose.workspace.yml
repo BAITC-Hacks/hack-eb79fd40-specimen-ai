@@ -1,0 +1,18 @@
+# Self-contained personal workspace mounts; do not also add compose.storage.yml.
+services:
+  app:
+    environment:
+      DEMEU_DATA_DIR: /var/lib/demeu
+      DEMEU_ACCOUNTS_FILE: /run/secrets/demeu-accounts.json
+    volumes:
+      - type: bind
+        source: ${DEMEU_HOST_DATA_DIR:?Set an existing private absolute host data directory}
+        target: /var/lib/demeu
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${DEMEU_HOST_ACCOUNTS_FILE:?Set an existing private absolute accounts JSON path}
+        target: /run/secrets/demeu-accounts.json
+        read_only: true
+        bind:
+          create_host_path: false

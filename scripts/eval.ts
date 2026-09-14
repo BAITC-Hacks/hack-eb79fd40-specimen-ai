@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import ts from "typescript";
 
 import { buildVector, loadArtifact, predict } from "../lib/model";
 import { analyze, type LlmAnalysis, type LlmPort } from "../lib/triage";
@@ -99,6 +100,7 @@ export interface EvalReport {
   cases_sha256: string;
   pathology_map_validated: boolean;
   provenance: {
+    [name: string]: { path: string; sha256: string };
     cases: { path: string; sha256: string };
     manifest: { path: string; sha256: string };
     model: { path: string; sha256: string };
@@ -162,6 +164,39 @@ function sha256(value: string | Buffer): string {
 
 async function fileSha256(filename: string): Promise<string> {
   return sha256(await readFile(filename));
+}
+
+// Fingerprint the local import closure, including type/JSON imports and locked
+// dependencies. Git HEAD describes when a run happened, not whether it is stale.
+function runtimeProvenance(): Record<string, { path: string; sha256: string }> {
+  const configPath = path.join(ROOT, "tsconfig.json");
+  const config = ts.readConfigFile(configPath, ts.sys.readFile);
+  if (config.error) fail("cannot read TypeScript configuration");
+  const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, ROOT);
+  if (parsed.errors.length) fail("cannot resolve TypeScript configuration");
+  const pending = [path.join(ROOT, "scripts/eval.ts")];
+  const files = new Set([configPath, path.join(ROOT, "package.json"), path.join(ROOT, "package-lock.json")]);
+  while (pending.length > 0) {
+    const filename = pending.pop()!;
+    if (files.has(filename)) continue;
+    files.add(filename);
+    if (!/\.[cm]?tsx?$/u.test(filename)) continue;
+    const source = readFileSync(filename, "utf8");
+    for (const imported of ts.preProcessFile(source, true, true).importedFiles) {
+      const resolved = ts.resolveModuleName(imported.fileName, filename, parsed.options, ts.sys).resolvedModule;
+      if (!resolved) {
+        if (imported.fileName.startsWith(".") || imported.fileName.startsWith("@/")) {
+          fail(`unresolved local evaluation import: ${imported.fileName}`);
+        }
+        continue;
+      }
+      if (!resolved.isExternalLibraryImport) pending.push(resolved.resolvedFileName);
+    }
+  }
+  return Object.fromEntries([...files].sort().map((filename) => {
+    const relative = path.relative(ROOT, filename);
+    return [`runtime:${relative}`, { path: relative, sha256: sha256(readFileSync(filename)) }];
+  }));
 }
 
 function finiteRatio(numerator: number, denominator: number, name: string): number {
@@ -616,7 +651,8 @@ export async function runEvaluation(options?: {
   });
   const evaluatorSha = sha256(evaluatorBytes);
   const manifestSha = sha256(manifestBytes);
-  const runId = `no-llm-${sha256([casesSha, manifestSha, modelSha, mapSha, evaluatorSha].join(":" )).slice(0, 16)}`;
+  const runtime = runtimeProvenance();
+  const runId = `no-llm-${sha256([casesSha, manifestSha, modelSha, mapSha, evaluatorSha, canonicalJson(runtime)].join(":" )).slice(0, 16)}`;
   let commit = "unknown";
   try {
     commit = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
@@ -637,6 +673,7 @@ export async function runEvaluation(options?: {
     cases_sha256: casesSha,
     pathology_map_validated: mapValidated,
     provenance: {
+      ...runtime,
       cases: { path: path.relative(ROOT, casesPath), sha256: casesSha },
       manifest: { path: path.relative(ROOT, manifestPath), sha256: manifestSha },
       model: { path: manifest.dependencies.artifact.path, sha256: modelSha },
@@ -659,6 +696,7 @@ export async function runEvaluation(options?: {
       status: checks.every((check) => check.passed) ? "PARTIAL" : "BLOCKED",
       required_mode: mode,
       required_hashes: {
+        ...Object.fromEntries(Object.entries(runtime).map(([name, entry]) => [name, entry.sha256])),
         cases: casesSha,
         manifest: manifestSha,
         model: modelSha,
@@ -680,6 +718,12 @@ export function validateReportForReadme(
   report: EvalReport,
   expected: { mode: EvalMode; casesSha256: string; modelSha256: string; mapSha256: string },
 ): void {
+  const runtime = runtimeProvenance();
+  for (const [name, entry] of Object.entries(runtime)) {
+    if (report.provenance[name]?.path !== entry.path || report.provenance[name]?.sha256 !== entry.sha256) {
+      fail(`report ${name} input hash is stale or missing`);
+    }
+  }
   if (
     expected.mode !== "no-llm" ||
     report.mode !== "no-llm" ||
@@ -1046,6 +1090,25 @@ function cliOptions(argv: string[]): CliOptions {
   return result;
 }
 
+export function checkStoredReports(oldJson: string, oldMarkdown: string, current: EvalReport): void {
+  const stored = parseJsonObject<EvalReport>(oldJson, "stored report");
+  if (typeof stored.commit !== "string" || !/^(?:[a-f0-9]{7,40}|unknown)$/u.test(stored.commit)) {
+    fail("stored report commit is invalid");
+  }
+  validateReportForReadme(stored, {
+    mode: current.mode,
+    casesSha256: current.provenance.cases.sha256,
+    modelSha256: current.provenance.model.sha256,
+    mapSha256: current.provenance.pathology_map.sha256,
+  });
+  // Preserve the original run's commit; every measured value and content hash
+  // must still match a fresh evaluation. Checking never rewrites the report.
+  const expected = { ...current, commit: stored.commit };
+  if (oldJson !== canonicalJson(expected) || oldMarkdown !== reportMarkdown(expected)) {
+    fail("checked reports are stale or non-deterministic");
+  }
+}
+
 async function main(): Promise<void> {
   const options = cliOptions(process.argv.slice(2));
   const manifestPath = path.resolve(ROOT, options.manifestPath ?? "eval/manifest.json");
@@ -1071,7 +1134,7 @@ async function main(): Promise<void> {
   const markdownPath = path.resolve(ROOT, options.markdownPath);
   if (options.check) {
     const [oldJson, oldMarkdown] = await Promise.all([readFile(outPath, "utf8"), readFile(markdownPath, "utf8")]);
-    if (oldJson !== json || oldMarkdown !== markdown) fail("checked reports are stale or non-deterministic");
+    checkStoredReports(oldJson, oldMarkdown, report);
     process.stdout.write(`verified ${path.relative(ROOT, outPath)} and ${path.relative(ROOT, markdownPath)}\n`);
     return;
   }

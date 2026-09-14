@@ -110,6 +110,25 @@ const NEGATION_AFTER =
 const SHORT_AFFIRMATION =
   /^\s*(?:да|ага|угу|есть|бывает|верно|точно|правда|конечно)\s*[,.!]?\s*$/iu;
 
+// Только явно завершённый эпизод, датированный годами назад. Не порог срочности:
+// дни, месяцы и неоднозначное «была, сейчас нет» сохраняют прежнюю обработку.
+export const RESOLVED_YEARS_AGO_AFTER =
+  /^(?:\s+был(?:а|и|о)?)?\s+(?:(?:[1-9][0-9]*|один|два|три|четыре|пять|шесть|семь|восемь|девять|десять|несколько)\s+)?(?:год|года|лет)\s+назад\s*[,.;!]?\s*(?:прошл[аои]|сейчас\s+ничего\s+не\s+беспокоит)(?=\s*[.!]?\s*$)/iu;
+
+function isStandaloneResolvedChestHistory(text: string, rule: Rule): boolean {
+  for (const pattern of rule.patterns) {
+    const match = pattern.exec(text);
+    if (
+      match &&
+      text.slice(0, match.index).trim() === "" &&
+      RESOLVED_YEARS_AGO_AFTER.test(text.slice(match.index + match[0].length))
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function clauses(text: string): string[] {
   const result: string[] = [];
   let last = 0;
@@ -131,7 +150,10 @@ function isNegated(clause: string, start: number, end: number): boolean {
   );
 }
 
-function matchRule(text: string, rule: Rule): string | undefined {
+function matchRule(text: string, rule: Rule, checkHistory = false): string | undefined {
+  if (checkHistory && rule.code === "chest_pain" && isStandaloneResolvedChestHistory(text, rule)) {
+    return undefined;
+  }
   for (const clause of clauses(text)) {
     for (const pattern of rule.patterns) {
       const match = pattern.exec(clause);
@@ -159,6 +181,13 @@ function precedingQuestion(
 
 export function detectRedFlags(messages: readonly ChatMessage[]): RedFlag[] {
   const found: RedFlag[] = [];
+  // Продолжение пациента может вернуть жалобу без повторения слова «грудь».
+  // Поэтому исключение применяется только к последней реплике пациента и
+  // только к целому самостоятельному высказыванию; контекст не додумывается.
+  const lastUserIndex = messages.reduce(
+    (last, message, index) => message.role === "user" ? index : last,
+    -1,
+  );
 
   for (const rule of RULES) {
     for (let index = 0; index < messages.length; index += 1) {
@@ -166,7 +195,11 @@ export function detectRedFlags(messages: readonly ChatMessage[]): RedFlag[] {
       if (message.role !== "user") continue;
 
       const elicitedBy = precedingQuestion(messages, index);
-      const matched = matchRule(elicitedBy ?? message.content, rule);
+      const matched = matchRule(
+        elicitedBy ?? message.content,
+        rule,
+        !elicitedBy && index === lastUserIndex,
+      );
       if (!matched) continue;
 
       found.push({

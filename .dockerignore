@@ -19,6 +19,7 @@ scripts/
 
 data/raw/
 data/processed/
+data/runtime/
 *.csv
 *.parquet
 *.zip

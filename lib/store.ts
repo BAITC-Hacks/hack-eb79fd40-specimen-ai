@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
+import { join, resolve } from "node:path";
+import { withSessionSweep } from "./session-operations";
+import { FileSessionStore } from "./storage/session-store";
 import { RETENTION_MS, SESSION_TTL_MS, TOKEN_TTL_MS } from "./config";
-import { telegramNotifierFromEnv } from "./telegram";
+import { workspaceNotifierFromEnv } from "./workspace-notifier";
 import type {
   ChatMessage,
   ReadonlySession,
@@ -116,6 +119,10 @@ export class MemorySessionStore implements SessionStore {
       : undefined;
   }
 
+  async listSessions(): Promise<ReadonlySession[]> {
+    return [...this.sessions.values()].map((session) => structuredClone(session));
+  }
+
   async appendMessage(id: string, message: ChatMessage): Promise<void> {
     const session = this.sessions.get(id);
     if (!session) throw new SessionNotFoundError(id);
@@ -212,25 +219,38 @@ export class MemorySessionStore implements SessionStore {
 const globals = globalThis as unknown as {
   __demeuSessionsV2?: Map<string, Session>;
   __demeuDoctorTokens?: Map<string, number>;
-  __demeuSessionStore?: SessionStore;
+  __demeuSessionStore?: SessionStore & { listSessions(): Promise<ReadonlySession[]> };
+  __demeuSessionStoreLocation?: string | null;
   __demeuSweepTimer?: ReturnType<typeof setInterval>;
 };
 
 const singletonSessions = (globals.__demeuSessionsV2 ??= new Map());
 const singletonDoctors = (globals.__demeuDoctorTokens ??= new Map());
 
-export function store(): SessionStore {
+export function store(): SessionStore & { listSessions(): Promise<ReadonlySession[]> } {
+  const location = process.env.DEMEU_DATA_DIR ? resolve(process.env.DEMEU_DATA_DIR) : null;
+  if (globals.__demeuSessionStore && globals.__demeuSessionStoreLocation !== location) {
+    throw new Error("Session storage configuration changed; restart required");
+  }
   if (!globals.__demeuSessionStore) {
-    globals.__demeuSessionStore = new MemorySessionStore({
+    globals.__demeuSessionStore = location !== null
+      ? new FileSessionStore({
+          path: join(location, "sessions.json"),
+          abortedNotice: workspaceNotifierFromEnv(),
+        })
+      : new MemorySessionStore({
       sessions: singletonSessions,
       doctors: singletonDoctors,
-      abortedNotice: telegramNotifierFromEnv(),
+      abortedNotice: workspaceNotifierFromEnv(),
     });
+    globals.__demeuSessionStoreLocation = location;
   }
 
   if (!globals.__demeuSweepTimer) {
     globals.__demeuSweepTimer = setInterval(() => {
-      void globals.__demeuSessionStore?.sweepExpired(Date.now());
+      void withSessionSweep(async () => store().sweepExpired(Date.now())).catch(() => {
+        console.error("Session sweep failed");
+      });
     }, 5 * 60_000);
     globals.__demeuSweepTimer.unref?.();
   }
