@@ -14,6 +14,8 @@
 
 Один Node-процесс, Caddy в Compose, только веб-порты 80/443 опубликованы. Контейнер приложения не публикует 3000/3100. TLS storage остаётся в Docker volumes. Исходные демо-снимки с локальной машины не переносятся. Docker установлен из [официального apt-репозитория](https://docs.docker.com/engine/install/ubuntu/).
 
+Перед публикацией обновлены Next.js/eslint-config-next до 15.5.25, sharp до 0.35.4, PostCSS до 8.5.23 и nanoid до 3.3.19. Next остаётся в ветке 15.5, React — 19. Production `npm audit --omit=dev` после обновления не сообщает уязвимостей. Полный audit оставляет 3 moderate dev-only записи Vitest 4.1.10; сервер тестового UI не запускать с внешним доступом. [Исправление Next](https://github.com/vercel/next.js/security/advisories/GHSA-2xp9-vwfh-vxw4), [sharp](https://github.com/lovell/sharp/security/advisories/GHSA-rgj7-g3m4-5g8c), [PostCSS](https://github.com/postcss/postcss/security/advisories/GHSA-fxqj-rqcc-2cmp), [остаток Vitest](https://github.com/vitest-dev/vitest/security/advisories/GHSA-82fw-gwwq-j7x9).
+
 В `.env` явно задаются `DEMEU_DOMAIN=84-247-161-211.sslip.io`, `APP_BASE_URL=https://84-247-161-211.sslip.io`, `TLS_BRANCH=branch-b-caddy`, `VPS_RECON_CONFIRMED=yes`, `APP_PORT=3100`, `DEMEU_HOST_DATA_DIR=/var/lib/demeu`, `DEMEU_HOST_ACCOUNTS_FILE=/etc/demeu/accounts.json`, независимый `DEMEU_AUTH_SECRET` и интеграционные реквизиты. Не печатать `docker compose config` без `--quiet`: он раскрывает секреты.
 
 ## Сборка и запуск
