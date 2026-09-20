@@ -1,0 +1,311 @@
+{
+  "blocked_tasks": {
+    "B3": "missing_refusal_reason_and_point_in_time_package_snapshot",
+    "D2": "missing_laboratory_demand_target",
+    "D4": "missing_attendance_target"
+  },
+  "cohort": {
+    "both_hospitalized_and_refused": 1,
+    "eligible_fraction": 0.84889393,
+    "eligible_rows": 651212,
+    "hospitalized_only": 679087,
+    "input_rows": 767130,
+    "invalid_registration_dt": 0,
+    "missing_wait_days": 0,
+    "negative_wait_days": 45,
+    "over_60_wait_days": 27830,
+    "refused_only": 84080,
+    "unresolved": 3962
+  },
+  "features": {
+    "candidate_encodings": [
+      "train_partition_one_hot_min_frequency_20",
+      "train_partition_ordinal_max_categories_255_min_frequency_20"
+    ],
+    "excluded": {
+      "ambiguous_waitlist_join": [
+        "region_code",
+        "profile_code",
+        "operation_code",
+        "has_operation"
+      ],
+      "identifier_or_time_axis": [
+        "hospitalization_code",
+        "registration_dt"
+      ],
+      "post_registration_leakage": [
+        "plan_lead_days",
+        "polyclinic_lag_days",
+        "has_polyclinic"
+      ],
+      "target_or_outcome": [
+        "is_refused",
+        "wait_days",
+        "hospitalized"
+      ]
+    },
+    "included": [
+      "referring_mo",
+      "hospital_mo",
+      "icd10_ref_diag_code",
+      "bed_profile",
+      "territorial_type",
+      "referral_purpose",
+      "finance_source",
+      "reg_month",
+      "reg_dow"
+    ],
+    "point_in_time_verified": false
+  },
+  "limitations": [
+    "registration_semantics_unverified",
+    "conditional_on_hospitalization_within_60_days",
+    "march_previously_examined_in_handoff",
+    "point_in_time_feature_availability_unverified",
+    "national_2025_q1_not_pilot_hospital",
+    "ambiguous_waitlist_join_fields_excluded",
+    "source_license_not_verified",
+    "patient_group_leakage_not_measurable",
+    "no_runtime_parity_or_activation",
+    "metrics_not_from_production_typescript_path"
+  ],
+  "model_artifact": {
+    "bytes": 4064306,
+    "path_policy": "data_processed_or_system_temp",
+    "serializer_byte_stable": false,
+    "sha256": "4363c6a934b9cb47a00daff4b51f850c621617d1c250f9c5b871e922e7c6de3f",
+    "tracked_in_git": false
+  },
+  "model_name": "wait-time-baseline-v0",
+  "privacy": {
+    "contains_identifiers": false,
+    "contains_row_data": false,
+    "model_binary_contains_source_categories": true,
+    "model_binary_git_tracking": "forbidden"
+  },
+  "reproducibility": {
+    "deterministic_metrics_and_semantic_report": true,
+    "joblib_serializer_byte_stable": false,
+    "packages": {
+      "joblib": "1.4.2",
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "pyarrow": "17.0.0",
+      "scikit-learn": "1.5.2",
+      "scipy": "1.13.1"
+    },
+    "python": "3.12",
+    "random_seed": 20250919
+  },
+  "runtime_activation": "blocked",
+  "schema_version": 1,
+  "selection": {
+    "candidates": [
+      {
+        "alpha": 1.0,
+        "family": "ridge_one_hot",
+        "validation": {
+          "mae_days": 9.441413,
+          "mean_error_days": 7.731483,
+          "median_absolute_error_days": 8.55383,
+          "p90_absolute_error_days": 14.695942,
+          "rmse_days": 10.521089,
+          "rows": 224310,
+          "within_3_days_fraction": 0.050947,
+          "within_7_days_fraction": 0.205426
+        }
+      },
+      {
+        "alpha": 10.0,
+        "family": "ridge_one_hot",
+        "validation": {
+          "mae_days": 4.302721,
+          "mean_error_days": 0.830764,
+          "median_absolute_error_days": 2.273464,
+          "p90_absolute_error_days": 10.198048,
+          "rmse_days": 7.183785,
+          "rows": 224310,
+          "within_3_days_fraction": 0.593241,
+          "within_7_days_fraction": 0.82797
+        }
+      },
+      {
+        "alpha": 100.0,
+        "family": "ridge_one_hot",
+        "validation": {
+          "mae_days": 4.021235,
+          "mean_error_days": -0.128037,
+          "median_absolute_error_days": 1.876155,
+          "p90_absolute_error_days": 9.875406,
+          "rmse_days": 7.363611,
+          "rows": 224310,
+          "within_3_days_fraction": 0.634024,
+          "within_7_days_fraction": 0.836588
+        }
+      },
+      {
+        "family": "hist_gradient_ordinal_categorical",
+        "loss": "squared_error",
+        "max_leaf_nodes": 31,
+        "validation": {
+          "mae_days": 3.468104,
+          "mean_error_days": -0.526236,
+          "median_absolute_error_days": 1.282657,
+          "p90_absolute_error_days": 9.259548,
+          "rmse_days": 6.894941,
+          "rows": 224310,
+          "within_3_days_fraction": 0.70337,
+          "within_7_days_fraction": 0.861179
+        }
+      },
+      {
+        "family": "hist_gradient_ordinal_categorical",
+        "loss": "squared_error",
+        "max_leaf_nodes": 63,
+        "validation": {
+          "mae_days": 3.440153,
+          "mean_error_days": -0.531451,
+          "median_absolute_error_days": 1.242941,
+          "p90_absolute_error_days": 9.267837,
+          "rmse_days": 6.892916,
+          "rows": 224310,
+          "within_3_days_fraction": 0.707151,
+          "within_7_days_fraction": 0.861197
+        }
+      },
+      {
+        "family": "hist_gradient_ordinal_categorical",
+        "loss": "poisson",
+        "max_leaf_nodes": 31,
+        "validation": {
+          "mae_days": 3.435924,
+          "mean_error_days": -0.621954,
+          "median_absolute_error_days": 1.221456,
+          "p90_absolute_error_days": 9.146783,
+          "rmse_days": 6.922927,
+          "rows": 224310,
+          "within_3_days_fraction": 0.711123,
+          "within_7_days_fraction": 0.863831
+        }
+      },
+      {
+        "family": "hist_gradient_ordinal_categorical",
+        "loss": "poisson",
+        "max_leaf_nodes": 63,
+        "validation": {
+          "mae_days": 3.399421,
+          "mean_error_days": -0.6749,
+          "median_absolute_error_days": 1.152431,
+          "p90_absolute_error_days": 9.141698,
+          "rmse_days": 6.947022,
+          "rows": 224310,
+          "within_3_days_fraction": 0.716268,
+          "within_7_days_fraction": 0.864469
+        }
+      }
+    ],
+    "criterion": "validation_mae_days",
+    "selected_model": {
+      "family": "hist_gradient_ordinal_categorical",
+      "loss": "poisson",
+      "max_leaf_nodes": 63
+    }
+  },
+  "source": {
+    "bytes": 13791102,
+    "column_count": 21,
+    "columns": [
+      "hospitalization_code",
+      "registration_dt",
+      "referring_mo",
+      "hospital_mo",
+      "icd10_ref_diag_code",
+      "bed_profile",
+      "territorial_type",
+      "referral_purpose",
+      "finance_source",
+      "region_code",
+      "profile_code",
+      "operation_code",
+      "has_operation",
+      "plan_lead_days",
+      "polyclinic_lag_days",
+      "has_polyclinic",
+      "reg_month",
+      "reg_dow",
+      "is_refused",
+      "wait_days",
+      "hospitalized"
+    ],
+    "license_status": "not_verified",
+    "period": {
+      "registration_max": "2025-03-31",
+      "registration_min": "2025-01-01"
+    },
+    "raw_source_hashes_status": "unavailable_in_handoff",
+    "rows": 767130,
+    "sha256": "c9386df30d37f3035aa653772abb74f648348a17b7de5497e9306b088bc01798"
+  },
+  "split": {
+    "strategy": "calendar_months",
+    "test": {
+      "period": "2025-03",
+      "previously_examined_in_source_handoff": true,
+      "rows": 191573,
+      "used_for_model_selection_in_this_pipeline": false
+    },
+    "train": {
+      "period": "2025-01",
+      "rows": 235329
+    },
+    "validation": {
+      "period": "2025-02",
+      "rows": 224310
+    }
+  },
+  "status": "experimental_not_runtime_ready",
+  "target": {
+    "definition": "registration_dt_to_hospitalization_dt_from_handoff",
+    "field": "wait_days",
+    "horizon_days": 60,
+    "horizon_policy": "exclude_observed_wait_over_60_days",
+    "population": "hospitalized_only",
+    "prediction_time": "registration_dt",
+    "prediction_time_semantics": "not_verified_as_waitlist_placement"
+  },
+  "task": "D1_wait_time_research_benchmark",
+  "test": {
+    "global_median_baseline": {
+      "mae_days": 4.673378,
+      "mean_error_days": -4.673378,
+      "median_absolute_error_days": 0.0,
+      "p90_absolute_error_days": 15.0,
+      "rmse_days": 10.534167,
+      "rows": 191573,
+      "within_3_days_fraction": 0.70606,
+      "within_7_days_fraction": 0.81405
+    },
+    "hierarchical_median_baseline": {
+      "mae_days": 3.620706,
+      "mean_error_days": -1.753574,
+      "median_absolute_error_days": 1.0,
+      "p90_absolute_error_days": 11.0,
+      "rmse_days": 7.867419,
+      "rows": 191573,
+      "within_3_days_fraction": 0.723714,
+      "within_7_days_fraction": 0.856431
+    },
+    "mae_improvement_vs_global_days": 1.096581,
+    "mae_improvement_vs_hierarchical_days": 0.043909,
+    "model": {
+      "mae_days": 3.576797,
+      "mean_error_days": -0.720657,
+      "median_absolute_error_days": 1.284828,
+      "p90_absolute_error_days": 9.754644,
+      "rmse_days": 7.082795,
+      "rows": 191573,
+      "within_3_days_fraction": 0.696789,
+      "within_7_days_fraction": 0.8532
+    }
+  }
+}

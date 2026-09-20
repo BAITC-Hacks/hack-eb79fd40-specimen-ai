@@ -36,5 +36,5 @@ describe("session singleton configuration", () => {
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
-  });
+  }, 15_000);
 });

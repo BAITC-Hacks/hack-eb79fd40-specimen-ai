@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReferralAggregates, ReferralDetail, ReferralFlow } from "@/lib/referrals/types";
 import { calendarDate, FLOW_LABELS, timestamp } from "./client";
 import { aggregateView, attentionReason, attentionReferrals, dashboardCounts, EVENT_LABELS, referralActivity, upcomingReferrals, useToday, useWorkspaceData } from "./data";
+import { isOperationallyDelayed, useOperationalDelay } from "./operational-delay";
 import { useWorkspaceContext } from "./shell";
 import { EmptyState, Icon, KpiCard, PageHeading, StatusBadge } from "./ui";
 import s from "./dashboard.module.css";
@@ -15,6 +16,7 @@ function StageBars({ groups }: { groups: { flow: ReferralFlow; count: number }[]
 
 export default function Overview() {
   const { actor } = useWorkspaceContext();
+  const [delayThreshold, setDelayThreshold] = useOperationalDelay(actor.organizationId, actor.id);
   const analyst = actor.role === "analyst";
   const scope = actor.organizationId + ":" + actor.id + ":" + actor.role;
   const records = useWorkspaceData<{ referrals: ReferralDetail[] }>(analyst ? null : "/api/referrals", scope);
@@ -31,6 +33,8 @@ export default function Overview() {
   });
   const upcoming = today ? upcomingReferrals(referrals, today).slice(0, 3) : [];
   const attention = today ? attentionReferrals(referrals, today).slice(0, 3) : [];
+  const delayed = referrals.filter((record) => isOperationallyDelayed(record, delayThreshold))
+    .sort((a, b) => (b.observedStageDays ?? 0) - (a.observedStageDays ?? 0));
   const activity = referralActivity(referrals).slice(0, 3);
   const aggregate = summary.data ? aggregateView(summary.data.aggregates) : null;
 
@@ -52,6 +56,13 @@ export default function Overview() {
         <div className={s.stack}>
         <section className={s.card}><div className={s.head}><h2>Направления по этапам</h2><Link className={s.sectionLink} href="/workspace/referrals">Все направления →</Link></div>{groups.length ? <StageBars groups={groups} /> : <EmptyState title="Начните с первого направления" description="Можно создать запись вручную или связать её с завершённым опросом." action={<Link className={s.button} href="/workspace/referrals/new">Создать направление</Link>} />}<p className={s.muted}>Текущие состояния по записям кабинета. Этапы не означают последовательную конверсию.</p></section>
         <section className={s.card}><div className={s.head}><h2>Обратить внимание на данные</h2><Icon name="warning" size={18} /></div>{attention.length ? <ul className={s.rows}>{attention.map((r) => <li key={r.id}><div className={s.row}><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(r.id)}>{r.patientLabel}</Link><StatusBadge flow={r.flow} /></div><p className={s.muted}>{attentionReason(r, today!)}</p></li>)}</ul> : <EmptyState title="Вопросов для проверки нет" description="Это не клиническая оценка: здесь учитываются только комплектность и подтверждения." />}</section>
+        <section className={s.card}><div className={s.head}><h2>Рабочие задержки</h2><span className={s.tag}>{delayed.length}</span></div>
+          <label className={s.field}>Рабочий порог, дней<input type="number" min="0" step="0.1" value={delayThreshold} onChange={(event) => setDelayThreshold(event.target.value)} placeholder="Не задан" /></label>
+          <p className={s.small}>Порог сохраняется в этом браузере. Он показывает задержку на этапе, а не медицинскую срочность.</p>
+          {delayed.length ? <ul className={s.rows}>{delayed.slice(0, 3).map((record) => <li key={record.id} className={s.delayRow}><div className={s.row}><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(record.id)}>{record.patientLabel}</Link><span className={s.delayTag}>{record.observedStageDays!.toFixed(1)} дн.</span></div><p className={s.muted}>{FLOW_LABELS[record.flow]} · Рабочий порог превышен</p></li>)}</ul>
+            : <p className={s.muted}>{delayThreshold === "" ? "Задайте порог, чтобы видеть задержки." : "Направлений выше выбранного порога нет."}</p>}
+          {delayed.length > 3 && <Link className={s.sectionLink} href="/workspace/referrals">Показать все в списке →</Link>}
+        </section>
         </div><div className={s.stack}>
         <section className={s.card}><div className={s.head}><h2>Назначенные даты</h2><Link className={s.sectionLink} href="/workspace/calendar">Календарь →</Link></div>{upcoming.length ? <ul className={s.rows}>{upcoming.map((r) => <li key={r.id}><div className={s.row}><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(r.id)}>{r.patientLabel}</Link><span className={s.tag}>{calendarDate(r.scheduledDate)}</span></div><p className={s.muted}>{r.profile} · {r.destinationOrganization || "Организация не указана"}</p></li>)}</ul> : <EmptyState title="Предстоящих дат нет" description="Здесь появятся даты, которые подтвердит врач." />}</section>
         <section className={s.card}><div className={s.head}><h2>Последние подтверждения</h2><Link className={s.sectionLink} href="/workspace/activity">Вся история →</Link></div>{activity.length ? <ul className={s.rows}>{activity.map(({ referralId, patientLabel, event }) => <li key={event.id}><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(referralId)}>{patientLabel}</Link><p className={s.muted}>{EVENT_LABELS[event.type]} · {event.actorName}</p><span className={s.small}>Записано {timestamp(event.recordedAt)}</span></li>)}</ul> : <EmptyState title="История ещё не началась" description="Создание и каждое подтверждение сохраняются вместе с автором." />}</section>

@@ -26,8 +26,12 @@ export function handleReferralNotify(req: Request, id: string, deps: NotifyDeps 
       destinationOrganization: referral.destinationOrganization,
       catalogueAvailable: referral.completeness.catalogueAvailable,
       items: referral.completeness.catalogueAvailable
-        ? referral.completeness.entries.map(({ label, status, expiresOn }) => ({ label, status, expiresOn }))
-        : referral.examinations.map(({ label, expiresOn }) => ({ label, expiresOn, status: "unknown" })),
+        ? referral.completeness.entries.filter((entry) => entry.status !== "not_applicable")
+          .map(({ label, status, expiresOn }) => ({ label, status, expiresOn }))
+        : referral.examinations.map((record) => {
+          const entry = referral.completeness.entries.find((item) => item.requirementId === record.requirementId);
+          return { label: record.label, status: entry?.status ?? "unknown" as const, expiresOn: record.expiresOn };
+        }),
     };
     const result = await (deps.send ?? ((user, record, patientMemo, key) => scopedWorkspaceNotifier().sendReferral(user, record, patientMemo, key)))(actor, referral, memo, body.idempotencyKey);
     return Response.json(result, { headers: { "Cache-Control": "no-store" } });

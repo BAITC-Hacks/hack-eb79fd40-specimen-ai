@@ -2,3 +2,7 @@
 @media(max-width:1100px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:1fr}.barRow{grid-template-columns:160px 1fr 30px}}
 @media(max-width:640px){.card{padding:17px}.kpis{gap:10px}.toolbar{align-items:stretch}.field{min-width:calc(50% - 12px)}.barRow{grid-template-columns:120px 1fr 25px;font-size:12px;gap:8px}.day{min-height:74px;padding:6px}.weekday{padding:9px 3px}.dateCount{font-size:11px;padding:3px}.head,.monthHeader{align-items:flex-start;flex-wrap:wrap}.button,.secondary{font-size:12px}.table td,.table th{padding:13px 10px}}
 .table tbody td[colspan]{max-width:none;white-space:normal}.table tbody td[colspan] .details{max-width:none;margin-top:0}.details dt{font-weight:600}.details dd{margin:2px 0 12px;color:#546960}.details ul{margin:6px 0}
+.mobileCompleteness{display:none}
+.delayRow{background:#fffaf0}
+.delayTag{display:inline-block;margin-top:7px;padding:4px 7px;border-radius:5px;background:#f8edcf;color:#76581c;font-size:11px;font-weight:600;white-space:normal}
+@media(max-width:640px){.table td:first-child{min-width:160px}.mobileCompleteness{display:block;width:fit-content;margin-top:8px;padding:4px 7px;border:1px solid #dce9e2;border-radius:6px;background:#f2f8f4;color:#2e6251;font-size:11px;font-weight:600;line-height:1.35;white-space:normal}}

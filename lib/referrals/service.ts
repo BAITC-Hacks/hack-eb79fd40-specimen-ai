@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { FileState } from "../storage/file-state";
 import { hasMandatoryDisclaimer } from "../http";
-import { DEFAULT_REQUIREMENTS, evaluateCompleteness, isCalendarDate, localDate } from "./requirements";
+import { DEFAULT_REQUIREMENTS, evaluateCompleteness, isCalendarDate, localDate, validateRequirementCatalogue } from "./requirements";
+import { canonicalProfile, isSelectableProfile, normalizeIcd10Code, validIcd10Code } from "./profiles";
 import type {
   CreateReferralInput, ExaminationRecord, PatientMemo, RecordExaminationInput, Referral,
   ReferralActor, ReferralAggregates, ReferralDatabase, ReferralDetail, ReferralEvent,
@@ -36,7 +37,7 @@ const dateOrNull = (value: unknown): boolean => value === null || isCalendarDate
 const keysOnly = (value: Record<string, unknown>, keys: readonly string[]): boolean => Object.keys(value).every((key) => keys.includes(key));
 const stringArray = (value: unknown): boolean => Array.isArray(value) && value.every((entry) => typeof entry === "string");
 const probability = (value: unknown): boolean => typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1;
-const FACT_KEYS = ["profile", "specialistReferred", "preparationStarted", "destinationOrganization", "sent", "queue", "scheduledDate", "attendance", "cancelled"] as const;
+const FACT_KEYS = ["profile", "icd10Code", "specialistReferred", "preparationStarted", "destinationOrganization", "sent", "queue", "scheduledDate", "attendance", "cancelled"] as const;
 
 function validActor(value: unknown): value is ReferralActor {
   return object(value) && keysOnly(value, ["id", "displayName", "role", "organizationId", "telegramChatId"])
@@ -45,7 +46,7 @@ function validActor(value: unknown): value is ReferralActor {
     && (value.telegramChatId === undefined || text(value.telegramChatId));
 }
 function validFacts(value: unknown): value is ReferralFacts {
-  return object(value) && text(value.profile) && (value.destinationOrganization === null || text(value.destinationOrganization))
+  return object(value) && text(value.profile) && validIcd10Code(value.icd10Code) && (value.destinationOrganization === null || text(value.destinationOrganization))
     && boolOrNull(value.specialistReferred) && typeof value.preparationStarted === "boolean"
     && boolOrNull(value.sent) && boolOrNull(value.queue) && dateOrNull(value.scheduledDate)
     && [null, "attended", "not_attended"].includes(value.attendance as null | string) && typeof value.cancelled === "boolean";
@@ -117,7 +118,7 @@ export function validateReferralDatabase(value: unknown): ReferralDatabase {
   if (!object(value) || !keysOnly(value, ["schemaVersion", "referrals", "links", "commands"]) || value.schemaVersion !== 1 || !Array.isArray(value.referrals) || !Array.isArray(value.links) || !Array.isArray(value.commands)) return invalid();
   const ids = new Set<string>();
   for (const record of value.referrals) {
-    if (!object(record) || !keysOnly(record, [...FACT_KEYS, "id", "organizationId", "doctorId", "patientLabel", "sourceSessionId", "triageSnapshot", "createdAt", "updatedAt", "revision", "events", "examinations"])
+    if (!object(record) || !keysOnly(record, [...FACT_KEYS, "id", "organizationId", "doctorId", "patientLabel", "sourceSessionId", "triageSnapshot", "requirementSnapshot", "createdAt", "updatedAt", "revision", "events", "examinations"])
       || !validFacts(record) || !text(record.id) || ids.has(record.id)
       || !text(record.organizationId) || !text(record.doctorId) || !text(record.patientLabel)
       || !(record.sourceSessionId === null || text(record.sourceSessionId))
@@ -126,6 +127,12 @@ export function validateReferralDatabase(value: unknown): ReferralDatabase {
       || record.events.length !== record.revision) return invalid();
     if (new Set(record.examinations.map((entry) => entry.requirementId)).size !== record.examinations.length) return invalid();
     if (record.triageSnapshot !== null && !validSnapshot(record.triageSnapshot)) return invalid();
+    if (record.requirementSnapshot !== undefined) {
+      try {
+        const snapshot = validateRequirementCatalogue(record.requirementSnapshot);
+        if (snapshot.profiles.length > 1 || (snapshot.profiles.length === 1 && snapshot.profiles[0].profile !== record.profile)) return invalid();
+      } catch { return invalid(); }
+    }
     if ((record.sourceSessionId === null) !== (record.triageSnapshot === null)) return invalid();
     let previousFacts: ReferralFacts | null = null;
     const examinations = new Map<string, ExaminationRecord>();
@@ -219,9 +226,12 @@ export class ReferralService {
     return referral;
   }
   private decorate(referral: Referral): ReferralDetail {
-    const completeness = evaluateCompleteness(referral, this.catalogue, this.now());
+    const completeness = evaluateCompleteness(referral, referral.requirementSnapshot ?? this.catalogue, this.now());
     const flow = flowFromFacts(referral, completeness.status === "complete");
     return { ...clone(referral), completeness, flow, observedStageDays: observedStageDays(referral, flow, this.now()) };
+  }
+  private requirementSnapshot(profile: string): RequirementCatalogue {
+    return { ...clone(this.catalogue), profiles: this.catalogue.profiles.filter((entry) => entry.profile === profile).map(clone) };
   }
   private event(actor: ReferralActor, revision: number, type: ReferralEvent["type"], before: ReferralEvent["before"], after: ReferralEvent["after"], reason: string | null, occurredAt: number | null, recordedAt = this.now()): ReferralEvent {
     if (occurredAt !== null && (!timestamp(occurredAt) || occurredAt > recordedAt)) fail();
@@ -259,7 +269,9 @@ export class ReferralService {
   }
   private validateCreate(actor: ReferralActor, input: CreateReferralInput): void {
     this.writer(actor);
-    if (!object(input) || !keysOnly(input, ["patientLabel", "profile", "destinationOrganization", "sourceSessionId", "idempotencyKey"]) || !text(input.patientLabel) || !text(input.profile) || !(input.destinationOrganization === undefined || input.destinationOrganization === null || text(input.destinationOrganization))
+    if (!object(input) || !keysOnly(input, ["patientLabel", "profile", "icd10Code", "destinationOrganization", "sourceSessionId", "idempotencyKey"]) || !text(input.patientLabel) || !text(input.profile) || !isSelectableProfile(input.profile)
+      || !(input.icd10Code === undefined || input.icd10Code === null || typeof input.icd10Code === "string")
+      || !validIcd10Code(normalizeIcd10Code(input.icd10Code)) || !(input.destinationOrganization === undefined || input.destinationOrganization === null || text(input.destinationOrganization))
       || !(input.sourceSessionId === undefined || input.sourceSessionId === null || text(input.sourceSessionId))) fail();
   }
   async replayCreate(actor: ReferralActor, input: CreateReferralInput): Promise<ReferralDetail | null> {
@@ -288,7 +300,8 @@ export class ReferralService {
       const recordedAt = this.now();
       const referral: Referral = {
         id: this.id(), organizationId: actor.organizationId, doctorId, patientLabel: input.patientLabel.trim(),
-        sourceSessionId: input.sourceSessionId ?? null, triageSnapshot, profile: input.profile.trim(), destinationOrganization: input.destinationOrganization?.trim() || null,
+        sourceSessionId: input.sourceSessionId ?? null, triageSnapshot, profile: canonicalProfile(input.profile), icd10Code: normalizeIcd10Code(input.icd10Code), destinationOrganization: input.destinationOrganization?.trim() || null,
+        requirementSnapshot: this.requirementSnapshot(canonicalProfile(input.profile)),
         specialistReferred: null, preparationStarted: !input.sourceSessionId,
         sent: null, queue: null, scheduledDate: null, attendance: null, cancelled: false,
         createdAt: recordedAt, updatedAt: recordedAt, revision: 1, events: [], examinations: [],
@@ -311,14 +324,22 @@ export class ReferralService {
       if (referral.revision !== input.expectedRevision) fail("REVISION_CONFLICT", "Направление изменилось, обновите карточку", 409);
       const before = facts(referral);
       const after = { ...before, ...input.patch };
+      if (typeof after.profile === "string") after.profile = canonicalProfile(after.profile);
+      if ("profile" in input.patch && before.profile !== after.profile && !isSelectableProfile(after.profile)) fail("BAD_REQUEST", "Выберите профиль из списка");
+      if (!(after.icd10Code === undefined || after.icd10Code === null || typeof after.icd10Code === "string")) fail();
+      if (after.icd10Code !== undefined) after.icd10Code = normalizeIcd10Code(after.icd10Code);
       if (!validFacts(after)) fail();
+      if (after.attendance !== null && (!after.scheduledDate || after.scheduledDate > localDate(this.now()))) {
+        fail("ATTENDANCE_DATE_INVALID", "Явку можно подтвердить только на наступившую назначенную дату", 400);
+      }
       if (referral.sourceSessionId === null && flowFromFacts(after) === "interviewed") {
         fail("SOURCE_SESSION_REQUIRED", "Без связанного опроса нельзя подтвердить этап опроса", 400);
       }
-      const correction = FACT_KEYS.some((key) => key in input.patch && before[key] !== after[key] && before[key] !== null
+      const correction = FACT_KEYS.some((key) => key in input.patch && before[key] !== after[key] && before[key] !== null && before[key] !== undefined
         && !(key === "preparationStarted" && before[key] === false && after[key] === true));
       if ((correction || input.patch.cancelled !== undefined) && !input.reason?.trim()) fail("REASON_REQUIRED", "Укажите причину исправления", 400);
       Object.assign(referral, after);
+      if (before.profile !== after.profile) referral.requirementSnapshot = this.requirementSnapshot(after.profile);
       referral.revision += 1;
       const event = this.event(actor, referral.revision, "facts_changed", before, after, input.reason ?? null, input.occurredAt ?? null);
       referral.updatedAt = event.recordedAt;
@@ -358,7 +379,10 @@ export class ReferralService {
     const referral = await this.detail(actor, id);
     const items = referral.completeness.catalogueAvailable
       ? referral.completeness.entries.filter((entry) => entry.status !== "not_applicable").map(({ label, status, expiresOn }) => ({ label, status, expiresOn }))
-      : referral.examinations.map(({ label, expiresOn }) => ({ label, status: "unknown" as const, expiresOn }));
+      : referral.examinations.map((record) => {
+        const entry = referral.completeness.entries.find((item) => item.requirementId === record.requirementId);
+        return { label: record.label, status: entry?.status ?? "unknown" as const, expiresOn: record.expiresOn };
+      });
     return { patientLabel: referral.patientLabel, scheduledDate: referral.scheduledDate, destinationOrganization: referral.destinationOrganization, catalogueAvailable: referral.completeness.catalogueAvailable, items };
   }
   async aggregates(actor: ReferralActor): Promise<ReferralAggregates> {
@@ -373,7 +397,10 @@ export class ReferralService {
         groups.set(flow, { count: previous.count + 1,
           days: previous.days + (stageDays ?? 0),
           observedTimeCount: previous.observedTimeCount + (stageDays === null ? 0 : 1) });
-        if (actor.role !== "analyst") profiles.set(referral.profile, (profiles.get(referral.profile) ?? 0) + 1);
+        if (actor.role !== "analyst") {
+          const profile = canonicalProfile(referral.profile);
+          profiles.set(profile, (profiles.get(profile) ?? 0) + 1);
+        }
       }
       const to = localDate(this.now());
       const from = localDate(this.now() - 29 * 86400000);
@@ -395,13 +422,21 @@ export class ReferralService {
           timeline.push({ date, createdCount, totalCount, waitingCount });
         }
       }
-      // Если хотя бы одна корзина мала, скрывается весь срез вместе с total:
-      // иначе скрытое число можно восстановить вычитанием из общего количества.
-      const suppressed = actor.role === "analyst" && (referrals.length < 5 || [...groups.values()].some((group) => group.count < 5
-        || (group.observedTimeCount > 0 && group.observedTimeCount < 5)));
-      return { suppressed, total: suppressed ? null : referrals.length,
-        groups: suppressed ? [] : [...groups].map(([flow, group]) => ({ flow, count: group.count,
-          meanObservedDays: group.observedTimeCount ? group.days / group.observedTimeCount : null, observedTimeCount: group.observedTimeCount })),
+      const analyst = actor.role === "analyst";
+      const hiddenGroups = analyst && [...groups.values()].some((group) => group.count < 5);
+      // Когда часть ячеек скрыта, общий итог тоже скрывается: иначе их число
+      // можно восстановить вычитанием из показанных ячеек.
+      const smallTimeCell = (group: { count: number; observedTimeCount: number }) =>
+        group.observedTimeCount > 0 && group.observedTimeCount < 5
+        || group.count - group.observedTimeCount > 0 && group.count - group.observedTimeCount < 5;
+      const suppressed = analyst && (referrals.length < 5 || hiddenGroups || [...groups.values()].some(smallTimeCell));
+      return { suppressed, total: analyst && (hiddenGroups || referrals.length < 5) ? null : referrals.length,
+        groups: [...groups].filter(([, group]) => !analyst || group.count >= 5).map(([flow, group]) => {
+          const hideTime = analyst && smallTimeCell(group);
+          return { flow, count: group.count,
+            meanObservedDays: group.observedTimeCount && !hideTime ? group.days / group.observedTimeCount : null,
+            observedTimeCount: hideTime ? null : group.observedTimeCount };
+        }),
         scope: actor.role === "doctor" ? "own" : "organization", dataSource: "doctor_confirmed_local_records", forecast: null,
         perProfile: [...profiles].map(([profile, count]) => ({ profile, count })),
         period: { from, to }, timeline, timelineSource: "observed_snapshot",

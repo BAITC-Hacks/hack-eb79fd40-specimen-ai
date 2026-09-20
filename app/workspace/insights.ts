@@ -6,7 +6,11 @@ export function insightEndpoint(role: ReferralActor["role"], page: "analytics" |
 
 export function aggregateCoverage(value: ReferralAggregates): { total: number; knownTime: number; unknownTime: number } | null {
   if (value.suppressed || value.total === null) return null;
-  const knownTime = value.groups.reduce((sum, group) => sum + group.observedTimeCount, 0);
+  let knownTime = 0;
+  for (const group of value.groups) {
+    if (group.observedTimeCount === null) return null;
+    knownTime += group.observedTimeCount;
+  }
   return { total: value.total, knownTime, unknownTime: value.total - knownTime };
 }
 

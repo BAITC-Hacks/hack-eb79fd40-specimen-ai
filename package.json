@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "demo:mock": "node --import tsx scripts/demo-mock.mjs",
     "build": "next build",
     "eval": "tsx scripts/eval.ts",
     "e2e:live": "E2E_LIVE=1 node scripts/e2e.mjs",

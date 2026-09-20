@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import type { ReferralDetail } from "@/lib/referrals/types";
+import { REFERRAL_PROFILES } from "@/lib/referrals/profiles";
 import { timestamp, useWorkspaceCommand } from "../../client";
 import { useWorkspaceData, type Intake } from "../../data";
 import { useWorkspaceContext } from "../../shell";
@@ -33,6 +34,7 @@ export default function NewReferralPage() {
     try {
       const { referral } = await command<{ referral: ReferralDetail }>("/api/referrals", {
         patientLabel: String(data.get("patientLabel") ?? "").trim(), profile: String(data.get("profile") ?? "").trim(),
+        icd10Code: String(data.get("icd10Code") ?? "").trim() || null,
         destinationOrganization: String(data.get("destinationOrganization") ?? "").trim() || null, sourceSessionId: source || null,
       });
       router.push("/workspace/referrals/" + encodeURIComponent(referral.id));
@@ -44,7 +46,8 @@ export default function NewReferralPage() {
       <div className={s.head}><h2>Основные сведения</h2><Icon name="referrals" size={20} /></div>
       <form className={s.form} onSubmit={(event) => void create(event)}>
         <label className={s.field}>Метка пациента / эпизода<input name="patientLabel" required maxLength={100} autoComplete="off" placeholder="Например, внутренний номер эпизода" /><span className={s.small}>ФИО и ИИН не требуются. Не добавляйте лишние персональные сведения.</span></label>
-        <label className={s.field}>Профиль направления<input name="profile" required maxLength={100} placeholder="Укажите подтверждённый профиль" /></label>
+        <label className={s.field}>Профиль госпитализации<select name="profile" required defaultValue=""><option value="" disabled>Выберите профиль</option>{REFERRAL_PROFILES.map((profile) => <option key={profile} value={profile}>{profile}</option>)}</select><span className={s.small}>Профили из переданного перечня обследований. Перечень ещё не проверен врачом больницы.</span></label>
+        <label className={s.field}>Код МКБ-10<input name="icd10Code" maxLength={8} pattern="[A-Za-z][0-9]{2}(\.[0-9A-Za-z]{1,4})?" placeholder="Например, I20.9" autoComplete="off" /><span className={s.small}>Укажите только код, подтверждённый врачом. Он нужен для аналитики; перечень обследований выбирается по профилю.</span></label>
         <label className={s.field}>Принимающая организация<input name="destinationOrganization" maxLength={160} placeholder="Можно уточнить позже" /></label>
         <label className={s.field}>Связать с завершённым опросом<select value={source} disabled={resource.loading || busy} onChange={(e) => setSource(e.target.value)}><option value="">Без опроса — ручное создание</option>{unavailable && <option value={source}>Выбранный опрос недоступен</option>}{completed.map((intake) => <option key={intake.sessionId} value={intake.sessionId}>{timestamp(intake.createdAt)} · {intake.result?.anamnesis.chief_complaint || "Завершённый опрос"}</option>)}</select></label>
         {resource.loading && <p role="status" className={s.small}>Проверяем доступные опросы…</p>}

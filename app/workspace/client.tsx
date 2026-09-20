@@ -32,6 +32,7 @@ export async function workspaceRequest<T>(url: string, body?: unknown, method = 
       REASON_REQUIRED: "Укажите причину исправления или отмены.",
       DUPLICATE_EXAMINATION: "Это обследование уже записано. Выберите «Исправить» у существующей записи.",
       NO_CHANGES: "Изменений нет. Уточните нужные поля перед подтверждением.",
+      ATTENDANCE_DATE_INVALID: "Явку можно подтвердить только после наступления назначенной даты.",
       DELIVERY_UNCONFIRMED: "Доставка могла выполниться частично. Проверьте Telegram врача. Повторная отправка заблокирована, чтобы избежать дубликатов; обратитесь к администратору.",
       DELIVERY_RECIPIENT_UNAVAILABLE: "Получатель Telegram не настроен или больше недоступен. Обратитесь к администратору.",
     };
@@ -44,7 +45,8 @@ export async function workspaceRequest<T>(url: string, body?: unknown, method = 
       429: "Слишком много запросов. Подождите немного перед повтором.",
       503: "Сервис временно недоступен. Попробуйте позже.",
     };
-    throw new WorkspaceError(response.status, codes[failure?.code ?? ""] ?? messages[response.status] ?? "Не удалось выполнить действие. Попробуйте позже.", failure?.code);
+    const loginRejected = url === "/api/workspace/auth" && method === "POST" && response.status === 401;
+    throw new WorkspaceError(response.status, loginRejected ? "Неверный логин или пароль." : codes[failure?.code ?? ""] ?? messages[response.status] ?? "Не удалось выполнить действие. Попробуйте позже.", failure?.code);
   }
   try { return await response.json() as T; }
   catch { throw new WorkspaceError(0, "Не удалось прочитать ответ сервера. Повторите запрос."); }

@@ -1,0 +1,110 @@
+{
+  "decisions": {
+    "B3": "blocked_missing_refusal_reason_and_point_in_time_package",
+    "D1": "research_only_needs_target_semantics_review",
+    "D2": "blocked_missing_laboratory_demand_target",
+    "D4": "blocked_missing_attendance_target"
+  },
+  "input": {
+    "bytes": 13791102,
+    "column_count": 21,
+    "columns": [
+      "hospitalization_code",
+      "registration_dt",
+      "referring_mo",
+      "hospital_mo",
+      "icd10_ref_diag_code",
+      "bed_profile",
+      "territorial_type",
+      "referral_purpose",
+      "finance_source",
+      "region_code",
+      "profile_code",
+      "operation_code",
+      "has_operation",
+      "plan_lead_days",
+      "polyclinic_lag_days",
+      "has_polyclinic",
+      "reg_month",
+      "reg_dow",
+      "is_refused",
+      "wait_days",
+      "hospitalized"
+    ],
+    "license_status": "not_verified",
+    "period": {
+      "registration_max": "2025-03-31",
+      "registration_min": "2025-01-01"
+    },
+    "raw_source_hashes_status": "unavailable_in_handoff",
+    "rows": 767130,
+    "sha256": "c9386df30d37f3035aa653772abb74f648348a17b7de5497e9306b088bc01798"
+  },
+  "privacy": {
+    "identifiers_emitted": false,
+    "input_must_remain_untracked": true,
+    "row_data_emitted": false
+  },
+  "quality": {
+    "cardinalities": {
+      "bed_profile": 95,
+      "finance_source": 9,
+      "has_operation": 2,
+      "has_polyclinic": 2,
+      "hospital_mo": 1385,
+      "hospitalized": 2,
+      "icd10_ref_diag_code": 3825,
+      "is_refused": 2,
+      "operation_code": 1907,
+      "plan_lead_days": 626,
+      "polyclinic_lag_days": 251,
+      "profile_code": 97,
+      "referral_purpose": 10,
+      "referring_mo": 1140,
+      "reg_dow": 7,
+      "reg_month": 3,
+      "region_code": 20,
+      "territorial_type": 2,
+      "wait_days": 460
+    },
+    "missing_counts": {
+      "bed_profile": 372316,
+      "finance_source": 0,
+      "has_operation": 0,
+      "has_polyclinic": 0,
+      "hospital_mo": 0,
+      "hospitalization_code": 0,
+      "hospitalized": 0,
+      "icd10_ref_diag_code": 0,
+      "is_refused": 0,
+      "operation_code": 584891,
+      "plan_lead_days": 33704,
+      "polyclinic_lag_days": 140405,
+      "profile_code": 0,
+      "referral_purpose": 0,
+      "referring_mo": 0,
+      "reg_dow": 0,
+      "reg_month": 0,
+      "region_code": 0,
+      "registration_dt": 0,
+      "territorial_type": 0,
+      "wait_days": 88042
+    },
+    "outcomes": {
+      "both": 1,
+      "hospitalized": 679088,
+      "neither": 3962,
+      "refused": 84081
+    },
+    "rows_in_duplicate_registration_groups": 10361,
+    "unique_hospitalization_codes": 765161,
+    "unique_registration_timestamps": 761652,
+    "wait_days": {
+      "negative_hospitalized": 45,
+      "over_365_hospitalized": 203,
+      "over_60_hospitalized": 27830
+    }
+  },
+  "schema_version": 1,
+  "status": "needs_semantic_review"
+}

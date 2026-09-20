@@ -12,6 +12,12 @@ const FRONTEND_FILES = [
 ];
 
 describe("frontend scope guard", () => {
+  it("sends the public root to the authenticated workspace", () => {
+    const page = readFileSync(`${ROOT}/app/page.tsx`, "utf8");
+    expect(page).toContain('redirect("/workspace")');
+    expect(page).not.toMatch(/doctorCode|DOCTOR_ACCESS_CODE|codePlaceholder/u);
+  });
+
   it("uses exactly the five supported network endpoints including protected resume", () => {
     const source = FRONTEND_FILES.map((file) => readFileSync(`${ROOT}/${file}`, "utf8")).join("\n");
     const endpoints = [...source.matchAll(/["`](\/api\/[a-z/]+)["`]/g)].map((match) => match[1]);

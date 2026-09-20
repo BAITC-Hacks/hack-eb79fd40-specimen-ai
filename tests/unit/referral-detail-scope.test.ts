@@ -43,7 +43,7 @@ describe("referral detail record boundary", () => {
     expect(source).not.toContain(".confidence");
   });
   it("gates exam editing and focuses its first field respecting reduced motion", () => {
-    expect(source).toContain('disabled={disabled} onClick={() => setEditingExam({ ...exam })}');
+    expect(source).toContain('disabled={disabled} onClick={() => { setDateError(""); setEditingExam({ ...exam }); }}');
     expect(source).toContain('input[name="label"]');
     expect(source).toContain("focus({ preventScroll: true })");
     expect(source).toContain("prefers-reduced-motion: reduce");

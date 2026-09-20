@@ -88,8 +88,12 @@ export function dashboardCounts(records: readonly ReferralDetail[], today: strin
     upcoming: upcomingReferrals(records, today).length, attention: records.filter((r) => attentionReason(r, today) !== null).length };
 }
 export function aggregateView(value: ReferralAggregates) {
-  return value.suppressed ? { total: null, groups: [], knownTimes: null } : {
-    total: value.total, groups: value.groups, knownTimes: value.groups.reduce((sum, group) => sum + group.observedTimeCount, 0),
+  const visible = value.suppressed ? value.groups.filter((group) => group.count >= 5) : value.groups;
+  return {
+    total: value.total,
+    groups: visible,
+    knownTimes: value.suppressed || visible.some((group) => group.observedTimeCount === null)
+      ? null : visible.reduce((sum, group) => sum + (group.observedTimeCount ?? 0), 0),
   };
 }
 export function shiftMonth(month: string, offset: number): string {

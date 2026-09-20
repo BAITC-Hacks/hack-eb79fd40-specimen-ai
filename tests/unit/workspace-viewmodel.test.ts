@@ -59,8 +59,9 @@ describe("workspace view models", () => {
     const later = referral({ id: "later", scheduledDate: "2026-09-20" });
     expect(upcomingReferrals([later, referral(), today, referral({ scheduledDate: "2026-09-12" }), referral({ scheduledDate: "2026-09-14", cancelled: true }), referral({ scheduledDate: "2026-09-14", attendance: "attended" })], "2026-09-13")).toEqual([today, later]);
   });
-  it("suppression dominates any accidental attached counts or rows", () => {
-    expect(aggregateView(aggregates({ suppressed: true, total: 3, groups: [{ flow: "waiting", count: 3, meanObservedDays: 1, observedTimeCount: 3 }] }))).toEqual({ total: null, groups: [], knownTimes: null });
+  it("keeps safe stage rows while withholding suppressed totals and small rows", () => {
+    const safe = { flow: "scheduled" as const, count: 5, meanObservedDays: null, observedTimeCount: null };
+    expect(aggregateView(aggregates({ suppressed: true, total: null, groups: [{ flow: "waiting", count: 3, meanObservedDays: 1, observedTimeCount: 3 }, safe] }))).toEqual({ total: null, groups: [safe], knownTimes: null });
     expect(aggregateView(aggregates()).total).toBe(0);
     expect(aggregateView(aggregates({ total: null })).total).toBeNull();
   });

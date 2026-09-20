@@ -1,0 +1,46 @@
+# Исследовательский ML по направлениям
+
+## Решение по handoff 19.09
+
+Переданный parquet используется только для воспроизводимого offline benchmark задачи D1. Он не подключён к Next.js, API, интерфейсу и Telegram. Основной DDXPlus triage-контур не менялся.
+
+B3 заблокирован: поле `is_refused` показывает факт любого отказа, но в данных нет причины отказа и состояния пакета на момент решения. D2 заблокирован без временного ряда лабораторного спроса. D4 заблокирован без достоверной метки явки.
+
+## Что считает D1 v0
+
+Цель handoff — число дней от `registration_dt` до `hospitalization_dt`. Семантика `registration_dt` как момента постановки в лист ожидания не проверена. В primary cohort входят только последующие госпитализации со сроком от 0 до 60 дней включительно. Отказы, незавершённые записи, конфликтующие исходы, отрицательные сроки и сроки свыше 60 дней исключаются с обязательным счётчиком в отчёте.
+
+Разбиение фиксировано по времени:
+
+- январь 2025 — train;
+- февраль 2025 — validation и выбор регуляризации;
+- март 2025 — test, который pipeline не использует для выбора параметров.
+
+Март уже анализировался в исходном handoff, поэтому это не новый полностью слепой набор. Ограничение явно записано в отчёте.
+
+На validation сравниваются Ridge над one-hot признаками и HistGradientBoosting над ordinal categorical признаками; параметры и семейство выбираются только по validation MAE. Поля из неоднозначного join с листом ожидания и признаки после регистрации исключены. Test сравнивает выбранную модель с общей медианой и иерархической медианой `организация + профиль → профиль → общая`.
+
+## Воспроизведение
+
+```bash
+uv venv --python 3.12 .venv
+uv pip install --python .venv/bin/python -r scripts/referral_ml/requirements.txt
+.venv/bin/python -m scripts.referral_ml.audit \
+  --input '/home/almaz/Downloads/Telegram Desktop/demeu-data-handoff-2026-09-19/referrals_features.parquet' \
+  --output reports/referral-data-audit.json
+.venv/bin/python -m scripts.referral_ml.train_wait \
+  --input '/home/almaz/Downloads/Telegram Desktop/demeu-data-handoff-2026-09-19/referrals_features.parquet' \
+  --report reports/wait-time-baseline-v0.json \
+  --model-output data/processed/wait-time-baseline-v0.joblib
+.venv/bin/python -m scripts.referral_ml.verify_report \
+  reports/wait-time-baseline-v0.json \
+  --model data/processed/wait-time-baseline-v0.joblib
+```
+
+Parquet и бинарный `joblib` игнорируются git. В репозитории остаются только код, агрегированный audit и агрегированный отчёт без строк и идентификаторов.
+
+`joblib` содержит исходные категории, включая названия организаций, поэтому CLI разрешает сохранять его только в игнорируемый `data/processed/` или системный временный каталог. SHA-256 конкретного бинарного артефакта записывается в отчёт и проверяется verifier. Внутреннее pickle-представление HistGradientBoosting не стабильно по байтам между процессами, поэтому повторный запуск отдельно сравнивает все метрики и семантические поля, а целостность каждого joblib — по его собственному SHA-256. Доверительный интервал по независимым строкам намеренно не публикуется: в handoff нет надёжного идентификатора пациента, поэтому кластеризацию повторных обращений измерить нельзя.
+
+## Условия до runtime
+
+Нужно подтвердить смысл исходной даты, point-in-time доступность каждого признака, политику сроков свыше 60 дней, лицензию и raw hashes. Затем нужен новый будущий holdout, проверка переноса на пилотную организацию, отдельный JSON артефакт, TypeScript scorer и Python ↔ TypeScript parity. До прохождения этих условий статус отчёта остаётся `experimental_not_runtime_ready`.

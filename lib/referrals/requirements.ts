@@ -47,10 +47,12 @@ export function evaluateCompleteness(
   const evaluatedOn = referral.scheduledDate ?? localDate(now);
   const profile = catalogue.profiles.find((entry) => entry.profile === referral.profile);
   const catalogueAvailable = catalogue.status === "available" && catalogue.validated && Boolean(catalogue.source) && Boolean(profile?.requirements.length);
+  const recordedExpiryStatus = (expiresOn: string | null): ExaminationStatus =>
+    referral.scheduledDate && expiresOn && isCalendarDate(expiresOn) && expiresOn < evaluatedOn ? "expired" : "unknown";
   const entries: Completeness["entries"] = (profile?.requirements ?? []).map((requirement) => {
     const record = referral.examinations.find((entry) => entry.requirementId === requirement.id);
-    let status: ExaminationStatus = "unknown";
     let expiresOn = record?.expiresOn ?? null;
+    let status: ExaminationStatus = recordedExpiryStatus(expiresOn);
     if (catalogueAvailable && requirement.required !== null) {
       if (requirement.conditional && record?.applicability === "no") status = "not_applicable";
       else if (requirement.conditional && (!record || record.applicability === "unknown")) status = "unknown";
@@ -63,14 +65,21 @@ export function evaluateCompleteness(
           if (!expiresOn || catalogueExpiry < expiresOn) expiresOn = catalogueExpiry;
         }
         status = !expiresOn || !isCalendarDate(expiresOn) || record.performedOn > evaluatedOn
-          ? "unknown" : expiresOn < evaluatedOn ? "expired" : "present";
+          ? "unknown" : expiresOn < evaluatedOn ? referral.scheduledDate ? "expired" : "unknown" : "present";
       }
     }
     return { requirementId: requirement.id, label: requirement.label, required: requirement.required, status, expiresOn };
   });
-  const mandatory = entries.filter((entry) => entry.required !== false);
-  const status: Completeness["status"] = !catalogueAvailable || mandatory.some((entry) => entry.status === "unknown")
-    ? "unknown" : mandatory.some((entry) => entry.status === "expired")
-      ? "expired" : mandatory.some((entry) => entry.status === "missing") ? "incomplete" : "complete";
-  return { status, evaluatedOn, basis: referral.scheduledDate ? "scheduled_date" : "today", catalogueVersion: catalogue.version, catalogueAvailable, entries };
+  const listedIds = new Set(entries.map((entry) => entry.requirementId));
+  for (const record of referral.examinations) {
+    if (listedIds.has(record.requirementId)) continue;
+    entries.push({ requirementId: record.requirementId, label: record.label, required: null,
+      status: recordedExpiryStatus(record.expiresOn), expiresOn: record.expiresOn });
+  }
+  const mandatory = entries.filter((entry) => entry.required !== false && entry.required !== null);
+  const status: Completeness["status"] = entries.some((entry) => entry.status === "expired")
+    ? "expired" : !catalogueAvailable || !referral.scheduledDate || mandatory.some((entry) => entry.status === "unknown")
+      ? "unknown" : mandatory.some((entry) => entry.status === "missing") ? "incomplete" : "complete";
+  return { status, evaluatedOn, basis: referral.scheduledDate ? "scheduled_date" : "today", catalogueVersion: catalogue.version,
+    catalogueAvailable, catalogueValidated: catalogue.validated, catalogueStatus: catalogue.status, entries };
 }

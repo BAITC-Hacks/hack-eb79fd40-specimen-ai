@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { FileReferralRepository, MemoryReferralRepository, ReferralService, validateReferralDatabase } from "../../lib/referrals/service";
 import { evaluateCompleteness, isCalendarDate, localDate, validateRequirementCatalogue } from "../../lib/referrals/requirements";
+import { canonicalProfile, REFERRAL_PROFILES } from "../../lib/referrals/profiles";
 import type { ExaminationRecord, ReferralActor, ReferralDatabase, RequirementCatalogue } from "../../lib/referrals/types";
 import type { TriageResult } from "../../lib/types";
 
@@ -17,9 +18,9 @@ const triage: TriageResult = {
   red_flags: [], urgency: "planned", urgency_reasons: [], routing: [], hypothesis: { text: "Пример для врача", confidence: 0, disclaimer: "Это не диагноз, решает врач" }, source: "rules_only",
 };
 const catalogue: RequirementCatalogue = { schemaVersion: 1, version: "test-only", status: "available", source: "synthetic-test-fixture", validated: true,
-  profiles: [{ profile: "тестовый", requirements: [{ id: "r1", label: "Тестовое обследование", required: true, conditional: false, validForDays: null }] }] };
+  profiles: [{ profile: "Хирургический", requirements: [{ id: "r1", label: "Тестовое обследование", required: true, conditional: false, validForDays: null }] }] };
 const exam: ExaminationRecord = { id: "exam", requirementId: "r1", label: "Тестовое обследование", resultAvailable: true, performedOn: "2026-09-10", expiresOn: "2026-09-20", applicability: "yes" };
-const createInput = (key = "create") => ({ patientLabel: "Эпизод 1", profile: "тестовый", idempotencyKey: key });
+const createInput = (key = "create") => ({ patientLabel: "Эпизод 1", profile: "Хирургический", idempotencyKey: key });
 function setup() {
   const repository = new MemoryReferralRepository();
   let clock = now;
@@ -151,8 +152,58 @@ describe("направления: принадлежность и подтвер
   });
 });
 
+describe("правки по смоуку 14.09", () => {
+  it("сохраняет код МКБ-10 и объединяет варианты регистра профиля", async () => {
+    const { service } = setup();
+    const first = await service.create(doctor, { patientLabel: "Эпизод А", profile: "хирургический", icd10Code: "i20.9", idempotencyKey: "code-a" });
+    await service.create(doctor, { patientLabel: "Эпизод Б", profile: "Хирургический", idempotencyKey: "code-b" });
+    expect(first).toMatchObject({ profile: "Хирургический", icd10Code: "I20.9" });
+    expect((await service.aggregates(doctor)).perProfile).toEqual([{ profile: "Хирургический", count: 2 }]);
+    expect(canonicalProfile("кардиология")).toBe("Кардиология");
+    await expect(service.create(doctor, { patientLabel: "Иной", profile: "Несогласованный", idempotencyKey: "unknown-profile" }))
+      .rejects.toMatchObject({ status: 400 });
+    await expect(service.update(doctor, first.id, { expectedRevision: 1, idempotencyKey: "bad-code", patch: { icd10Code: "bad code" } }))
+      .rejects.toMatchObject({ status: 400 });
+    expect((await service.detail(doctor, first.id)).revision).toBe(1);
+  });
+
+  it("отвергает подтверждение явки без наступившей назначенной даты", async () => {
+    const { service } = setup();
+    const record = await service.create(doctor, createInput("attendance"));
+    await expect(service.update(doctor, record.id, { expectedRevision: 1, idempotencyKey: "future-attendance", patch: { scheduledDate: "2026-10-20", attendance: "attended" } }))
+      .rejects.toMatchObject({ code: "ATTENDANCE_DATE_INVALID" });
+    await expect(service.update(doctor, record.id, { expectedRevision: 1, idempotencyKey: "no-date-attendance", patch: { attendance: "attended" } }))
+      .rejects.toMatchObject({ code: "ATTENDANCE_DATE_INVALID" });
+    expect((await service.detail(doctor, record.id)).revision).toBe(1);
+    const valid = await service.update(doctor, record.id, { expectedRevision: 1, idempotencyKey: "past-attendance", patch: { scheduledDate: "2026-09-13", attendance: "attended" } });
+    expect(valid.attendance).toBe("attended");
+  });
+
+  it("принимает старые снимки направлений без поля кода", async () => {
+    const { service, repository } = setup();
+    await service.create(doctor, createInput("legacy"));
+    const state = await repository.read((value) => structuredClone(value)) as ReferralDatabase;
+    delete state.referrals[0].icd10Code;
+    delete (state.referrals[0].events[0].after as typeof state.referrals[0]).icd10Code;
+    expect(() => validateReferralDatabase(state)).not.toThrow();
+  });
+
+  it("использует пять профилей переданного перечня и сохраняет версию проверки", async () => {
+    expect(REFERRAL_PROFILES).toEqual(["Хирургический", "Урологический", "Гинекологический", "Кардиохирургический", "Травматологический и ортопедический"]);
+    const repository = new MemoryReferralRepository();
+    const firstCatalogue = { ...catalogue, version: "v1" };
+    const first = new ReferralService(repository, { now: () => now, catalogue: firstCatalogue });
+    const record = await first.create(doctor, createInput("version"));
+    const changedCatalogue = { ...catalogue, version: "v2", profiles: [{ profile: "Хирургический", requirements: [{ ...catalogue.profiles[0].requirements[0], id: "r2" }] }] };
+    const reopened = new ReferralService(repository, { now: () => now, catalogue: changedCatalogue });
+    const detail = await reopened.detail(doctor, record.id);
+    expect(detail.completeness.catalogueVersion).toBe("v1");
+    expect(detail.completeness.entries.map((entry) => entry.requirementId)).toEqual(["r1"]);
+  });
+});
+
 describe("комплектность: тестовый, не нормативный справочник", () => {
-  const evaluate = (records: ExaminationRecord[], changed: Partial<RequirementCatalogue> = {}) => evaluateCompleteness({ profile: "тестовый", scheduledDate: "2026-09-20", examinations: records }, { ...catalogue, ...changed }, now);
+  const evaluate = (records: ExaminationRecord[], changed: Partial<RequirementCatalogue> = {}) => evaluateCompleteness({ profile: "Хирургический", scheduledDate: "2026-09-20", examinations: records }, { ...catalogue, ...changed }, now);
   it("не называет пустой/неподтверждённый справочник полным", () => {
     expect(evaluate([exam], { validated: false }).status).toBe("unknown");
     expect(evaluate([exam], { profiles: [] }).status).toBe("unknown");
@@ -177,20 +228,45 @@ describe("комплектность: тестовый, не нормативн�
     expect(evaluate([{ ...exam, expiresOn: "2026-09-19" }]).status).toBe("expired");
   });
   it("условие не домысливается, явная неприменимость не требует результат", () => {
-    const conditional = { ...catalogue, profiles: [{ profile: "тестовый", requirements: [{ ...catalogue.profiles[0].requirements[0], conditional: true }] }] };
-    expect(evaluateCompleteness({ profile: "тестовый", scheduledDate: null, examinations: [] }, conditional, now).status).toBe("unknown");
-    expect(evaluateCompleteness({ profile: "тестовый", scheduledDate: null, examinations: [{ ...exam, applicability: "no", resultAvailable: false }] }, conditional, now).status).toBe("complete");
+    const conditional = { ...catalogue, profiles: [{ profile: "Хирургический", requirements: [{ ...catalogue.profiles[0].requirements[0], conditional: true }] }] };
+    expect(evaluateCompleteness({ profile: "Хирургический", scheduledDate: null, examinations: [] }, conditional, now).status).toBe("unknown");
+    const preliminary = evaluateCompleteness({ profile: "Хирургический", scheduledDate: null, examinations: [{ ...exam, applicability: "no", resultAvailable: false }] }, conditional, now);
+    expect(preliminary.status).toBe("unknown");
+    expect(preliminary.entries[0].status).toBe("not_applicable");
+  });
+  it("показывает истёкший срок записанного обследования без проверенного справочника", () => {
+    const unavailable = { ...catalogue, status: "unavailable" as const, validated: false, profiles: [] };
+    const recorded = { ...exam, requirementId: "manual-cbc", label: "ОАК", expiresOn: "2026-08-11" };
+    const result = evaluateCompleteness({ profile: "Хирургический", scheduledDate: "2026-09-25", examinations: [recorded] }, unavailable, now);
+    expect(result).toMatchObject({ status: "expired", catalogueAvailable: false, basis: "scheduled_date",
+      entries: [{ requirementId: "manual-cbc", label: "ОАК", required: null, status: "expired", expiresOn: "2026-08-11" }] });
+    expect(evaluateCompleteness({ profile: "Хирургический", scheduledDate: "2026-08-11", examinations: [recorded] }, unavailable, now).status).toBe("unknown");
+  });
+  it("без назначенной даты считает от сегодня предварительно и не ставит просрочку", () => {
+    const unavailable = { ...catalogue, status: "unavailable" as const, validated: false, profiles: [] };
+    const recorded = { ...exam, requirementId: "manual-cbc", expiresOn: "2026-08-11" };
+    const result = evaluateCompleteness({ profile: "Хирургический", scheduledDate: null, examinations: [recorded] }, unavailable, now);
+    expect(result).toMatchObject({ status: "unknown", evaluatedOn: "2026-09-13", basis: "today", catalogueAvailable: false,
+      entries: [{ status: "unknown", expiresOn: "2026-08-11" }] });
+  });
+  it("не теряет записанные вне проверенного перечня обследования", () => {
+    const result = evaluateCompleteness({ profile: "Хирургический", scheduledDate: "2026-09-25",
+      examinations: [{ ...exam, requirementId: "manual-cbc", expiresOn: "2026-08-11" }] }, catalogue, now);
+    expect(result.status).toBe("expired");
+    expect(result.entries).toEqual(expect.arrayContaining([
+      expect.objectContaining({ requirementId: "manual-cbc", required: null, status: "expired" }),
+    ]));
   });
   it("считает годность на целевую дату и использует календарь UTC+5", () => {
     expect(localDate(Date.parse("2026-09-13T20:00:00Z"))).toBe("2026-09-14");
     expect(isCalendarDate("2024-02-29")).toBe(true);
     expect(isCalendarDate("2026-02-29")).toBe(false);
-    const computed = { ...catalogue, profiles: [{ profile: "тестовый", requirements: [{ ...catalogue.profiles[0].requirements[0], validForDays: 10 }] }] };
-    const result = evaluateCompleteness({ profile: "тестовый", scheduledDate: "2026-09-20", examinations: [{ ...exam, expiresOn: null }] }, computed, now);
+    const computed = { ...catalogue, profiles: [{ profile: "Хирургический", requirements: [{ ...catalogue.profiles[0].requirements[0], validForDays: 10 }] }] };
+    const result = evaluateCompleteness({ profile: "Хирургический", scheduledDate: "2026-09-20", examinations: [{ ...exam, expiresOn: null }] }, computed, now);
     expect(result.entries[0].expiresOn).toBe("2026-09-20");
     expect(result.basis).toBe("scheduled_date");
     expect(result.status).toBe("complete");
-    const limited = evaluateCompleteness({ profile: "тестовый", scheduledDate: "2026-09-21", examinations: [{ ...exam, expiresOn: "2099-01-01" }] }, computed, now);
+    const limited = evaluateCompleteness({ profile: "Хирургический", scheduledDate: "2026-09-21", examinations: [{ ...exam, expiresOn: "2099-01-01" }] }, computed, now);
     expect(limited.status).toBe("expired");
     expect(limited.entries[0].expiresOn).toBe("2026-09-20");
   });
@@ -206,7 +282,7 @@ describe("агрегаты и устойчивость", () => {
     expect(JSON.stringify(visible)).not.toContain("doctor-a");
     const other = await service.create(colleague, createInput("b"));
     await service.update(colleague, other.id, { expectedRevision: 1, idempotencyKey: "wait", patch: { queue: true } });
-    expect(await service.aggregates(analyst)).toMatchObject({ total: null, suppressed: true, groups: [] });
+    expect(await service.aggregates(analyst)).toMatchObject({ total: null, suppressed: true, groups: [{ flow: "preparing", count: 5 }] });
     expect(await service.aggregates(doctor)).toMatchObject({ total: 5, scope: "own" });
   });
   it("не сбрасывает время этапа из-за изменения обследования", async () => {
@@ -227,7 +303,7 @@ describe("агрегаты и устойчивость", () => {
     const { id: _id, ...record } = exam;
     void _id;
     await service.examination(doctor, r.id, { expectedRevision: 1, idempotencyKey: "exam", record });
-    expect((await service.aggregates(doctor)).groups[0]).toMatchObject({ flow: "ready", meanObservedDays: null, observedTimeCount: 0 });
+    expect((await service.aggregates(doctor)).groups[0]).toMatchObject({ flow: "preparing", meanObservedDays: null, observedTimeCount: 0 });
     expect((await service.detail(doctor, r.id)).observedStageDays).toBeNull();
   });
   it("показывает фиксированную историю наблюдений только в разрешённой области", async () => {
@@ -235,7 +311,7 @@ describe("агрегаты и устойчивость", () => {
     const first = await service.create(doctor, createInput("first"));
     advance(1);
     await service.update(doctor, first.id, { expectedRevision: 1, idempotencyKey: "wait", patch: { queue: true } });
-    await service.create(colleague, { ...createInput("other"), profile: "Чужой профиль" });
+    await service.create(colleague, { ...createInput("other"), profile: "Урологический" });
     advance(1);
     await service.update(doctor, first.id, { expectedRevision: 2, idempotencyKey: "scheduled", patch: { scheduledDate: "2026-09-20" } });
     const result = await service.aggregates(doctor);
@@ -247,12 +323,12 @@ describe("агрегаты и устойчивость", () => {
       { date: "2026-09-15", createdCount: 0, totalCount: 1, waitingCount: 0 },
     ]);
     expect(result.timelineSource).toBe("observed_snapshot");
-    expect(result.perProfile).toEqual([{ profile: "тестовый", count: 1 }]);
+    expect(result.perProfile).toEqual([{ profile: "Хирургический", count: 1 }]);
     const restricted = await service.aggregates(analyst);
     expect(restricted.timeline).toEqual([]);
     expect(restricted.perProfile).toEqual([]);
     expect(restricted.timelineUnavailableReason).toBe("not_available_for_analyst");
-    expect(JSON.stringify(restricted)).not.toContain("Чужой профиль");
+    expect(JSON.stringify(restricted)).not.toContain("Урологический");
   });
   it("не выдаёт среднее по одному известному времени внутри большой группы", async () => {
     const { service } = setup();
@@ -264,7 +340,7 @@ describe("агрегаты и устойчивость", () => {
         await service.examination(doctor, r.id, { expectedRevision: 1, idempotencyKey: `exam-${i}`, record });
       }
     }
-    expect(await service.aggregates(analyst)).toMatchObject({ suppressed: true, total: null, groups: [] });
+    expect(await service.aggregates(analyst)).toMatchObject({ suppressed: true, total: 5, groups: [{ flow: "preparing", count: 5, meanObservedDays: null, observedTimeCount: null }] });
   });
   it("возвращает detached данные и отвергает повреждённую историю", async () => {
     const { service, repository } = setup();

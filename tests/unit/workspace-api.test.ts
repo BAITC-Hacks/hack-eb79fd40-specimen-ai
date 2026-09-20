@@ -13,6 +13,7 @@ import {
   type WorkspaceApiDeps,
 } from "../../lib/workspace-api";
 import { POST as linkRoute } from "../../app/api/link/route";
+import { handleReferralNotify } from "../../app/api/referrals/[id]/notify/handler";
 
 const BASE = "https://workspace.example.test";
 const doctor: WorkspaceActor = { id: "doctor-a", displayName: "Doctor A", role: "doctor", organizationId: "clinic-a" };
@@ -44,7 +45,7 @@ function req(method = "GET", payload?: unknown, origin = BASE, pathname = "/api/
   return new Request(`${BASE}${pathname}`, { method, headers, body: payload === undefined ? undefined : JSON.stringify(payload) });
 }
 function input(extra: Record<string, unknown> = {}) {
-  return { patientLabel: "Тестовый эпизод", profile: "терапия", idempotencyKey: `request-${++key}`, ...extra };
+  return { patientLabel: "Тестовый эпизод", profile: "Хирургический", idempotencyKey: `request-${++key}`, ...extra };
 }
 function persistedPayload(payload: { referral: Record<string, unknown> }) {
   const referral = { ...payload.referral };
@@ -287,6 +288,29 @@ describe("commands, memo and aggregate HTTP contracts", () => {
     expect(Object.keys(memo.memo).sort()).toEqual(["catalogueAvailable", "destinationOrganization", "items", "patientLabel", "scheduledDate"]);
     expect(memo.memo.catalogueAvailable).toBe(false);
     expect(JSON.stringify(memo)).not.toMatch(/hypothesis|anamnesis|triageSnapshot|sourceSessionId|doctorToken/u);
+  });
+
+  it("passes a recorded expired examination to the doctor's notification without draft requirements", async () => {
+    const fixed = new ReferralService(new MemoryReferralRepository(), { now: () => Date.parse("2026-09-18T12:00:00Z") });
+    const created = await fixed.create(doctor, input());
+    const scheduled = await fixed.update(doctor, created.id, {
+      expectedRevision: 1, idempotencyKey: "scheduled-notify", patch: { scheduledDate: "2026-09-25" },
+    });
+    const examined = await fixed.examination(doctor, created.id, {
+      expectedRevision: scheduled.revision, idempotencyKey: "exam-notify",
+      record: { requirementId: "cbc", label: "Общий анализ крови", performedOn: "2026-08-01", expiresOn: "2026-08-11", resultAvailable: true, applicability: "yes" },
+    });
+    let delivered: unknown;
+    const response = await handleReferralNotify(req("POST", {
+      expectedRevision: examined.revision, idempotencyKey: "notify-123",
+    }, BASE, `/api/referrals/${created.id}/notify`), created.id, {
+      actor: async () => doctor,
+      detail: (actor, id) => fixed.detail(actor, id),
+      send: async (_actor, _referral, memo) => { delivered = memo; return { sent: true }; },
+    });
+    expect(response.status).toBe(200);
+    expect(delivered).toMatchObject({ catalogueAvailable: false, items: [{ label: "Общий анализ крови", status: "expired", expiresOn: "2026-08-11" }] });
+    expect((delivered as { items: unknown[] }).items).toHaveLength(1);
   });
 
   it("returns a separate suppressed aggregate DTO for analysts and rejects ad-hoc filters", async () => {

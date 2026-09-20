@@ -11,6 +11,7 @@ export type TriageSnapshot = Pick<TriageResult,
   "anamnesis" | "red_flags" | "urgency" | "urgency_reasons" | "routing" | "hypothesis" | "source">;
 export interface ReferralFacts {
   profile: string;
+  icd10Code?: string | null;
   specialistReferred: boolean | null;
   preparationStarted: boolean;
   destinationOrganization: string | null;
@@ -49,6 +50,7 @@ export interface Referral extends ReferralFacts {
   patientLabel: string;
   sourceSessionId: string | null;
   triageSnapshot: TriageSnapshot | null;
+  requirementSnapshot?: RequirementCatalogue;
   createdAt: number;
   updatedAt: number;
   revision: number;
@@ -58,6 +60,7 @@ export interface Referral extends ReferralFacts {
 export interface CreateReferralInput {
   patientLabel: string;
   profile: string;
+  icd10Code?: string | null;
   destinationOrganization?: string | null;
   sourceSessionId?: string | null;
   idempotencyKey: string;
@@ -104,6 +107,8 @@ export interface Completeness {
   basis: "scheduled_date" | "today";
   catalogueVersion: string;
   catalogueAvailable: boolean;
+  catalogueValidated?: boolean;
+  catalogueStatus?: "available" | "unavailable";
   entries: { requirementId: string; label: string; required: boolean | null; status: ExaminationStatus; expiresOn: string | null }[];
 }
 export type ReferralFlow = "interviewed" | "specialist_referred" | "preparing" | "ready" | "sent" | "waiting" | "scheduled" | "attended" | "not_attended" | "cancelled";
@@ -122,7 +127,7 @@ export interface PatientMemo {
 export interface ReferralAggregates {
   suppressed: boolean;
   total: number | null;
-  groups: { flow: ReferralFlow; count: number; meanObservedDays: number | null; observedTimeCount: number }[];
+  groups: { flow: ReferralFlow; count: number; meanObservedDays: number | null; observedTimeCount: number | null }[];
   scope: "organization" | "own";
   dataSource: "doctor_confirmed_local_records";
   forecast: null;

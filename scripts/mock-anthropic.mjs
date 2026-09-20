@@ -34,7 +34,7 @@ function identifyScenario(text) {
   return "unknown";
 }
 
-function analysisFor(scenario) {
+function analysisFor(scenario, messages) {
   if (scenario === "chest-pain") {
     return {
       anamnesis: {
@@ -131,7 +131,16 @@ function analysisFor(scenario) {
     };
   }
 
-  throw new Error("Mock could not identify the scripted scenario");
+  return {
+    anamnesis: {
+      chief_complaint: messages.find((message) => message?.role === "user" && typeof message.content === "string")?.content.slice(0, 500) ?? "Жалоба не описана",
+      symptom: { onset: "не указано", location: "не указано", quality: "не указано", severity: null, modifiers: "не указаны", associated: [] },
+      past_history: [], chronic: [], allergies: [], medications: [],
+      context: { age: null, sex: "unknown", pregnancy: "na", risk_factors: [] },
+    },
+    evidence: { evidences: [], age: null, sex: "unknown" },
+    unmapped: [],
+  };
 }
 
 function chatReply(scenario, userTurns) {
@@ -148,6 +157,12 @@ function chatReply(scenario, userTurns) {
   }
   if (scenario === "rhinitis" && userTurns === 1) {
     return "Есть ли температура, боль в горле или другие жалобы?";
+  }
+  if (scenario === "unknown" && userTurns === 1) {
+    return "Когда начались жалобы и что беспокоит сильнее всего?";
+  }
+  if (scenario === "unknown" && userTurns === 2) {
+    return "Есть ли другие симптомы, хронические состояния, лекарства или аллергии?";
   }
   return "Спасибо, я передаю данные врачу.\n[ANAMNESIS_COMPLETE]";
 }
@@ -183,7 +198,7 @@ const server = http.createServer(async (request, response) => {
     const structured = body.output_config?.format?.type === "json_schema";
     const userTurns = messages.filter((item) => item?.role === "user").length;
     const answer = structured
-      ? JSON.stringify(analysisFor(scenario))
+      ? JSON.stringify(analysisFor(scenario, messages))
       : chatReply(scenario, userTurns);
 
     response.writeHead(200, { "content-type": "application/json" });

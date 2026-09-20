@@ -29,7 +29,7 @@ describe("workspace request authentication epoch", () => {
     const dispatchEvent = vi.fn();
     vi.stubGlobal("window", { dispatchEvent });
     vi.stubGlobal("fetch", vi.fn(async () => Response.json({}, { status: 401 })));
-    await expect(workspaceRequest("/api/workspace/auth", { id: "synthetic", password: "synthetic" })).rejects.toMatchObject({ status: 401 });
+    await expect(workspaceRequest("/api/workspace/auth", { id: "synthetic", password: "synthetic" })).rejects.toMatchObject({ status: 401, message: "Неверный логин или пароль." });
     expect(dispatchEvent).not.toHaveBeenCalled();
   });
 });

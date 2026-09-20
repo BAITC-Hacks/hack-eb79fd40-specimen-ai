@@ -35,6 +35,8 @@
 .field textarea { min-height: 90px; resize: vertical; }
 .field input::placeholder, .field textarea::placeholder { color: #8a959e; }
 .field input:disabled, .field select:disabled, .field textarea:disabled { background: #f6f8f9; }
+.field input[aria-invalid="true"] { border-color: #944940; }
+.fieldError { color: #944940; font-size: 12px; line-height: 1.4; }
 .notice { background: #edf7f6; border: 1px solid #d8eae7; padding: 15px 18px; border-radius: 9px; font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }
 .notice button { margin: 10px 0 0; display: block; }
 .error { color: #944940; background: #fff5f3; border-color: #f2dbd5; }

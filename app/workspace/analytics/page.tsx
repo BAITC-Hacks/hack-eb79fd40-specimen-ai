@@ -17,6 +17,8 @@ export default function AnalyticsPage() {
   const scope = actor.role === "doctor" ? "Только ваши направления" : "В пределах вашей организации";
   const maximum = Math.max(0, ...aggregates?.groups.map((group) => group.count) ?? []);
   const profileMaximum = Math.max(0, ...aggregates?.perProfile.map((group) => group.count) ?? []);
+  const partial = aggregates?.suppressed ?? false;
+  const hiddenGroups = aggregates?.total === null;
 
   return <div className={styles.stack}>
     <PageHeading eyebrow="Аналитика и данные" title="Аналитика направлений" description="Движение направлений по записям врачей. Без предположений о внешней очереди." actions={<button className={styles.button} disabled={loading} onClick={refresh}><Icon name="refresh" size={16} />Обновить</button>} />
@@ -25,17 +27,18 @@ export default function AnalyticsPage() {
     {error && <p className={styles.error} role="alert">{error}</p>}
     {aggregates && <>
       <div className={styles.kpis}>
-        <KpiCard label="Направлений в кабинете" value={coverage?.total ?? "—"} hint={aggregates.suppressed ? "Срез скрыт для защиты малых групп" : scope} icon="referrals" />
-        <KpiCard label="Этапов с записями" value={coverage ? aggregates.groups.length : "—"} hint="Текущее состояние направлений" icon="analytics" />
-        <KpiCard label="Известно время на этапе" value={coverage ? `${coverage.knownTime} из ${coverage.total}` : "—"} hint="По времени записи этапа в кабинете" icon="clock" />
+        <KpiCard label="Направлений в кабинете" value={aggregates.total ?? "—"} hint={hiddenGroups ? "Общее число скрыто для защиты малых групп" : scope} icon="referrals" />
+        <KpiCard label="Показано этапов" value={hiddenGroups && !aggregates.groups.length ? "—" : aggregates.groups.length} hint={hiddenGroups ? "Только этапы с достаточным числом записей" : "Текущее состояние направлений"} icon="analytics" />
+        <KpiCard label="Известно время на этапе" value={coverage ? `${coverage.knownTime} из ${coverage.total}` : "—"} hint={hiddenGroups ? "Итог скрыт для защиты малых групп" : "По времени записи этапа в кабинете"} icon="clock" />
       </div>
-      {aggregates.suppressed ? <section className={styles.card}><EmptyState title="Срез пока нельзя показать" description="В одной из групп недостаточно записей для безопасного отображения. Общее количество и показатели скрыты вместе — это не нулевой результат." /></section> : <>
+      {partial && <div className={styles.notice}><Icon name="lock" size={19} /><div><strong>Часть данных скрыта</strong>{hiddenGroups ? "Малые группы и некоторые показатели времени не показаны. Общий итог скрыт, чтобы нельзя было восстановить число в малой группе." : "Некоторые показатели времени скрыты из-за малого числа наблюдений."}</div></div>}
+      {hiddenGroups && !aggregates.groups.length ? <section className={styles.card}><EmptyState title="Пока нет групп для показа" description="В каждом наблюдаемом этапе недостаточно записей для безопасного отображения. Это не нулевой результат." /></section> : <>
         <div className={styles.columns}>
           <section className={styles.card}>
             <div className={styles.sectionHead}><div><h2>Текущее распределение</h2><p className={styles.muted}>Количество направлений на каждом наблюдаемом этапе</p></div><span className={styles.tag}>По записям врачей</span></div>
             {!aggregates.groups.length ? <EmptyState title="Пока нет направлений" description="Показатели появятся после создания записей в вашей области доступа." /> : <>
               <ul className={styles.bars}>{aggregates.groups.map((group) => <li key={group.flow}><div className={styles.barLabel}><span>{FLOW_LABELS[group.flow]}</span><strong>{group.count}</strong></div><div className={styles.track} aria-hidden="true"><span className={styles.fill} style={{ width: barWidth(group.count, maximum) }} /></div></li>)}</ul>
-              <div className={styles.tablewrap}><table className={styles.table}><caption>Время — дни с момента записи текущего этапа, не фактическое ожидание госпитализации.</caption><thead><tr><th scope="col">Этап</th><th scope="col">Записей</th><th scope="col">Среднее, дни</th><th scope="col">Известно время</th></tr></thead><tbody>{aggregates.groups.map((group) => <tr key={group.flow}><th scope="row">{FLOW_LABELS[group.flow]}</th><td className={styles.number}>{group.count}</td><td className={styles.number}>{group.meanObservedDays === null ? "Неизвестно" : group.meanObservedDays.toFixed(1)}</td><td className={styles.number}>{group.observedTimeCount} из {group.count}</td></tr>)}</tbody></table></div>
+              <div className={styles.tablewrap}><table className={styles.table}><caption>Время — дни с момента записи текущего этапа, не фактическое ожидание госпитализации.</caption><thead><tr><th scope="col">Этап</th><th scope="col">Записей</th><th scope="col">Среднее, дни</th><th scope="col">Известно время</th></tr></thead><tbody>{aggregates.groups.map((group) => <tr key={group.flow}><th scope="row">{FLOW_LABELS[group.flow]}</th><td className={styles.number}>{group.count}</td><td className={styles.number}>{group.observedTimeCount === null ? "Скрыто" : group.meanObservedDays === null ? "Неизвестно" : group.meanObservedDays.toFixed(1)}</td><td className={styles.number}>{group.observedTimeCount === null ? "Скрыто" : `${group.observedTimeCount} из ${group.count}`}</td></tr>)}</tbody></table></div>
             </>}
           </section>
           <section className={styles.card}>

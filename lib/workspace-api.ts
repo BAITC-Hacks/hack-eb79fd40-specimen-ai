@@ -104,7 +104,7 @@ export function handleReferrals(req: Request, deps: WorkspaceApiDeps = {}): Prom
     const referrals = service(deps);
     if (req.method === "GET") return json({ referrals: await referrals.list(actor) });
     method(req, "POST");
-    const input = await body(req, ["patientLabel", "profile", "destinationOrganization", "sourceSessionId", "idempotencyKey"]);
+    const input = await body(req, ["patientLabel", "profile", "icd10Code", "destinationOrganization", "sourceSessionId", "idempotencyKey"]);
     // A completed create command remains replayable after its source intake TTL.
     const replay = await referrals.replayCreate(actor, input as unknown as CreateReferralInput);
     if (replay) return json({ referral: replay });

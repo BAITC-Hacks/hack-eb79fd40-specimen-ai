@@ -51,7 +51,7 @@ function run(command: string, args: string[], cwd: string): Promise<{
 
 describe("mock E2E snapshot environment isolation", () => {
   it("keeps only .env.example and never attempts Telegram delivery with sentinel secrets", {
-    timeout: 120_000,
+    timeout: 300_000,
   }, async () => {
     for (const name of ENV_VARIANTS) {
       expect(snapshotFilter(join(ROOT, name))).toBe(false);

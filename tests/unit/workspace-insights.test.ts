@@ -23,7 +23,13 @@ describe("workspace insights: scoped data and honest quantities", () => {
   });
   it("never derives a count from suppressed groups, even if fields contain residual values", () => {
     expect(aggregateCoverage(aggregate({ suppressed: true }))).toBeNull();
+    expect(aggregateCoverage(aggregate({ suppressed: true, total: null, groups: [
+      { flow: "preparing", count: 6, meanObservedDays: null, observedTimeCount: null },
+    ] }))).toBeNull();
     expect(aggregateCoverage(aggregate({ total: null }))).toBeNull();
+    expect(aggregateCoverage(aggregate({ groups: [
+      { flow: "preparing", count: 10, meanObservedDays: null, observedTimeCount: null },
+    ] }))).toBeNull();
     expect(aggregateCoverage(aggregate())).toEqual({ total: 10, knownTime: 5, unknownTime: 5 });
     expect(aggregateCoverage(aggregate({ total: 0, groups: [] }))).toEqual({ total: 0, knownTime: 0, unknownTime: 0 });
   });
