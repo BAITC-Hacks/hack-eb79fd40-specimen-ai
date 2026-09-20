@@ -5,7 +5,7 @@ import type { ReferralAggregates, ReferralDetail, ReferralEvent } from "@/lib/re
 import type { TriageResult } from "@/lib/types";
 import { workspaceRequest } from "./client";
 
-export interface Intake { sessionId: string; createdAt: number; status: "collecting" | "completed" | "aborted"; deliveryStatus: "pending" | "sent" | "failed"; result?: TriageResult }
+export interface Intake { sessionId: string; createdAt: number; status: "collecting" | "completed" | "aborted"; deliveryStatus: "pending" | "sent" | "failed"; referralId: string | null; result?: TriageResult }
 export function intakePresentation(result: TriageResult) {
   return {
     severityLabel: result.anamnesis.symptom.severity === null ? "Не указана" : result.anamnesis.symptom.severity + " / 10",

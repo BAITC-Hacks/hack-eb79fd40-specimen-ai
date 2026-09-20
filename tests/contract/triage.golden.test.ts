@@ -31,6 +31,7 @@ describe("четыре золотых инварианта аналитичес�
     expect(result.model?.pathologies[0].code).toBe("P_ROUTINE");
     expect(result.urgency).toBe("emergency");
     expect(result.urgency_reasons[0]).toMatch(/красн\p{L}*\s+флаг/iu);
+    expect(result.urgency_reasons.join(" ")).not.toMatch(/срочност\p{L}*\s+уточня/iu);
     expect(llmCalls.calls).toBe(1);
     expect(modelCalls.calls).toBe(1);
     expect(() => assertTriageInvariants(result, EMERGENCY_MESSAGES)).not.toThrow();

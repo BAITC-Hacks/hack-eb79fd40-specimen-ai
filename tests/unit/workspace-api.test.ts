@@ -172,7 +172,8 @@ describe("source sessions, ownership and data projections", () => {
     const response = await handleWorkspaceIntakes(req(), deps());
     const data = await response.json();
     expect(data.intakes.map((entry: { sessionId: string }) => entry.sessionId)).toEqual([mine.id]);
-    expect(Object.keys(data.intakes[0]).sort()).toEqual(["createdAt", "deliveryStatus", "result", "sessionId", "status"]);
+    expect(Object.keys(data.intakes[0]).sort()).toEqual(["createdAt", "deliveryStatus", "referralId", "result", "sessionId", "status"]);
+    expect(data.intakes[0].referralId).toBeNull();
     expect(JSON.stringify(data)).not.toContain(mine.doctorToken);
     expect(JSON.stringify(data)).not.toContain("private transcript");
     const organization = await (await handleWorkspaceIntakes(req(), deps(owner))).json();
@@ -192,6 +193,13 @@ describe("source sessions, ownership and data projections", () => {
     expect(referral.queue).toBeNull();
     expect(referral.scheduledDate).toBeNull();
     expect(referral.attendance).toBeNull();
+    const intakes = await (await handleWorkspaceIntakes(req(), deps(owner))).json();
+    expect(intakes.intakes.find((entry: { sessionId: string }) => entry.sessionId === source.id).referralId).toBe(referral.id);
+
+    const duplicate = await handleReferrals(req("POST", input({ sourceSessionId: source.id, patientLabel: "Повтор" })), deps(owner));
+    expect(duplicate.status).toBe(200);
+    expect((await duplicate.json()).referral.id).toBe(referral.id);
+    expect(await referrals.list(owner)).toHaveLength(1);
   });
 
   it("rejects foreign, orphan and unfinished source sessions without revealing foreign status", async () => {

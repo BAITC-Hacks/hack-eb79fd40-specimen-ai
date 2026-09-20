@@ -89,6 +89,7 @@ export default function PatientChat() {
   const endRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const startAttempt = useRef(0);
+  const startInFlight = useRef(false);
   const turnInFlight = useRef(false);
   const text = PATIENT[language];
 
@@ -162,10 +163,12 @@ export default function PatientChat() {
   }
 
   async function openSession() {
+    if (startInFlight.current) return;
     if (token === null) {
       setPhase("invalid");
       return;
     }
+    startInFlight.current = true;
     const attempt = ++startAttempt.current;
     setPhase("starting");
     setStartFailure(null);
@@ -177,26 +180,30 @@ export default function PatientChat() {
     setConfirming(false);
     setAutoFinalized(false);
 
-    const response = await startChat(token, language);
-    if (attempt !== startAttempt.current) return;
-    if (!response.ok) {
-      setStartFailure(response.failure);
-      respectRetryDelay(response.failure);
-      setPhase(isStartInvalid(response.failure) ? "invalid" : "start_error");
-      return;
-    }
+    try {
+      const response = await startChat(token, language);
+      if (attempt !== startAttempt.current) return;
+      if (!response.ok) {
+        setStartFailure(response.failure);
+        respectRetryDelay(response.failure);
+        setPhase(isStartInvalid(response.failure) ? "invalid" : "start_error");
+        return;
+      }
 
-    setSessionId(response.data.sessionId);
-    try { window.sessionStorage.setItem(`demeu:session:${token}`, response.data.sessionId); } catch { /* Resume is optional when browser storage is disabled. */ }
-    setTurnsLeft(response.data.turnsLeft);
-    setMessages([
-      {
-        id: nextMessageId.current++,
-        role: "assistant",
-        content: response.data.reply,
-      },
-    ]);
-    setPhase("chat");
+      setSessionId(response.data.sessionId);
+      try { window.sessionStorage.setItem(`demeu:session:${token}`, response.data.sessionId); } catch { /* Resume is optional when browser storage is disabled. */ }
+      setTurnsLeft(response.data.turnsLeft);
+      setMessages([
+        {
+          id: nextMessageId.current++,
+          role: "assistant",
+          content: response.data.reply,
+        },
+      ]);
+      setPhase("chat");
+    } finally {
+      if (attempt === startAttempt.current) startInFlight.current = false;
+    }
   }
 
   function finish(nextResult: TriageResult, nextTurnsLeft?: number) {

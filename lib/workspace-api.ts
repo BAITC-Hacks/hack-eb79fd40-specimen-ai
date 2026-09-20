@@ -175,6 +175,11 @@ export function handleWorkspaceIntakes(req: Request, deps: WorkspaceApiDeps = {}
     writer(actor);
     method(req, "GET");
     const referrals = service(deps);
+    const linkedReferrals = new Map(
+      (await referrals.list(actor))
+        .filter((referral) => referral.sourceSessionId !== null)
+        .map((referral) => [referral.sourceSessionId as string, referral.id]),
+    );
     const all = await sessions(deps).listSessions();
     const intakes = [];
     for (const intake of all) {
@@ -184,6 +189,7 @@ export function handleWorkspaceIntakes(req: Request, deps: WorkspaceApiDeps = {}
         createdAt: intake.createdAt,
         status: intake.status,
         deliveryStatus: intake.deliveryStatus,
+        referralId: linkedReferrals.get(intake.id) ?? null,
         ...(intake.result ? { result: intake.result } : {}),
       });
     }

@@ -42,7 +42,7 @@ export default function ReferralsPage() {
     </section>
     {resource.error && <p role="alert" className={s.notice + " " + s.error}>{resource.error}</p>}
     {resource.loading ? <p role="status" className={s.loading}>Загружаем направления…</p> : resource.data && <section className={s.card}>
-      {filtered.length ? <div className={s.tableScroll}><table className={s.table}><thead><tr><th scope="col">Направление</th><th scope="col">Текущий этап</th><th scope="col">Комплектность</th><th scope="col">На этапе</th><th scope="col">Назначенная дата</th><th scope="col">Организация</th></tr></thead><tbody>{filtered.map((record) => {
+      {filtered.length ? <><p className={s.mobileScrollHint}>Проведите таблицу в сторону, чтобы увидеть все столбцы.</p><div className={s.tableScroll}><table className={s.table}><thead><tr><th scope="col">Направление</th><th scope="col">Текущий этап</th><th scope="col">Комплектность</th><th scope="col">На этапе</th><th scope="col">Назначенная дата</th><th scope="col">Организация</th></tr></thead><tbody>{filtered.map((record) => {
         const delayed = isOperationallyDelayed(record, delayThreshold);
         return <tr key={record.id} className={delayed ? s.delayRow : undefined}>
           <td><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(record.id)}>{record.patientLabel}</Link><div className={s.muted}>{record.profile}</div><span className={s.mobileCompleteness} aria-hidden="true">Комплектность: {COMPLETENESS_LABELS[record.completeness.status]}</span></td>
@@ -51,7 +51,7 @@ export default function ReferralsPage() {
           <td>{record.observedStageDays === null ? "Неизвестно" : record.observedStageDays.toFixed(1) + " дн."}{delayed && <span className={s.delayTag}>Рабочий порог превышен</span>}</td>
           <td>{calendarDate(record.scheduledDate)}</td><td>{record.destinationOrganization || "Не указана"}</td>
         </tr>;
-      })}</tbody></table></div> : <EmptyState title={records.length ? "Ничего не найдено" : "Направлений пока нет"} description={records.length ? "Измените поиск или сбросьте фильтры." : "Создайте направление вручную или на основе завершённого опроса."} action={records.length ? <button className={s.secondary} onClick={() => setFilters({ ...EMPTY_FILTERS })}>Сбросить фильтры</button> : <Link className={s.button} href="/workspace/referrals/new">Создать направление</Link>} />}
+      })}</tbody></table></div></> : <EmptyState title={records.length ? "Ничего не найдено" : "Направлений пока нет"} description={records.length ? "Измените поиск или сбросьте фильтры." : "Создайте направление вручную или на основе завершённого опроса."} action={records.length ? <button className={s.secondary} onClick={() => setFilters({ ...EMPTY_FILTERS })}>Сбросить фильтры</button> : <Link className={s.button} href="/workspace/referrals/new">Создать направление</Link>} />}
       <p className={s.small}>Время — с момента записи текущего этапа в кабинете. Это не срок ожидания по Порталу.</p>
     </section>}
   </div>;

@@ -25,10 +25,11 @@ export default function NewReferralPage() {
   const completed = resource.data?.intakes.filter((intake) => intake.status === "completed" && intake.result) ?? [];
   const chosen = completed.find((intake) => intake.sessionId === source);
   const unavailable = Boolean(source && resource.data && !chosen);
+  const existingReferralId = chosen?.referralId ?? null;
 
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy || (source && !chosen)) return;
+    if (busy || existingReferralId || (source && !chosen)) return;
     const data = new FormData(event.currentTarget);
     setBusy(true); setError("");
     try {
@@ -53,9 +54,10 @@ export default function NewReferralPage() {
         {resource.loading && <p role="status" className={s.small}>Проверяем доступные опросы…</p>}
         {resource.error && <div className={s.notice + " " + s.error} role="alert">{resource.error} <button type="button" className={s.secondary} onClick={resource.reload}>Повторить загрузку</button></div>}
         {unavailable && <p className={s.notice} role="alert">Выбранный опрос недоступен или уже удалён по сроку хранения. Выберите другой либо явно создайте направление без связи.</p>}
-        {chosen && <p className={s.notice}>Сохранится сводка выбранного завершённого опроса без переписки. Направление подтверждаете вы, не модель.</p>}
+        {existingReferralId && <p className={s.notice}>Для выбранного опроса направление уже создано. <Link href={"/workspace/referrals/" + encodeURIComponent(existingReferralId)}>Открыть направление</Link>.</p>}
+        {chosen && !existingReferralId && <p className={s.notice}>Сохранится сводка выбранного завершённого опроса без переписки. Направление подтверждаете вы, не модель.</p>}
         {error && <p className={s.notice + " " + s.error} role="alert">{error}</p>}
-        <div className={s.actions}><button className={s.button} disabled={busy || Boolean(source && !chosen)}>{busy ? "Сохраняем…" : "Подтвердить создание"}</button><Link className={s.secondary} href="/workspace/referrals">Отмена</Link></div>
+        <div className={s.actions}><button className={s.button} disabled={busy || Boolean(existingReferralId) || Boolean(source && !chosen)}>{busy ? "Сохраняем…" : existingReferralId ? "Направление уже создано" : "Подтвердить создание"}</button><Link className={s.secondary} href="/workspace/referrals">Отмена</Link></div>
       </form>
     </section><aside className={s.stack}><section className={s.card}><h2>Что произойдёт дальше</h2><ol className={s.muted}><li>Будет создана отдельная запись направления.</li><li>Вы сможете добавить обследования и проверить комплектность.</li><li>Известные внешние факты подтверждаются отдельно и сохраняются в истории.</li></ol><p className={s.notice}>Неизвестное остаётся неизвестным. Создание записи не означает отправку в Портал или назначение госпитализации.</p></section></aside></div>
   </div>;

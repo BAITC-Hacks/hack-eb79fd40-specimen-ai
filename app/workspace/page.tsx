@@ -45,10 +45,11 @@ export default function Overview() {
     {error && <p className={s.notice + " " + s.error} role="alert">{error}</p>}
     {loading && <p className={s.loading} role="status">Загружаем актуальные данные…</p>}
     {analyst ? <>
-      {summary.data?.aggregates.suppressed ? <section className={s.card}><EmptyState title="Пока недостаточно данных" description="Показатели скрыты целиком, если группа или число известных времён слишком малы. Это защищает сведения о пациентах." /></section> : aggregate && <>
+      {summary.data?.aggregates.suppressed && <section className={s.notice}>Часть малых групп и показателей времени скрыта. Безопасные агрегаты с достаточным числом записей показаны ниже.</section>}
+      {aggregate && aggregate.groups.length ? <>
         <div className={s.kpis}><KpiCard label="Направлений" value={aggregate.total ?? "—"} hint="Записи, не уникальные пациенты" icon="referrals" /><KpiCard label="Представлено этапов" value={aggregate.groups.length} hint="Текущее распределение" icon="analytics" /><KpiCard label="Известно время этапа" value={aggregate.knownTimes ?? "—"} hint="Количество наблюдений" icon="clock" /><KpiCard label="Источник" value="Кабинет" hint="Подтверждения врачей" icon="data-quality" /></div>
         <section className={s.card}><div className={s.head}><h2>Распределение по этапам</h2><Link className={s.sectionLink} href="/workspace/analytics">Подробнее →</Link></div><StageBars groups={aggregate.groups} /><p className={s.muted}>Это текущие состояния записей, не конверсионная воронка и не фактическая очередь Портала.</p></section>
-      </>}
+      </> : summary.data && <section className={s.card}><EmptyState title="Пока нет групп для показа" description="В каждом наблюдаемом этапе пока недостаточно записей для безопасного отображения." /></section>}
       <section className={s.notice}>Персональные карточки, профили и ежедневная история недоступны этой роли. Прогноз ожидания не рассчитывается.</section>
     </> : !loading && records.data && <>
       <div className={s.kpis}><KpiCard label="Всего направлений" value={counts?.total ?? "—"} hint="В вашей области доступа" icon="referrals" /><KpiCard label="На этапе ожидания" value={counts?.waiting ?? "—"} hint="Подтверждено врачом" icon="clock" /><KpiCard label="Предстоящие даты" value={counts?.upcoming ?? "—"} hint="Без подтверждённой явки" icon="calendar" /><KpiCard label="Для проверки" value={counts?.attention ?? "—"} hint="Данные, а не оценка срочности" icon="warning" /></div>

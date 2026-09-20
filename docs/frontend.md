@@ -5,8 +5,8 @@ boundaries. API contracts are documented separately in [API reference](api-refer
 
 | Field | Value |
 |---|---|
-| Updated | 2026-07-17 |
-| Baseline | `19aa75528974582de44e5d8b1e7027289776f6e4` |
+| Updated | 2026-09-21 |
+| Baseline | workspace flow on `codex/ardan-smoke` |
 | Canon | SPINE v2 plus [Status](status.md) for implementation drift |
 | Anchors | [`app/page.tsx`](../app/page.tsx), [`app/c/[token]/`](../app/c/%5Btoken%5D/), [`app/ds/page.tsx`](../app/ds/page.tsx) |
 
@@ -14,7 +14,8 @@ boundaries. API contracts are documented separately in [API reference](api-refer
 
 ```mermaid
 flowchart LR
-  Home[/ Doctor screen /] -->|generated token URL| Patient[/ Patient screen /c/token /]
+  Home[/ Root /] --> Workspace[/ Authenticated workspace /workspace /]
+  Workspace -->|generated token URL| Patient[/ Patient screen /c/token /]
   Patient -->|demo=1| Panel[Embedded doctor demo panel]
   DS[/ Design system /ds /] -. documents .-> Home
   DS -. documents .-> Patient
@@ -22,16 +23,19 @@ flowchart LR
 
 | Route | Audience | Main job |
 |---|---|---|
-| `/` | Doctor or demo operator | Generate and copy a patient link |
+| `/` | Doctor or demo operator | Redirect to the authenticated workspace |
+| `/workspace` | Team member | Role-based dashboard and login |
+| `/workspace/intakes` | Doctor or owner | Generate a patient link and review completed intakes |
 | `/c/[token]` | Patient | Complete the interview and explicitly finalize if needed |
 | `/c/[token]?demo=1` | Demo operator | Show the doctor-facing result panel beside the patient flow |
 | `/ds` | Designers and developers | Inspect colors, type, controls, and clinical-state examples |
 
-## Doctor screen
+## Doctor workspace
 
-[`app/page.tsx`](../app/page.tsx) requests a doctor token from `/api/link`, builds
-the patient URL from the configured application base, and exposes copy/open
-actions. Its visible states are intentionally small:
+[`app/page.tsx`](../app/page.tsx) redirects to `/workspace`. The authenticated
+workspace shell owns login and role boundaries. [`app/workspace/intakes/page.tsx`](../app/workspace/intakes/page.tsx)
+requests a doctor token from `/api/link`, builds the patient URL from the
+application origin, and exposes copy actions. Its visible states are:
 
 1. Ready to generate.
 2. Generating.

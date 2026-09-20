@@ -18,6 +18,7 @@ const triage: TriageResult = {
   red_flags: [], urgency: "planned", urgency_reasons: [], routing: [], hypothesis: { text: "Пример для врача", confidence: 0, disclaimer: "Это не диагноз, решает врач" }, source: "rules_only",
 };
 const catalogue: RequirementCatalogue = { schemaVersion: 1, version: "test-only", status: "available", source: "synthetic-test-fixture", validated: true,
+  scope: { population: "adult", careSetting: "inpatient", treatment: "operative" },
   profiles: [{ profile: "Хирургический", requirements: [{ id: "r1", label: "Тестовое обследование", required: true, conditional: false, validForDays: null }] }] };
 const exam: ExaminationRecord = { id: "exam", requirementId: "r1", label: "Тестовое обследование", resultAvailable: true, performedOn: "2026-09-10", expiresOn: "2026-09-20", applicability: "yes" };
 const createInput = (key = "create") => ({ patientLabel: "Эпизод 1", profile: "Хирургический", idempotencyKey: key });
@@ -72,7 +73,9 @@ describe("направления: принадлежность и подтвер
     const preparing = await service.update(doctor, r.id, { expectedRevision: 2, idempotencyKey: "prepare", patch: { preparationStarted: true } });
     expect(preparing.flow).toBe("preparing");
     const owned = await service.create(owner, { ...input, idempotencyKey: "owner-create" }, source);
+    expect(owned.id).toBe(r.id);
     expect(owned.doctorId).toBe(doctor.id);
+    expect(await service.list(owner)).toHaveLength(1);
     await expect(service.bindLink("t1", colleague)).rejects.toMatchObject({ status: 409 });
   });
   it("не отдаёт чужие карточки, списки и памятки", async () => {
@@ -200,6 +203,21 @@ describe("правки по смоуку 14.09", () => {
     expect(detail.completeness.catalogueVersion).toBe("v1");
     expect(detail.completeness.entries.map((entry) => entry.requirementId)).toEqual(["r1"]);
   });
+
+  it("не пересчитывает старое направление без снимка по текущему справочнику", async () => {
+    const repository = new MemoryReferralRepository();
+    const service = new ReferralService(repository, { now: () => now, catalogue });
+    const record = await service.create(doctor, createInput("legacy-without-snapshot"));
+    await repository.transaction((state) => { delete state.referrals[0].requirementSnapshot; });
+    const detail = await service.detail(doctor, record.id);
+    expect(detail.completeness).toMatchObject({
+      status: "unknown",
+      catalogueVersion: "unknown-at-creation",
+      catalogueAvailable: false,
+      entries: [],
+    });
+    expect(detail.flow).toBe("preparing");
+  });
 });
 
 describe("комплектность: тестовый, не нормативный справочник", () => {
@@ -209,6 +227,7 @@ describe("комплектность: тестовый, не нормативн�
     expect(evaluate([exam], { profiles: [] }).status).toBe("unknown");
     expect(evaluate([exam], { status: "unavailable" }).status).toBe("unknown");
     expect(evaluate([exam], { source: null }).status).toBe("unknown");
+    expect(evaluate([exam], { scope: null }).status).toBe("unknown");
   });
   it("отвергает повреждённый срок и дубли справочника", () => {
     const bad = structuredClone(catalogue);

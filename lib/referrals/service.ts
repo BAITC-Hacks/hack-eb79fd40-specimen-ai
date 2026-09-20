@@ -10,6 +10,16 @@ import type {
   UpdateReferralInput,
 } from "./types";
 
+const UNKNOWN_CREATION_REQUIREMENTS: RequirementCatalogue = {
+  schemaVersion: 1,
+  version: "unknown-at-creation",
+  status: "unavailable",
+  source: null,
+  scope: null,
+  validated: false,
+  profiles: [],
+};
+
 const REFERRAL_ERROR_BRAND = Symbol.for("demeu.ReferralError");
 export class ReferralError extends Error {
   readonly [REFERRAL_ERROR_BRAND] = true;
@@ -226,7 +236,9 @@ export class ReferralService {
     return referral;
   }
   private decorate(referral: Referral): ReferralDetail {
-    const completeness = evaluateCompleteness(referral, referral.requirementSnapshot ?? this.catalogue, this.now());
+    // Старое направление без снимка нельзя пересчитывать по текущему справочнику:
+    // его версия и область действия на момент создания неизвестны.
+    const completeness = evaluateCompleteness(referral, referral.requirementSnapshot ?? UNKNOWN_CREATION_REQUIREMENTS, this.now());
     const flow = flowFromFacts(referral, completeness.status === "complete");
     return { ...clone(referral), completeness, flow, observedStageDays: observedStageDays(referral, flow, this.now()) };
   }
@@ -293,6 +305,8 @@ export class ReferralService {
         if (!source || source.sessionId !== input.sourceSessionId) fail("SOURCE_SESSION_REQUIRED", "Нужен проверенный собственный опрос", 400);
         const owner = state.links.find((entry) => entry.token === source!.doctorToken)?.owner;
         if (!owner || owner.organizationId !== actor.organizationId || (actor.role !== "owner" && owner.id !== actor.id)) fail("NOT_FOUND", "Опрос не найден", 404);
+        const linked = state.referrals.find((entry) => entry.organizationId === actor.organizationId && entry.sourceSessionId === input.sourceSessionId);
+        if (linked) return this.decorate(linked);
         doctorId = owner!.id;
         const { anamnesis, red_flags, urgency, urgency_reasons, routing, hypothesis, source: resultSource } = source!.result;
         triageSnapshot = clone({ anamnesis, red_flags, urgency, urgency_reasons, routing, hypothesis, source: resultSource });

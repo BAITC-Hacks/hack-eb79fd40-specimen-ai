@@ -6,9 +6,12 @@ export function validateRequirementCatalogue(value: unknown): RequirementCatalog
   const text = (entry: unknown): entry is string => typeof entry === "string" && entry.trim().length > 0 && entry.length <= 1000;
   const keys = (entry: Record<string, unknown>, allowed: string[]) => Object.keys(entry).every((key) => allowed.includes(key));
   const invalid = (): never => { throw new Error("Invalid examination requirement catalogue"); };
-  if (!object(value) || !keys(value, ["schemaVersion", "version", "status", "source", "validated", "profiles"])
+  if (!object(value) || !keys(value, ["schemaVersion", "version", "status", "source", "scope", "validated", "profiles"])
     || value.schemaVersion !== 1 || !text(value.version) || !["available", "unavailable"].includes(String(value.status))
     || !(value.source === null || text(value.source)) || typeof value.validated !== "boolean" || !Array.isArray(value.profiles)) return invalid();
+  if (value.scope !== undefined && value.scope !== null && (!object(value.scope)
+    || !keys(value.scope, ["population", "careSetting", "treatment"])
+    || value.scope.population !== "adult" || value.scope.careSetting !== "inpatient" || value.scope.treatment !== "operative")) return invalid();
   const profiles = new Set<string>();
   for (const profile of value.profiles) {
     if (!object(profile) || !keys(profile, ["profile", "requirements"]) || !text(profile.profile) || profiles.has(profile.profile) || !Array.isArray(profile.requirements)) return invalid();
@@ -46,7 +49,8 @@ export function evaluateCompleteness(
   validateRequirementCatalogue(catalogue);
   const evaluatedOn = referral.scheduledDate ?? localDate(now);
   const profile = catalogue.profiles.find((entry) => entry.profile === referral.profile);
-  const catalogueAvailable = catalogue.status === "available" && catalogue.validated && Boolean(catalogue.source) && Boolean(profile?.requirements.length);
+  const catalogueAvailable = catalogue.status === "available" && catalogue.validated && Boolean(catalogue.source)
+    && Boolean(catalogue.scope) && Boolean(profile?.requirements.length);
   const recordedExpiryStatus = (expiresOn: string | null): ExaminationStatus =>
     referral.scheduledDate && expiresOn && isCalendarDate(expiresOn) && expiresOn < evaluatedOn ? "expired" : "unknown";
   const entries: Completeness["entries"] = (profile?.requirements ?? []).map((requirement) => {

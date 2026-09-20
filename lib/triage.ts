@@ -360,13 +360,21 @@ export function mergeUrgency(
   const reasons = [...baseReasons];
   const emergencyFlags = flags.filter((flag) => flag.emergency);
   if (emergencyFlags.length > 0) {
-    reasons.unshift(
-      ...emergencyFlags.map(
-        (flag) =>
-          `красный флаг: ${flag.label} — цитата пациента: «${flag.evidence}»`,
-      ),
+    const compatibleReasons = reasons.filter(
+      (reason) => !reason.toLocaleLowerCase("ru").includes("срочност"),
     );
-    return { urgency: "emergency", urgency_reasons: reasons };
+    const flagReasons = emergencyFlags.map(
+      (flag) =>
+        `красный флаг: ${flag.label} — цитата пациента: «${flag.evidence}»`,
+    );
+    return {
+      urgency: "emergency",
+      urgency_reasons: [
+        ...flagReasons,
+        "Неотложный приоритет установлен правилами безопасности.",
+        ...compatibleReasons,
+      ],
+    };
   }
 
   const riskFlags = flags.filter((flag) => !flag.emergency);

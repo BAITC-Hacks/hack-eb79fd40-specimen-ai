@@ -97,6 +97,11 @@ export interface RequirementCatalogue {
   version: string;
   status: "available" | "unavailable";
   source: string | null;
+  scope?: {
+    population: "adult";
+    careSetting: "inpatient";
+    treatment: "operative";
+  } | null;
   validated: boolean;
   profiles: { profile: string; requirements: ExaminationRequirement[] }[];
 }
