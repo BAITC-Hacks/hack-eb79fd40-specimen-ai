@@ -1,0 +1,21 @@
+# Apply after docker-compose.yml, compose.caddy.yml, and compose.workspace.yml.
+# Keeps the existing Caddy certificate volumes and private workspace bind mounts.
+services:
+  app:
+    environment:
+      APP_BASE_URL: https://84.247.161.211
+
+  caddy:
+    image: caddy:2.11.4-alpine
+    entrypoint: ["caddy"]
+    command: ["run", "--config", "/etc/caddy/Caddyfile.new-server-ip", "--adapter", "caddyfile"]
+    volumes:
+      - ./deploy/Caddyfile.new-server-ip:/etc/caddy/Caddyfile.new-server-ip:ro
+    networks:
+      default: {}
+      nikitos_cohost_ingress: {}
+
+networks:
+  nikitos_cohost_ingress:
+    external: true
+    name: nikitos_cohost_ingress

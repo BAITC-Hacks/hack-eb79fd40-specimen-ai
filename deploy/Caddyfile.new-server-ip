@@ -1,0 +1,44 @@
+{
+	default_sni 84.247.161.211
+}
+
+https://84.247.161.211 {
+	tls {
+		issuer acme https://acme-v02.api.letsencrypt.org/directory {
+			profile shortlived
+			disable_tlsalpn_challenge
+		}
+	}
+
+	encode gzip
+
+	@health path /api/healthz
+	log_skip @health
+
+	reverse_proxy app:3000 {
+		transport http {
+			response_header_timeout 120s
+			read_timeout 120s
+		}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}
+
+https://84-247-161-211.sslip.io {
+	redir https://84.247.161.211{uri} 308
+}
+
+# Existing application on the shared ingress network.
+nikitos.84-247-161-211.sslip.io {
+	reverse_proxy nikitos-cohost-edge:8080 {
+		header_up Host nikitos.84-247-161-211.sslip.io
+		header_up X-Forwarded-Proto https
+		header_up -Forwarded
+	}
+}
