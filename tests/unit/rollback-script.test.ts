@@ -430,6 +430,24 @@ afterEach(async () => {
 });
 
 describe("deploy/rollback.sh", () => {
+  it("allows documented excluded build and data state without weakening tracked-file checks", async () => {
+    const sandbox = await makeSandbox();
+    const allowed = [
+      "!! .env",
+      "?? .deploy.lock",
+      "?? .deploy_green_sha",
+      "?? .deploy_prev_sha",
+      "!! .next/",
+      "!! node_modules/",
+      "!! tsconfig.tsbuildinfo",
+      "!! data/raw/",
+      "!! data/processed/",
+      "",
+    ].join("\n");
+
+    expect((await runRollback(sandbox, [], { STUB_DIRTY: allowed })).code).toBe(0);
+  });
+
   it("fails closed before activation when the live referral snapshot is newer than the rollback reader", async () => {
     const sandbox = await makeSandbox();
     const dataDir = join(sandbox.root, "workspace-data");

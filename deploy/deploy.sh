@@ -112,6 +112,8 @@ assert_clean_worktree() {
     case "$entry" in
       ''|'?? .env'|'?? .deploy.lock'|'?? .deploy_prev_sha'|'?? .deploy_green_sha') ;;
       '!! .env'|'!! .deploy.lock'|'!! .deploy_prev_sha'|'!! .deploy_green_sha') ;;
+      '!! .next/'|'!! node_modules/'|'!! tsconfig.tsbuildinfo') ;;
+      '!! data/raw/'|'!! data/processed/') ;;
       *) die "server worktree is dirty; refuse to deploy a tree that differs from its commit" ;;
     esac
   done <<< "$status"

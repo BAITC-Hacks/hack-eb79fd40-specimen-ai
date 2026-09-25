@@ -89,7 +89,10 @@ Server activation takes a non-blocking kernel lock on `.deploy.lock`. A concurre
 `git pull`; a stale file after a crash is harmless because `flock` ownership is tied to the process
 file descriptor and is released on exit. `EXIT`, `INT`, and `TERM` share one recovery path and release
 the lock without recursively invoking recovery. Before pull, the script rejects tracked or untracked
-worktree changes except the server-only `.env`, lock file, and deployment SHA markers. Every failure
+worktree changes except the server-only `.env`, lock file, and deployment SHA markers. The clean-tree
+gate also accepts only the exact ignored build/data paths already excluded from the
+Docker context: `.next/`, `node_modules/`, `tsconfig.tsbuildinfo`, `data/raw/`, and `data/processed/`.
+Arbitrary ignored files remain a hard failure. Every failure
 after activation starts—including pull, image build, container start, health, environment-count, and
 fingerprint checks—restores the previous Git SHA and last-green image, restarts it, and verifies health.
 On a first deployment with no last-green image, the failed app is removed and the command exits nonzero.

@@ -735,7 +735,7 @@ describe("deploy/deploy.sh", () => {
     expect(commands).not.toContain("docker ");
   });
 
-  it("allows only the documented server-only env, lock, and marker entries", async () => {
+  it("allows only documented server-only state and excluded build/data directories", async () => {
     const sandbox = await makeSandbox();
     await writeFile(join(sandbox.root, ".env"), validEnv());
     const allowed = [
@@ -743,6 +743,11 @@ describe("deploy/deploy.sh", () => {
       "?? .deploy.lock",
       "?? .deploy_green_sha",
       "?? .deploy_prev_sha",
+      "!! .next/",
+      "!! node_modules/",
+      "!! tsconfig.tsbuildinfo",
+      "!! data/raw/",
+      "!! data/processed/",
       "",
     ].join("\n");
 
