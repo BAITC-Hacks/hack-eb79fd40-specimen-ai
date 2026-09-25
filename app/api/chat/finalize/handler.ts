@@ -12,6 +12,7 @@ import {
   SessionNotFoundError,
   type SessionStore,
 } from "@/lib/store";
+import { patientClosing } from "@/lib/patient-response";
 
 export interface FinalizeRouteDeps {
   sessionStore: SessionStore;
@@ -58,6 +59,8 @@ export async function handleFinalize(
   }
 
   try {
+    const session = await deps.sessionStore.getSession(sessionId);
+    if (!session) throw new SessionNotFoundError(sessionId);
     const { result, replayed } = await finalizeSession(sessionId, {
       sessionStore: deps.sessionStore,
       analyze: deps.analyze,
@@ -65,8 +68,7 @@ export async function handleFinalize(
       schedule: deps.schedule,
     });
     return NextResponse.json({
-      result,
-      source: result.source,
+      closing: patientClosing(result, session.language),
       replayed,
     });
   } catch (error) {

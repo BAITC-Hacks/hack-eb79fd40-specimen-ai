@@ -28,6 +28,13 @@ const extraction = {
     chronic: [],
     allergies: [],
     medications: [],
+    history_status: {
+      past_history: "not_stated",
+      chronic: "not_stated",
+      allergies: "not_stated",
+      medications: "not_stated",
+    },
+    negative_findings: ["Боли в груди нет", "одышки нет", "крови нет"],
     context: {
       age: null,
       sex: "unknown",
@@ -87,11 +94,12 @@ async function waitForApp(child) {
 }
 
 function assertExactHealth(body, llmOk) {
-  assert.deepEqual(Object.keys(body).sort(), ["commit", "llm_ok", "model_version", "ok"]);
+  assert.deepEqual(Object.keys(body).sort(), ["commit", "llm_ok", "model_version", "ok", "processing_mode"]);
   assert.equal(body.ok, true);
   assert.equal(body.commit, COMMIT);
   assert.equal(typeof body.model_version, "string");
   assert.equal(body.llm_ok, llmOk);
+  assert.equal(body.processing_mode, "external_llm");
 }
 
 const interfaces = (await readdir("/sys/class/net")).sort();
@@ -133,6 +141,7 @@ const child = spawn("node", ["server.js"], {
     COMMIT_SHA: COMMIT,
     ANTHROPIC_API_KEY: KEY,
     ANTHROPIC_BASE_URL: `http://127.0.0.1:${PROVIDER_PORT}`,
+    DEMEU_PROCESSING_MODE: "external_llm",
   },
   stdio: ["ignore", "pipe", "pipe"],
 });

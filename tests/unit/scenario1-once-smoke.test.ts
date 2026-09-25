@@ -65,7 +65,7 @@ function successfulFetch(calls: Array<{ path: string; init?: RequestInit }>) {
     const body = init?.body ? JSON.parse(String(init.body)) as Record<string, unknown> : {};
 
     if (path === "/api/healthz") {
-      return json({ ok: true, commit: EXPECTED_COMMIT, model_version: "lr-v1", llm_ok: true });
+      return json({ ok: true, commit: EXPECTED_COMMIT, model_version: "lr-v1", llm_ok: true, processing_mode: "external_llm" });
     }
     if (path === "/api/link") return json({ token });
     if (path === "/api/chat/start") {
@@ -151,6 +151,7 @@ describe("production scenario 1 one-shot evidence harness", () => {
       "health_commit",
       "health_llm_ok",
       "health_model_version",
+      "health_processing_mode",
       "http_cap",
       "http_requests",
       "level",

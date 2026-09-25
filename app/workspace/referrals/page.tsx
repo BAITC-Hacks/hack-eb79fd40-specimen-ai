@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { ReferralDetail } from "@/lib/referrals/types";
+import { profileDisplayName } from "@/lib/referrals/profiles";
 import { calendarDate, COMPLETENESS_LABELS, FLOW_LABELS } from "../client";
 import { EMPTY_FILTERS, filterReferrals, useWorkspaceData, type ReferralFilters } from "../data";
 import { isOperationallyDelayed, useOperationalDelay } from "../operational-delay";
@@ -45,7 +46,7 @@ export default function ReferralsPage() {
       {filtered.length ? <><p className={s.mobileScrollHint}>Проведите таблицу в сторону, чтобы увидеть все столбцы.</p><div className={s.tableScroll}><table className={s.table}><thead><tr><th scope="col">Направление</th><th scope="col">Текущий этап</th><th scope="col">Комплектность</th><th scope="col">На этапе</th><th scope="col">Назначенная дата</th><th scope="col">Организация</th></tr></thead><tbody>{filtered.map((record) => {
         const delayed = isOperationallyDelayed(record, delayThreshold);
         return <tr key={record.id} className={delayed ? s.delayRow : undefined}>
-          <td><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(record.id)}>{record.patientLabel}</Link><div className={s.muted}>{record.profile}</div><span className={s.mobileCompleteness} aria-hidden="true">Комплектность: {COMPLETENESS_LABELS[record.completeness.status]}</span></td>
+          <td><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(record.id)}>{record.patientLabel}</Link><div className={s.muted}>{profileDisplayName(record.profile)}</div><span className={s.mobileCompleteness} aria-hidden="true">Комплектность: {COMPLETENESS_LABELS[record.completeness.status]}</span></td>
           <td><StatusBadge flow={record.flow} /></td>
           <td><span className={s.tag + (record.completeness.status === "expired" ? " " + s.warning : "")}>{COMPLETENESS_LABELS[record.completeness.status]}</span></td>
           <td>{record.observedStageDays === null ? "Неизвестно" : record.observedStageDays.toFixed(1) + " дн."}{delayed && <span className={s.delayTag}>Рабочий порог превышен</span>}</td>

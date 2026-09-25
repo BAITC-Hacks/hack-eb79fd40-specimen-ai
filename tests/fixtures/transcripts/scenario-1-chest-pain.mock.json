@@ -68,7 +68,14 @@
         "sex": "m",
         "pregnancy": "na",
         "risk_factors": []
-      }
+      },
+      "history_status": {
+        "past_history": "not_stated",
+        "chronic": "not_stated",
+        "allergies": "not_stated",
+        "medications": "not_stated"
+      },
+      "negative_findings": []
     },
     "red_flags": [
       {
@@ -102,7 +109,7 @@
       }
     ],
     "hypothesis": {
-      "text": "Требуется оценка жалобы: давящая боль в груди и одышка в покое",
+      "text": "Модель воздержалась — гипотеза не сформирована, решение за врачом.",
       "confidence": 0,
       "disclaimer": "Это предварительная гипотеза, это не диагноз, решает врач."
     },

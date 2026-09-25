@@ -209,7 +209,10 @@ describe("Russian transcript to EvidenceVector adapter", () => {
       "unmapped",
     ]);
     const anamnesisSchema = schema?.properties?.anamnesis as {
+      required?: string[];
       properties?: {
+        history_status?: Record<string, unknown>;
+        negative_findings?: Record<string, unknown>;
         symptom?: {
           required?: string[];
           properties?: {
@@ -226,6 +229,49 @@ describe("Russian transcript to EvidenceVector adapter", () => {
     expect(
       anamnesisSchema.properties?.symptom?.required,
     ).toContain("severity");
+    expect(anamnesisSchema.required).toEqual(
+      expect.arrayContaining(["history_status", "negative_findings"]),
+    );
+    expect(anamnesisSchema.properties?.history_status).toMatchObject({
+      type: "object",
+      additionalProperties: false,
+    });
+    expect(anamnesisSchema.properties?.negative_findings).toEqual({
+      type: "array",
+      items: { type: "string" },
+    });
+    expect(request.system).toContain("Каждое явное отрицание пациента сохрани отдельно");
+    expect(request.system).toContain("reported — пациент назвал хотя бы один пункт");
+  });
+
+  it("preserves explicit negative findings separately from positive evidence", async () => {
+    const current = fixture("scenario-2-back-pain");
+    const fake = capture(
+      rawExtraction(current, [{ code: "E_55", value: "V_40" }]),
+    );
+
+    const result = await extractAll(current.messages, {
+      ...fake,
+      log: () => undefined,
+      warn: () => undefined,
+    });
+
+    expect(result.extraction_ok).toBe(true);
+    expect(result.anamnesis).toMatchObject({
+      history_status: {
+        chronic: "denied",
+        allergies: "denied",
+        medications: "denied",
+      },
+      negative_findings: [
+        "температуры нет",
+        "ноги не немеют",
+        "мочеиспускание не нарушено",
+      ],
+    });
+    expect(result.evidence.evidences).toEqual([
+      { code: "E_55", value: "V_40" },
+    ]);
   });
 
   it.each([

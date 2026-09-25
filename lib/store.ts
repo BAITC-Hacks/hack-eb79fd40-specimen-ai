@@ -18,6 +18,10 @@ export interface SessionStore {
     doctorToken: string,
     language?: Session["language"],
   ): Promise<Session>;
+  createSessionOnce?(
+    doctorToken: string,
+    language?: Session["language"],
+  ): Promise<Session | undefined>;
   getSession(id: string): Promise<ReadonlySession | undefined>;
   appendMessage(id: string, message: ChatMessage): Promise<void>;
   completeSession(id: string, result: TriageResult): Promise<void>;
@@ -59,6 +63,7 @@ export class SessionNotCollectingError extends Error {
 interface MemorySessionStoreOptions {
   sessions?: Map<string, Session>;
   doctors?: Map<string, number>;
+  consumedDoctorTokens?: Set<string>;
   now?: () => number;
   abortedNotice?: AbortedNoticePort;
 }
@@ -66,12 +71,14 @@ interface MemorySessionStoreOptions {
 export class MemorySessionStore implements SessionStore {
   private readonly sessions: Map<string, Session>;
   private readonly doctors: Map<string, number>;
+  private readonly consumedDoctorTokens: Set<string>;
   private readonly now: () => number;
   private readonly abortedNotice?: AbortedNoticePort;
 
   constructor(options: MemorySessionStoreOptions = {}) {
     this.sessions = options.sessions ?? new Map();
     this.doctors = options.doctors ?? new Map();
+    this.consumedDoctorTokens = options.consumedDoctorTokens ?? new Set();
     this.now = options.now ?? Date.now;
     this.abortedNotice = options.abortedNotice;
   }
@@ -88,6 +95,7 @@ export class MemorySessionStore implements SessionStore {
     if (this.now() - createdAt <= TOKEN_TTL_MS) return true;
 
     this.doctors.delete(token);
+    this.consumedDoctorTokens.delete(token);
     for (const [id, session] of this.sessions) {
       if (session.doctorToken === token) this.sessions.delete(id);
     }
@@ -110,6 +118,22 @@ export class MemorySessionStore implements SessionStore {
     };
     this.sessions.set(session.id, structuredClone(session));
     return structuredClone(session);
+  }
+
+  async createSessionOnce(
+    doctorToken: string,
+    language: Session["language"] = "ru",
+  ): Promise<Session | undefined> {
+    if (this.consumedDoctorTokens.has(doctorToken)) return undefined;
+    if ([...this.sessions.values()].some((session) => session.doctorToken === doctorToken)) {
+      // Lazy migration for snapshots written before consumption was persisted.
+      this.consumedDoctorTokens.add(doctorToken);
+      return undefined;
+    }
+    // Mark before the first await: concurrent starts in one process cannot both
+    // consume the same personal link.
+    this.consumedDoctorTokens.add(doctorToken);
+    return this.createSession(doctorToken, language);
   }
 
   async getSession(id: string): Promise<ReadonlySession | undefined> {
@@ -197,6 +221,7 @@ export class MemorySessionStore implements SessionStore {
     for (const [token, createdAt] of this.doctors) {
       if (now - createdAt <= TOKEN_TTL_MS) continue;
       this.doctors.delete(token);
+      this.consumedDoctorTokens.delete(token);
       for (const [id, session] of this.sessions) {
         if (session.doctorToken === token) this.sessions.delete(id);
       }

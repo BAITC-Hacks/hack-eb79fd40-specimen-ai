@@ -95,6 +95,11 @@ async function makeSandbox(): Promise<Sandbox> {
     copyFile("deploy/tls.sh", join(root, "deploy/tls.sh")),
     copyFile("docker-compose.yml", join(root, "docker-compose.yml")),
     copyFile("deploy/compose.caddy.yml", join(root, "deploy/compose.caddy.yml")),
+    copyFile("deploy/compose.workspace.yml", join(root, "deploy/compose.workspace.yml")),
+    copyFile(
+      "deploy/compose.new-server-ip.yml",
+      join(root, "deploy/compose.new-server-ip.yml"),
+    ),
     copyFile(
       "deploy/compose.host-proxy.yml",
       join(root, "deploy/compose.host-proxy.yml"),
@@ -178,6 +183,11 @@ case "$command" in
     exit 0
     ;;
   exec)
+    if printf '%s' "$*" | grep -q 'demeu-workspace-health:v1' \
+      && [ -n "\${STUB_WORKSPACE_HEALTH_FAIL_COMMIT-}" ] \
+      && printf '%s' "$*" | grep -q "\${STUB_WORKSPACE_HEALTH_FAIL_COMMIT}"; then
+      exit 1
+    fi
     if printf '%s' "$*" | grep -q 'grep -c.*ANTHROPIC_API_KEY'; then
       printf '%s\\n' "\${STUB_ANTHROPIC_COUNT:-1}"
       exit 0
@@ -189,6 +199,14 @@ case "$command" in
         timeout) printf '%s\n' 'timeout status=0 elapsed_ms=210000'; exit 1 ;;
         *) printf '%s\n' 'extraction_failed status=200 elapsed_ms=11'; exit 1 ;;
       esac
+    fi
+    if printf '%s' "$*" | grep -q 'demeu-existing-health:v1'; then
+      printf '%s' "\${STUB_CURRENT_PROCESSING_MODE:-external_llm}"
+      exit 0
+    fi
+    if printf '%s' "$*" | grep -q 'demeu-deterministic-readiness:v1'; then
+      [ "\${STUB_DETERMINISTIC_READY-1}" = 1 ]
+      exit
     fi
     if [ "\${STUB_HEALTH_MODE-}" = candidate-red ] \
       && printf '%s' "$*" | grep -q "\${STUB_TARGET_SHA:-ccccccc}"; then
@@ -228,6 +246,7 @@ printf 'ssh %s\\n' "$*" >> "$STUB_LOG"
 function validEnv(branch = "branch-a-nginx", domain = "109-123-248-16.sslip.io"): string {
   return [
     `ANTHROPIC_API_KEY=${SYNTHETIC_KEY}`,
+    "DEMEU_PROCESSING_MODE=external_llm",
     `DEMEU_DOMAIN=${domain}`,
     `APP_BASE_URL=https://${domain}`,
     "APP_PORT=3100",
@@ -289,6 +308,38 @@ describe("deploy/deploy.sh", () => {
 
     expect(script).toMatch(/\bflock\b/u);
     expect(script).toMatch(/\btrap\b/u);
+  });
+
+  it("keeps workspace and ingress overlays on the current production profile", async () => {
+    const sandbox = await makeSandbox();
+    await writeFile(
+      join(sandbox.root, ".env"),
+      validEnv("branch-b-caddy", "84.247.161.211"),
+    );
+
+    const result = await runDeploy(sandbox, { STUB_TARGET_SHA: "bbbbbbb" });
+    const commands = await readFile(sandbox.log, "utf8");
+    const prefix = "docker compose -f docker-compose.yml -f deploy/compose.caddy.yml -f deploy/compose.workspace.yml -f deploy/compose.new-server-ip.yml";
+
+    expect(result.code).toBe(0);
+    expect(commands).toContain(`${prefix} config --quiet`);
+    expect(commands).toContain(`${prefix} build --pull app`);
+    expect(commands).toContain(`${prefix} up -d --remove-orphans`);
+  });
+
+  it("rejects a candidate when the workspace/auth health surface is unavailable", async () => {
+    const sandbox = await makeSandbox();
+    await writeFile(join(sandbox.root, ".env"), validEnv());
+
+    const result = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "bbbbbbb",
+      STUB_WORKSPACE_HEALTH_FAIL_COMMIT: "bbbbbbb",
+    });
+    const commands = await readFile(sandbox.log, "utf8");
+
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("candidate health check failed");
+    expect(commands).toContain("demeu-workspace-health:v1");
   });
 
   it("requires an exact one-shot paid-probe opt-in before Docker", async () => {
@@ -613,8 +664,8 @@ describe("deploy/deploy.sh", () => {
     expect(failedCommands).not.toMatch(/build --pull app/u);
     expect(failedCommands).not.toMatch(/up -d/u);
     expect(failedCommands).not.toMatch(/rm -sf app/u);
-    expect(failedCommands.match(/const expected = process\.argv\[1\];/gu)).toHaveLength(2);
-    expect(failedCommands.match(/\n\s+bbbbbbb\n/gu)).toHaveLength(2);
+    expect(failedCommands.match(/demeu-existing-health:v1/gu)).toHaveLength(2);
+    expect(failedCommands.match(/\n\s+bbbbbbb external_llm\n/gu)).toHaveLength(1);
   });
 
   it("restores Git and markers when compose validation fails after pull", async () => {
@@ -728,7 +779,7 @@ describe("deploy/deploy.sh", () => {
     const commands = await readFile(sandbox.log, "utf8");
 
     expect(result.code).toBe(1);
-    expect(commands).toContain("docker compose -f docker-compose.yml -f deploy/compose.host-proxy.yml rm -sf app");
+    expect(commands).toContain("docker compose -f docker-compose.yml -f deploy/compose.host-proxy.yml -f deploy/compose.workspace.yml rm -sf app");
     await expect(readFile(join(sandbox.root, ".deploy_green_sha"), "utf8")).rejects.toThrow();
   });
 
@@ -786,6 +837,77 @@ describe("deploy/deploy.sh", () => {
     expect(commands).toMatch(/up -d --no-build --force-recreate app/u);
     },
   );
+
+  it("deploys deterministic mode without a key or deep Anthropic probe", async () => {
+    const sandbox = await makeSandbox();
+    const env = validEnv()
+      .replace(/^ANTHROPIC_API_KEY=.*\n/mu, "")
+      .replace("DEMEU_PROCESSING_MODE=external_llm", "DEMEU_PROCESSING_MODE=deterministic");
+    await writeFile(join(sandbox.root, ".env"), env);
+
+    const result = await runDeploy(sandbox, {
+      DEMEU_DEEP_PROBE: "",
+      STUB_TARGET_SHA: "bbbbbbb",
+    });
+    const commands = await readFile(sandbox.log, "utf8");
+
+    expect(result.code).toBe(0);
+    expect(commands).not.toContain('grep -c "^ANTHROPIC_API_KEY="');
+    expect(commands).not.toContain("demeu-health-extract:v1:");
+    expect(commands).toContain("demeu-deterministic-readiness:v1");
+    expect(commands).toContain("bbbbbbb deterministic");
+  });
+
+  it.each([
+    ["external_llm", "deterministic"],
+    ["deterministic", "external_llm"],
+  ])("validates the running %s release independently before activating %s", async (currentMode, desiredMode) => {
+    const sandbox = await makeSandbox();
+    await writeFile(join(sandbox.root, ".env"), validEnv());
+    expect((await runDeploy(sandbox, { STUB_TARGET_SHA: "bbbbbbb" })).code).toBe(0);
+    const desired = desiredMode === "deterministic"
+      ? validEnv().replace(/^ANTHROPIC_API_KEY=.*\n/mu, "").replace("external_llm", "deterministic")
+      : validEnv();
+    await writeFile(join(sandbox.root, ".env"), desired);
+
+    const result = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "ccccccc",
+      STUB_CURRENT_PROCESSING_MODE: currentMode,
+    });
+    const commands = await readFile(sandbox.log, "utf8");
+    expect(result.code).toBe(0);
+    expect(commands).toContain("demeu-existing-health:v1");
+    expect(commands).toContain(`ccccccc ${desiredMode}`);
+  });
+
+  it("fails deterministic activation when the provider-free readiness gate is red", async () => {
+    const sandbox = await makeSandbox();
+    await writeFile(
+      join(sandbox.root, ".env"),
+      validEnv().replace(/^ANTHROPIC_API_KEY=.*\n/mu, "").replace("external_llm", "deterministic"),
+    );
+    const result = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "bbbbbbb",
+      STUB_DETERMINISTIC_READY: "0",
+    });
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("deterministic readiness gate failed");
+  });
+
+  it("rejects an invalid processing mode before Docker mutation", async () => {
+    const sandbox = await makeSandbox();
+    await writeFile(
+      join(sandbox.root, ".env"),
+      validEnv().replace("DEMEU_PROCESSING_MODE=external_llm", "DEMEU_PROCESSING_MODE=local"),
+    );
+
+    const result = await runDeploy(sandbox);
+    const commands = await readFile(sandbox.log, "utf8");
+
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("DEMEU_PROCESSING_MODE");
+    expect(commands).not.toContain("docker ");
+  });
 
   it("restores last green when .env changes during activation", async () => {
     const sandbox = await makeSandbox();

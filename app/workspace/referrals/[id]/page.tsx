@@ -4,7 +4,12 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ExaminationRecord, PatientMemo, ReferralDetail, ReferralFacts } from "@/lib/referrals/types";
-import { REFERRAL_PROFILES } from "@/lib/referrals/profiles";
+import { profileDisplayName, REFERRAL_PROFILES } from "@/lib/referrals/profiles";
+import {
+  ABSTAIN_HYPOTHESIS,
+  DETERMINISTIC_HYPOTHESIS,
+  processingModeNotice,
+} from "@/lib/clinical-copy";
 import { calendarDate, COMPLETENESS_LABELS, EXAM_LABELS, observedDaysLabel, timestamp, WorkspaceError, useWorkspaceCommand, workspaceRequest } from "../../client";
 import { useWorkspaceContext } from "../../shell";
 import { isOperationallyDelayed, useOperationalDelay } from "../../operational-delay";
@@ -13,6 +18,7 @@ import styles from "./detail.module.css";
 
 const TABS = [["overview", "Обзор"], ["facts", "Подтверждения"], ["exams", "Обследования"], ["history", "История"], ["memo", "Памятка"]] as const;
 type Tab = typeof TABS[number][0];
+type NotifyStatus = { state: "pending" | "success" | "error"; message: string };
 const URGENCY_LABELS = { emergency: "Неотложно", urgent: "Срочно", planned: "Планово", routine: "Рутинно" };
 const SOURCE_LABELS = { rules_only: "Только правила безопасности; без модельной оценки", llm_fallback: "Резервный аналитический путь LLM", model: "Модель и правила безопасности" };
 
@@ -23,6 +29,9 @@ function BoolField({ name, label, value }: { name: string; label: string; value:
 }
 const FACT_LABELS: Record<string, string> = { profile: "Профиль", icd10Code: "Код МКБ-10", destinationOrganization: "Организация", specialistReferred: "К узкому специалисту", preparationStarted: "Подготовка начата", sent: "Направление отправлено", queue: "Лист ожидания", scheduledDate: "Назначенная дата", attendance: "Явка", cancelled: "Отменено", label: "Обследование", performedOn: "Дата проведения", expiresOn: "Срок действия", applicability: "Применимость", resultAvailable: "Результат получен" };
 function eventValue(value: unknown) { return value === null ? "неизвестно" : value === true ? "да" : value === false ? "нет" : value === "attended" ? "явился" : value === "not_attended" ? "не явился" : value === "unknown" ? "неизвестно" : value === "yes" ? "да" : value === "no" ? "нет" : String(value); }
+function eventFieldValue(key: string, value: unknown) {
+  return key === "profile" && typeof value === "string" ? profileDisplayName(value) : eventValue(value);
+}
 
 export default function ReferralCard() {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +51,7 @@ function ReferralRecord({ id }: { id: string }) {
   const [error, setError] = useState("");
   const [dateError, setDateError] = useState("");
   const [message, setMessage] = useState("");
+  const [notifyStatus, setNotifyStatus] = useState<NotifyStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [version, setVersion] = useState(0);
@@ -63,7 +73,7 @@ function ReferralRecord({ id }: { id: string }) {
     if (!actor || actor.role === "analyst") return;
     const requestGeneration = ++generation.current;
     let active = true;
-    setLoading(true); setLoadedId(null); setError(""); setMemo(null); setMessage(""); setEditingExam(null);
+    setLoading(true); setLoadedId(null); setError(""); setMemo(null); setMessage(""); setNotifyStatus(null); setEditingExam(null);
     workspaceRequest<{ referral: ReferralDetail }>(base).then((value) => {
       if (!active || requestGeneration !== generation.current) return;
       if (value.referral.id !== id) throw new Error("Не удалось проверить карточку. Обновите страницу.");
@@ -76,7 +86,7 @@ function ReferralRecord({ id }: { id: string }) {
 
   function beginOperation() {
     if (disabled || activeOperation.current) return null;
-    activeOperation.current = true; setBusy(true); setError(""); setMessage("");
+    activeOperation.current = true; setBusy(true); setError(""); setMessage(""); setNotifyStatus(null);
     return generation.current;
   }
   function finishOperation(requestGeneration: number) {
@@ -129,7 +139,7 @@ function ReferralRecord({ id }: { id: string }) {
     }
     setDateError("");
     const requestGeneration = beginOperation(); if (requestGeneration === null) return;
-    const intent = Object.entries("record" in body ? body.record : changed).filter(([key]) => key in FACT_LABELS).map(([key, value]) => `${FACT_LABELS[key]}: ${eventValue(value)}`);
+    const intent = Object.entries("record" in body ? body.record : changed).filter(([key]) => key in FACT_LABELS).map(([key, value]) => `${FACT_LABELS[key]}: ${eventFieldValue(key, value)}`);
     if (common.reason) intent.push(`Основание: ${common.reason}`);
     if (common.occurredAt !== null) intent.push(`Время события: ${timestamp(common.occurredAt)}`);
     try {
@@ -151,8 +161,14 @@ function ReferralRecord({ id }: { id: string }) {
   async function notify() {
     if (!ready || !referral) return;
     const requestGeneration = beginOperation(); if (requestGeneration === null) return;
-    try { await command(`${base}/notify`, { expectedRevision: referral.revision }); if (requestGeneration === generation.current) setMessage("Памятка отправлена в Telegram врача."); }
-    catch (reason) { if (requestGeneration === generation.current) failOperation(reason); }
+    setNotifyStatus({ state: "pending", message: "Отправляем памятку врачу…" });
+    try { await command(`${base}/notify`, { expectedRevision: referral.revision }); if (requestGeneration === generation.current) setNotifyStatus({ state: "success", message: "Памятка отправлена в Telegram врача." }); }
+    catch (reason) {
+      if (requestGeneration === generation.current) {
+        if (reason instanceof WorkspaceError && reason.code === "REVISION_CONFLICT") { setConflict(true); setError(reason.message); }
+        setNotifyStatus({ state: "error", message: reason instanceof Error ? reason.message : "Не удалось подтвердить доставку памятки." });
+      }
+    }
     finally { finishOperation(requestGeneration); }
   }
 
@@ -166,7 +182,7 @@ function ReferralRecord({ id }: { id: string }) {
     {!loading && !ready && !error && <EmptyState title="Карточка недоступна" description="Вернитесь к списку направлений или обновите страницу." />}
     {actor?.role === "analyst" && <p className={styles.notice}>Аналитику доступны только сводные показатели. <Link href="/workspace">Перейти к сводке</Link></p>}
     {actor && actor.role !== "analyst" && ready && referral && facts && <>
-      <PageHeading eyebrow="Карточка направления" title={referral.patientLabel} description={`${referral.profile}${referral.icd10Code ? ` · МКБ-10 ${referral.icd10Code}` : ""} · ${referral.destinationOrganization || "Организация не указана"}`} actions={<StatusBadge flow={referral.flow} />} />
+      <PageHeading eyebrow="Карточка направления" title={referral.patientLabel} description={`${profileDisplayName(referral.profile)}${referral.icd10Code ? ` · МКБ-10 ${referral.icd10Code}` : ""} · ${referral.destinationOrganization || "Организация не указана"}`} actions={<StatusBadge flow={referral.flow} />} />
       <p className={styles.metadata}>Обновлено {timestamp(referral.updatedAt)} · Версия {referral.revision}</p>
       {referral.triageSnapshot?.urgency === "emergency" && <div className={styles.emergency} role="alert"><Icon name="warning" /><div><strong>Неотложный приоритет по результатам опроса</strong><p>В сохранённой сводке отмечены признаки, требующие внимания врача. Организационный этап направления не заменяет оценку срочности.</p></div></div>}
       <dl className={styles.factStrip}><div><dt>Лист ожидания</dt><dd>{eventValue(referral.queue)}</dd></div><div><dt>Назначенная дата</dt><dd>{calendarDate(referral.scheduledDate)}</dd></div><div><dt>Явка</dt><dd>{eventValue(referral.attendance)}</dd></div><div><dt>Пакет обследований</dt><dd>{COMPLETENESS_LABELS[referral.completeness.status]}</dd></div></dl>
@@ -179,9 +195,9 @@ function ReferralRecord({ id }: { id: string }) {
           <p>{referral.triageSnapshot.anamnesis.chief_complaint || "Жалоба не указана"}</p>
           <h3>Основания срочности</h3>{referral.triageSnapshot.urgency_reasons.length > 0 ? <ul className={styles.reasons}>{referral.triageSnapshot.urgency_reasons.map((reason, index) => <li key={index}>{reason}</li>)}</ul> : <p className={styles.small}>В сохранённой сводке основания не указаны.</p>}
           <h3>Предлагаемая маршрутизация</h3><p>{referral.triageSnapshot.routing.length > 0 ? referral.triageSnapshot.routing.map((route) => route.specialty).join(" · ") : "Специальность не определена — требуется решение врача."}</p>
-          <h3>Предварительная гипотеза</h3><p>{referral.triageSnapshot.hypothesis.text}</p><p className={styles.notice}>{referral.triageSnapshot.hypothesis.disclaimer}</p>
+          <h3>{referral.triageSnapshot.processing_mode === "deterministic" ? "Гипотеза не формировалась" : referral.triageSnapshot.hypothesis.text === ABSTAIN_HYPOTHESIS ? "Гипотеза не сформирована" : "Предварительная гипотеза"}</h3><p>{referral.triageSnapshot.processing_mode === "deterministic" ? DETERMINISTIC_HYPOTHESIS : referral.triageSnapshot.hypothesis.text}</p><p className={styles.notice}>{referral.triageSnapshot.hypothesis.disclaimer}</p>
           {referral.triageSnapshot.red_flags.length > 0 && <><h3>Отмеченные признаки</h3><ul className={styles.list}>{referral.triageSnapshot.red_flags.map((flag) => <li key={flag.code} className={flag.emergency ? styles.emergencyFlag : undefined}><strong>{flag.emergency && <Icon name="warning" size={15} />} {flag.label}</strong><p>{flag.evidence_kind === "quote" ? `«${flag.evidence}»` : flag.evidence}</p></li>)}</ul></>}
-          <div className={styles.source}><strong>Источник: {SOURCE_LABELS[referral.triageSnapshot.source]}</strong><p className={styles.small}>Сокращённая сводка не содержит полного аудита модели; числовая уверенность здесь не показана. Сводка сохранена из завершённого опроса. Подтверждение направления — отдельное решение врача.</p></div>
+          <div className={styles.source}><strong>Источник: {referral.triageSnapshot.processing_mode === "deterministic" ? "Детерминированный опросник и правила безопасности" : referral.triageSnapshot.hypothesis.text === ABSTAIN_HYPOTHESIS ? "Модель воздержалась; гипотеза не сформирована" : SOURCE_LABELS[referral.triageSnapshot.source]}</strong><p className={styles.small}>{processingModeNotice(referral.triageSnapshot.processing_mode)}</p><p className={styles.small}>Сокращённая сводка не содержит полного аудита модели; числовые оценки здесь не показаны. Сводка сохранена из завершённого опроса. Подтверждение направления — отдельное решение врача.</p></div>
         </section>}
         {!referral.triageSnapshot && <section className={styles.card}><EmptyState title="Сводка опроса не прикреплена" description="Направление ведётся по подтверждённым врачом фактам. Отсутствие сводки не подтверждает отсутствие жалоб." /></section>}
         <section className={styles.card}><div className={styles.cardHeading}><h2>Подтверждённые факты</h2><button className="btn subtle" onClick={() => setTab("facts")}>Уточнить <Icon name="arrow" size={16} /></button></div><dl className={styles.factList}>{["specialistReferred", "preparationStarted", "sent", "queue", "cancelled"].map((key) => <div key={key}><dt>{FACT_LABELS[key]}</dt><dd>{eventValue(referral[key as keyof ReferralFacts] ?? null)}</dd></div>)}</dl><p className={styles.small}>Очередь, назначенная дата и явка подтверждаются независимо друг от друга.</p></section>
@@ -189,7 +205,7 @@ function ReferralRecord({ id }: { id: string }) {
         {tab === "facts" && <section className={styles.card}><h2>Подтвердить факты</h2><p className={styles.small}>Указывайте только известные факты. Назначенная дата сама по себе не подтверждает явку.</p>
           <form className={styles.form} key={`facts-${referral.revision}`} onSubmit={(event) => void save(event, "facts")}>
             <fieldset disabled={disabled}>
-            <div className={styles.fields}><label className={styles.field}>Профиль госпитализации<select name="profile" defaultValue={referral.profile} required>{!REFERRAL_PROFILES.some((profile) => profile === referral.profile) && <option value={referral.profile}>{referral.profile} · прежнее значение</option>}{REFERRAL_PROFILES.map((profile) => <option key={profile} value={profile}>{profile}</option>)}</select><span className={styles.small}>Перечень профилей ожидает проверки врачом больницы.</span></label><label className={styles.field}>Код МКБ-10<input name="icd10Code" defaultValue={referral.icd10Code || ""} maxLength={8} pattern="[A-Za-z][0-9]{2}(\.[0-9A-Za-z]{1,4})?" placeholder="Например, I20.9" /><span className={styles.small}>Для аналитики; перечень обследований выбирается по профилю.</span></label></div>
+            <div className={styles.fields}><label className={styles.field}>Профиль госпитализации<select name="profile" defaultValue={referral.profile} required>{!REFERRAL_PROFILES.some((profile) => profile === referral.profile) && <option value={referral.profile}>{profileDisplayName(referral.profile)}</option>}{REFERRAL_PROFILES.map((profile) => <option key={profile} value={profile}>{profile}</option>)}</select><span className={styles.small}>Перечень профилей ожидает проверки врачом больницы.</span></label><label className={styles.field}>Код МКБ-10<input name="icd10Code" defaultValue={referral.icd10Code || ""} maxLength={8} pattern="[A-Za-z][0-9]{2}(\.[0-9A-Za-z]{1,4})?" placeholder="Например, I20.9" /><span className={styles.small}>Для аналитики; перечень обследований выбирается по профилю.</span></label></div>
             <label className={styles.field}>Принимающая организация<input name="destinationOrganization" defaultValue={referral.destinationOrganization || ""} maxLength={160} /></label>
             <div className={styles.fields}><BoolField name="specialistReferred" label="Направлен к узкому специалисту" value={facts.specialistReferred ?? null} /><label className={styles.field}>Подготовка пакета<select name="preparationStarted" defaultValue={facts.preparationStarted ? "yes" : "no"}><option value="no">Не начата</option><option value="yes">Начата врачом</option></select></label><BoolField name="sent" label="Направление отправлено" value={referral.sent} /><BoolField name="queue" label="В листе ожидания" value={referral.queue} /></div>
             <div className={styles.fields}><label className={styles.field}>Назначенная дата<input name="scheduledDate" type="date" defaultValue={referral.scheduledDate || ""} /></label><label className={styles.field}>Явка<select name="attendance" defaultValue={referral.attendance ?? "unknown"}><option value="unknown">Неизвестно</option><option value="attended">Явился — подтверждено</option><option value="not_attended">Не явился — подтверждено</option></select></label></div>
@@ -202,14 +218,15 @@ function ReferralRecord({ id }: { id: string }) {
         </section>}
         {tab === "history" && <section className={styles.card}><h2>История подтверждений</h2><p className={styles.small}>Неизменяемый журнал. Исправление добавляет новую запись, а не удаляет предыдущую. Время указано по Алматы.</p><ol className={styles.timeline}>{[...referral.events].reverse().map((event) => {
           const previous = event.before as Partial<ReferralFacts> | null;
-          return <li key={event.id}><p><strong>{event.actorName}</strong> · {event.type === "created" ? "Создал направление" : event.type === "facts_changed" ? "Подтвердил факты" : "Записал обследование"}</p><p className={styles.small}>Записано: {timestamp(event.recordedAt)} · Событие: {timestamp(event.occurredAt)}</p>{Object.entries(event.after).filter(([key, value]) => key in FACT_LABELS && (!previous || (previous as Record<string, unknown>)[key] !== value)).map(([key, value]) => <p className={styles.small} key={key}>{FACT_LABELS[key]}: {previous && key in previous ? `${eventValue((previous as Record<string, unknown>)[key])} → ` : ""}{eventValue(value)}</p>)}{event.reason && <p>{event.reason}</p>}</li>;
+          return <li key={event.id}><p><strong>{event.actorName}</strong> · {event.type === "created" ? "Создал направление" : event.type === "facts_changed" ? "Подтвердил факты" : "Записал обследование"}</p><p className={styles.small}>Записано: {timestamp(event.recordedAt)} · Событие: {timestamp(event.occurredAt)}</p>{Object.entries(event.after).filter(([key, value]) => key in FACT_LABELS && (!previous || (previous as Record<string, unknown>)[key] !== value)).map(([key, value]) => <p className={styles.small} key={key}>{FACT_LABELS[key]}: {previous && key in previous ? `${eventFieldValue(key, (previous as Record<string, unknown>)[key])} → ` : ""}{eventFieldValue(key, value)}</p>)}{event.reason && <p>{event.reason}</p>}</li>;
         })}</ol></section>}
         {tab === "exams" && <section className={styles.card}><h2>Комплектность пакета</h2><span className={styles.badge}>{COMPLETENESS_LABELS[referral.completeness.status]}</span><p className={styles.small}>На {calendarDate(referral.completeness.evaluatedOn)} · {referral.completeness.basis === "scheduled_date" ? "к назначенной дате" : "на сегодня"}</p>
           {!referral.completeness.catalogueAvailable && <p className={styles.notice}>{referral.completeness.catalogueStatus === "available" && !referral.completeness.catalogueValidated ? `Перечень ${referral.completeness.catalogueVersion} получен, но ещё не проверен врачом больницы.` : "Проверенный перечень для этого профиля недоступен."} Комплектность не подтверждена.</p>}
           <ul className={styles.list}>{referral.completeness.entries.map((entry) => <li key={entry.requirementId}><strong>{entry.label}</strong><p>{EXAM_LABELS[entry.status]}{entry.expiresOn ? ` · до ${calendarDate(entry.expiresOn)}` : ""}</p></li>)}</ul>
           <h3>Записанные обследования</h3>{!referral.examinations.length && <p className={styles.small}>Пока не добавлены.</p>}<ul className={styles.list}>{referral.examinations.map((exam) => <li key={exam.id}><strong>{exam.label}</strong><p className={styles.small}>Проведено: {calendarDate(exam.performedOn)} · Действует до: {calendarDate(exam.expiresOn)}</p><p className={styles.small}>Наличие результата: {eventValue(exam.resultAvailable)}</p><button className="btn subtle" disabled={disabled} onClick={() => { setDateError(""); setEditingExam({ ...exam }); }}>Исправить</button></li>)}</ul>
         </section>}
-        {tab === "memo" && <section className={styles.card}><div className={styles.cardHeading}><h2>Памятка пациенту</h2><Icon name="referrals" /></div><p className={styles.small}>Проверьте список перед передачей пациенту. Передача — через врача. Если доставка не подтверждена, проверьте Telegram: автоматически повторять отправку нельзя.</p><div className={styles.row}><button className="btn ghost" disabled={disabled} onClick={() => void getMemo()}>Посмотреть памятку</button>{disabled ? <button className="btn subtle" disabled><Icon name="download" size={16} /> Скачать PDF</button> : <a className="btn subtle" href={`${base}/patient-memo?format=pdf`} target="_blank" rel="noreferrer"><Icon name="download" size={16} /> Скачать PDF</a>}<button className="btn subtle" disabled={disabled} onClick={() => void notify()}>Отправить врачу в Telegram</button></div>
+        {tab === "memo" && <section className={styles.card}><div className={styles.cardHeading}><h2>Памятка пациенту</h2><Icon name="referrals" /></div><p className={styles.small}>Проверьте список перед передачей пациенту. Передача — через врача. Если доставка не подтверждена, проверьте Telegram: автоматически повторять отправку нельзя.</p><div className={styles.row}><button className="btn ghost" disabled={disabled} onClick={() => void getMemo()}>Посмотреть памятку</button>{disabled ? <button className="btn subtle" disabled><Icon name="download" size={16} /> Скачать PDF</button> : <a className="btn subtle" href={`${base}/patient-memo?format=pdf`} target="_blank" rel="noreferrer"><Icon name="download" size={16} /> Скачать PDF</a>}<button className="btn subtle" disabled={disabled} onClick={() => void notify()}>{notifyStatus?.state === "pending" ? "Отправляем…" : "Отправить врачу в Telegram"}</button></div>
+          {notifyStatus && <p className={`${styles.notifyStatus} ${notifyStatus.state === "error" ? styles.notifyError : ""}`} role={notifyStatus.state === "error" ? "alert" : "status"}>{notifyStatus.message}</p>}
           {memo ? <div className={styles.memo}><p className={styles.eyebrow}>Памятка для передачи пациенту</p><h3>{memo.patientLabel}</h3><p>{memo.destinationOrganization || "Организацию нужно уточнить"}</p><p>Назначенная дата: {calendarDate(memo.scheduledDate)}</p>{!memo.catalogueAvailable && <p className={styles.notice}>Состав обязательных обследований нужно уточнить у врача.</p>}<ul className={styles.list}>{memo.items.map((item, index) => <li key={index}>{item.label}: {EXAM_LABELS[item.status]}{item.expiresOn ? `, до ${calendarDate(item.expiresOn)}` : ""}</li>)}</ul></div> : <EmptyState title="Предпросмотр памятки" description="Нажмите «Посмотреть памятку», чтобы проверить актуальный состав перед передачей." />}
         </section>}
       </div>{(tab === "overview" || tab === "exams") && <aside className={styles.stack}>

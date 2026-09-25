@@ -14,6 +14,32 @@ interface DeliveryEntry { identity: string; payloadHash: string; commands: strin
 interface JournalData { schemaVersion: 1; entries: DeliveryEntry[] }
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const fail = (status: number, code: string): never => { throw new WorkspaceAuthError(status, code); };
+const REFERRAL_URGENCY = {
+  emergency: "🔴 ПРИОРИТЕТ: НЕОТЛОЖНО",
+  urgent: "🟠 ПРИОРИТЕТ: СРОЧНО",
+  planned: "🟡 ПРИОРИТЕТ: ПЛАНОВО",
+  routine: "🟢 ПРИОРИТЕТ: РУТИННО",
+} as const;
+
+function safeTelegramLine(value: string): string {
+  return value.replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]+/gu, " ").replace(/\s+/gu, " ").trim();
+}
+
+function workspaceUrl(pathname: string): string {
+  try {
+    const configured = process.env.APP_BASE_URL?.trim();
+    if (!configured) return fail(503, "WORKSPACE_UNAVAILABLE");
+    const base = new URL(configured);
+    if (!["http:", "https:"].includes(base.protocol) || base.username || base.password || base.search || base.hash) {
+      return fail(503, "WORKSPACE_UNAVAILABLE");
+    }
+    if (!pathname.startsWith("/") || pathname.startsWith("//")) return fail(503, "WORKSPACE_UNAVAILABLE");
+    return new URL(pathname, `${base.origin}/`).toString();
+  } catch (error) {
+    if (error instanceof WorkspaceAuthError) throw error;
+    return fail(503, "WORKSPACE_UNAVAILABLE");
+  }
+}
 
 function validateJournal(value: unknown): JournalData {
   const document = value as JournalData;
@@ -89,7 +115,12 @@ export class ScopedWorkspaceNotifier {
   }
   async sendDoctorSummary(session: ReadonlySession, result: TriageResult): Promise<void> {
     const recipient = await this.recipient(await this.deps.ownerForToken(session.doctorToken));
-    await this.deps.journal().deliver(["completed", session.id], ["completed", session.id], [recipient.id, recipient.organizationId, recipient.telegramChatId, result], () => this.notifier(recipient.telegramChatId).sendDoctorSummary(session, result));
+    const context = {
+      doctorDisplayName: recipient.displayName,
+      episodeLabel: "Новый завершённый опрос",
+      intakeUrl: workspaceUrl(`/workspace/intakes/${encodeURIComponent(session.id)}`),
+    };
+    await this.deps.journal().deliver(["completed", session.id], ["completed", session.id], [recipient.id, recipient.organizationId, recipient.telegramChatId, result, context], () => this.notifier(recipient.telegramChatId).sendDoctorSummary(session, result, undefined, context));
   }
   async sendAbortedNotice(notice: AbortedSessionNotice): Promise<void> {
     const recipient = await this.recipient(await this.deps.ownerForToken(notice.doctorToken));
@@ -99,7 +130,23 @@ export class ScopedWorkspaceNotifier {
     if (actor.role === "analyst" || actor.organizationId !== referral.organizationId || (actor.role !== "owner" && actor.id !== referral.doctorId)) return fail(403, "FORBIDDEN");
     const currentOwner = await this.deps.currentActor(referral.doctorId);
     const recipient = await this.recipient(currentOwner, referral.organizationId);
-    const text = `Направление: ${referral.profile}\nКомплектность: ${{ complete: "комплектен", incomplete: "не комплектен", expired: "есть истёкшие сроки", unknown: "не проверено" }[referral.completeness.status]}\n\n${renderPatientMemoText(memo)}`;
+    const safeMemo: PatientMemo = {
+      ...memo,
+      patientLabel: safeTelegramLine(memo.patientLabel),
+      destinationOrganization: memo.destinationOrganization === null ? null : safeTelegramLine(memo.destinationOrganization),
+      items: memo.items.map((item) => ({ ...item, label: safeTelegramLine(item.label) })),
+    };
+    const text = [
+      referral.triageSnapshot ? REFERRAL_URGENCY[referral.triageSnapshot.urgency] : "⚪ ПРИОРИТЕТ: НЕ УКАЗАН",
+      `Эпизод: ${safeTelegramLine(referral.patientLabel)} · Врач: ${safeTelegramLine(recipient.displayName)}`,
+      `Направление: ${safeTelegramLine(referral.profile)}`,
+      `Комплектность: ${{ complete: "комплектен", incomplete: "не комплектен", expired: "есть истёкшие сроки", unknown: "не проверено" }[referral.completeness.status]}`,
+      "",
+      renderPatientMemoText(safeMemo),
+      "",
+      "Карточка направления:",
+      workspaceUrl(`/workspace/referrals/${encodeURIComponent(referral.id)}`),
+    ].join("\n");
     const pdf = await (this.deps.pdf ?? renderPatientMemoPdf)(memo);
     const client = this.deps.client();
     return this.deps.journal().deliver(["referral", referral.organizationId, referral.id, referral.revision], [actor.organizationId, actor.id, idempotencyKey], [recipient.id, recipient.telegramChatId, text], async () => {

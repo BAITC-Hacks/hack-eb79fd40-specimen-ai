@@ -84,7 +84,8 @@ and validates it. See [Status](status.md#known-contract-and-runtime-divergences)
 
 `GET /api/healthz` is the shallow liveness/provenance contract. It reports the
 process state, build commit, model version, and whether required configuration
-is present without spending an Anthropic request.
+is present without spending an Anthropic request. Поле `processing_mode` точно
+показывает `external_llm` или `deterministic`.
 
 The implementation also has an opt-in deep health probe on the same health
 surface. Its proof is an HMAC bound to the exact commit. A missing or incorrect
@@ -93,14 +94,16 @@ exactly one structured provider request; a cache and singleflight coalesce
 repeated or concurrent probes.
 
 Deep health is additive: it may fail while the shallow process remains alive.
-Deploy runs the authenticated deep probe before declaring a revision green. A
+Deploy runs the authenticated deep probe before declaring an external LLM revision green. In
+deterministic mode it skips the Anthropic key and provider probe, then requires
+a provider-free deep self-test of the fixed questionnaire and three safety scenarios. A
 deep failure enters recovery toward the recorded last-green revision rather
 than publishing success or creating a dependency-driven restart loop.
 
 | Layer | Purpose | Appropriate consumer |
 |---|---|---|
 | Shallow | Process, commit, model/config presence | Container and routine liveness |
-| Deep | Selected external dependency readiness | Manual smoke and release verification |
+| Deep | External extraction or deterministic questionnaire readiness | Manual smoke and release verification |
 
 ## Deploy flow
 
@@ -110,7 +113,7 @@ than publishing success or creating a dependency-driven restart loop.
 2. Build the multi-stage image with commit provenance.
 3. Start or recreate the selected compose stack.
 4. Wait for shallow health and compare the returned commit.
-5. Run the commit-bound deep probe before marking the revision green.
+5. In external LLM mode, run the commit-bound deep probe before marking the revision green.
 6. Recover toward last-green on deep failure and return non-zero on any mismatch.
 
 Use [`DEPLOY.md`](../deploy/DEPLOY.md) for operator commands and

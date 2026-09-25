@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { handleChatStart } from "../../app/api/chat/start/handler";
+import { patientSafeResumeResponse } from "../../lib/patient-response";
 import { SESSION_TTL_MS } from "../../lib/config";
 import { hasPatientCapability, issuePatientCookie, patientCookieName, protectPatientAction, protectPatientStart, resumePatientSession } from "../../lib/patient-session";
 import { MemorySessionStore } from "../../lib/store";
@@ -105,9 +106,19 @@ describe("patient session capabilities", () => {
     await state.completeSession(session.id, result);
     const create = vi.spyOn(state, "createSession");
     const append = vi.spyOn(state, "appendMessage");
-    const response = await resumePatientSession(request({ sessionId: session.id, token }, cookie(session.id)), state);
+    const response = await patientSafeResumeResponse(
+      await resumePatientSession(request({ sessionId: session.id, token }, cookie(session.id)), state),
+    );
     expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ sessionId: session.id, language: "kk", status: "completed", result, turnsLeft: 19 });
+    const payload = await response.json();
+    expect(payload).toMatchObject({
+      sessionId: session.id,
+      language: "kk",
+      status: "completed",
+      closing: { emergency: false },
+      turnsLeft: 19,
+    });
+    expect(payload).not.toHaveProperty("result");
     expect(create).not.toHaveBeenCalled();
     expect(append).not.toHaveBeenCalled();
     expect((await resumePatientSession(request({ sessionId: session.id, token: "other" }, cookie(session.id)), state)).status).toBe(401);

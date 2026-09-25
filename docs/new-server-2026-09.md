@@ -2,7 +2,7 @@
 
 Пользователь 14.09.2026 назначил новый VPS `84.247.161.211` и предоставил доступ для установки с нуля. Это явное операционное дополнение к историческому SPINE: прежний VPS `109.123.248.16` не используется в этом запуске. Нельзя выбирать старый адрес из дефолтов скриптов.
 
-Целевой origin: `https://84-247-161-211.sslip.io`. Состояние фактической проверки фиксируется отдельным отчётом после запуска; этот документ описывает выбранную конфигурацию, а не доказывает доступность.
+Текущий production origin: `https://84.247.161.211`. Для него обязательны workspace overlay и отдельный ingress overlay нового сервера. Состояние фактической проверки фиксируется отдельным отчётом после запуска; этот документ описывает выбранную конфигурацию, а не доказывает доступность.
 
 ## Размещение
 
@@ -16,7 +16,7 @@
 
 Перед публикацией обновлены Next.js/eslint-config-next до 15.5.25, sharp до 0.35.4, PostCSS до 8.5.23 и nanoid до 3.3.19. Next остаётся в ветке 15.5, React — 19. Production `npm audit --omit=dev` после обновления не сообщает уязвимостей. Полный audit оставляет 3 moderate dev-only записи Vitest 4.1.10; сервер тестового UI не запускать с внешним доступом. [Исправление Next](https://github.com/vercel/next.js/security/advisories/GHSA-2xp9-vwfh-vxw4), [sharp](https://github.com/lovell/sharp/security/advisories/GHSA-rgj7-g3m4-5g8c), [PostCSS](https://github.com/postcss/postcss/security/advisories/GHSA-fxqj-rqcc-2cmp), [остаток Vitest](https://github.com/vitest-dev/vitest/security/advisories/GHSA-82fw-gwwq-j7x9).
 
-В `.env` явно задаются `DEMEU_DOMAIN=84-247-161-211.sslip.io`, `APP_BASE_URL=https://84-247-161-211.sslip.io`, `TLS_BRANCH=branch-b-caddy`, `VPS_RECON_CONFIRMED=yes`, `APP_PORT=3100`, `DEMEU_HOST_DATA_DIR=/var/lib/demeu`, `DEMEU_HOST_ACCOUNTS_FILE=/etc/demeu/accounts.json`, независимый `DEMEU_AUTH_SECRET` и интеграционные реквизиты. Не печатать `docker compose config` без `--quiet`: он раскрывает секреты.
+В `.env` явно задаются `DEMEU_DOMAIN=84.247.161.211`, `APP_BASE_URL=https://84.247.161.211`, `TLS_BRANCH=branch-b-caddy`, `VPS_RECON_CONFIRMED=yes`, `APP_PORT=3100`, `DEMEU_HOST_DATA_DIR=/var/lib/demeu`, `DEMEU_HOST_ACCOUNTS_FILE=/etc/demeu/accounts.json`, независимый `DEMEU_AUTH_SECRET` и интеграционные реквизиты. Не печатать `docker compose config` без `--quiet`: он раскрывает секреты.
 
 ## Сборка и запуск
 
@@ -24,16 +24,16 @@
 
 ```bash
 export COMMIT_SHA="$(git rev-parse HEAD)"
-docker compose -f docker-compose.yml -f deploy/compose.caddy.yml -f deploy/compose.workspace.yml config --quiet
-docker compose -f docker-compose.yml -f deploy/compose.caddy.yml -f deploy/compose.workspace.yml build app
-docker compose -f docker-compose.yml -f deploy/compose.caddy.yml -f deploy/compose.workspace.yml up -d
-docker compose -f docker-compose.yml -f deploy/compose.caddy.yml -f deploy/compose.workspace.yml ps
-curl --fail --silent --show-error https://84-247-161-211.sslip.io/api/healthz
+docker compose -f docker-compose.yml -f deploy/compose.caddy.yml -f deploy/compose.workspace.yml -f deploy/compose.new-server-ip.yml config --quiet
+docker compose -f docker-compose.yml -f deploy/compose.caddy.yml -f deploy/compose.workspace.yml -f deploy/compose.new-server-ip.yml build app
+docker compose -f docker-compose.yml -f deploy/compose.caddy.yml -f deploy/compose.workspace.yml -f deploy/compose.new-server-ip.yml up -d
+docker compose -f docker-compose.yml -f deploy/compose.caddy.yml -f deploy/compose.workspace.yml -f deploy/compose.new-server-ip.yml ps
+curl --fail --silent --show-error https://84.247.161.211/api/healthz
 ```
 
 Проверить совпадение `commit` с `git rev-parse HEAD`, HTTPS без `-k`, вход и область роли, отсутствие публичного порта приложения. `llm_ok` в обычном health — только наличие ключа; живой ответ требует отдельной пробы. Получатель Telegram задаётся в конкретной учётной записи, глобальный chat ID не является обходом принадлежности.
 
-**Важно:** исторические `deploy/deploy.sh`, `rollback.sh` и `tls.sh branch-b-up` не подключают workspace overlay. Не запускать их для этого кабинета без доработки: при пересоздании потеряются mounts/auth configuration. Использовать полную тройку Compose-файлов выше при каждом запуске, рестарте и обновлении.
+`deploy/deploy.sh` и `deploy/rollback.sh` теперь собирают этот профиль одной и той же полной цепочкой: base → Caddy → workspace → new-server-ip. Точное значение `DEMEU_DOMAIN=84.247.161.211` выбирает ingress overlay; скрипты дополнительно проверяют `/workspace` и анонимный bootstrap `/api/workspace/auth` перед признанием candidate или восстановленного образа зелёным. Ручной `tls.sh branch-b-up` этой гарантии не даёт и для кабинета не используется.
 
 ## Доставка обновления без ключа GitHub на VPS
 

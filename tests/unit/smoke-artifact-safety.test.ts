@@ -63,6 +63,7 @@ globalThis.fetch = async (input) => {
     commit: "0123456789abcdef0123456789abcdef01234567",
     model_version: "lr-v1",
     llm_ok: false,
+    processing_mode: "external_llm",
   });
   if (route === "/api/link") return json({ token: ${JSON.stringify(PRIVATE_TOKEN)} });
   if (route === "/api/chat/start") return json({ code: "TOKEN_NOT_FOUND" }, 404);
@@ -326,6 +327,7 @@ globalThis.fetch = async (input) => {
     commit: "0123456789abcdef0123456789abcdef01234567",
     model_version: "lr-v1",
     llm_ok: false,
+    processing_mode: "external_llm",
   });
   if (route === "/api/link") return json({ token: ${JSON.stringify(PRIVATE_TOKEN)} });
   if (route === "/api/chat/start") return json({ code: "TOKEN_NOT_FOUND" }, 404);
@@ -379,6 +381,7 @@ globalThis.fetch = async (input) => {
     commit: "0123456789abcdef0123456789abcdef01234567",
     model_version: "lr-v1",
     llm_ok: false,
+    processing_mode: "external_llm",
   });
   if (route === "/api/link") return json({ token: ${JSON.stringify(PRIVATE_TOKEN)} });
   if (route === "/api/chat/start") return json({ code: "TOKEN_NOT_FOUND" }, 404);
@@ -483,6 +486,7 @@ globalThis.fetch = async (input) => {
     commit: "0123456789abcdef0123456789abcdef01234567",
     model_version: "lr-v1",
     llm_ok: phase === "page" ? false : true,
+    processing_mode: "external_llm",
   }), { headers: { "content-type": "application/json" } });
   if (route === "/api/link") return new Response(JSON.stringify({ token: ${JSON.stringify(PRIVATE_TOKEN)} }), { headers: { "content-type": "application/json" } });
   if (route === "/api/chat/start") return new Response(JSON.stringify({

@@ -80,8 +80,15 @@ export function evaluateCompleteness(
     entries.push({ requirementId: record.requirementId, label: record.label, required: null,
       status: recordedExpiryStatus(record.expiresOn), expiresOn: record.expiresOn });
   }
-  const mandatory = entries.filter((entry) => entry.required !== false && entry.required !== null);
-  const status: Completeness["status"] = entries.some((entry) => entry.status === "expired")
+  // `required: false` means truly optional only when the catalogue item is not
+  // conditional. A conditional item becomes blocking once the doctor confirms
+  // that it is applicable; an unknown applicability must remain fail-closed.
+  const blockingIds = new Set((profile?.requirements ?? [])
+    .filter((requirement) => requirement.required === true || requirement.conditional)
+    .map((requirement) => requirement.id));
+  const mandatory = entries.filter((entry) => blockingIds.has(entry.requirementId));
+  const status: Completeness["status"] = mandatory.some((entry) => entry.status === "expired")
+    || entries.some((entry) => entry.required === null && entry.status === "expired")
     ? "expired" : !catalogueAvailable || !referral.scheduledDate || mandatory.some((entry) => entry.status === "unknown")
       ? "unknown" : mandatory.some((entry) => entry.status === "missing") ? "incomplete" : "complete";
   return { status, evaluatedOn, basis: referral.scheduledDate ? "scheduled_date" : "today", catalogueVersion: catalogue.version,

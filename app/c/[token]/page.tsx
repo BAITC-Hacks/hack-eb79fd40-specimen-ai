@@ -26,10 +26,10 @@ import {
   isStartInvalid,
   patientFailureText,
 } from "@/lib/patient-state";
-import type { TriageResult } from "@/lib/types";
-import DoctorPanel from "./DoctorPanel";
+import type { PatientClosing } from "@/lib/patient-response";
+import DoctorPanel, { SYNTHETIC_DEMO_RESULT } from "./DoctorPanel";
 import {
-  ConsentScreen,
+  ConsentGate,
   InputWidgetChoices,
   LoadingState,
   PatientFinale,
@@ -59,10 +59,6 @@ interface UiMessage {
   failure?: ApiFailure;
 }
 
-function emergencyResult(result: TriageResult): boolean {
-  return result.red_flags.some((flag) => flag.emergency);
-}
-
 export default function PatientChat() {
   const params = useParams<{ token: string }>();
   const token = decodePatientToken(() => {
@@ -80,7 +76,7 @@ export default function PatientChat() {
   const [confirming, setConfirming] = useState(false);
   const [finalizeFailure, setFinalizeFailure] = useState<ApiFailure | null>(null);
   const [startFailure, setStartFailure] = useState<ApiFailure | null>(null);
-  const [result, setResult] = useState<TriageResult | null>(null);
+  const [closing, setClosing] = useState<PatientClosing | null>(null);
   const [autoFinalized, setAutoFinalized] = useState(false);
   const [waitLine, setWaitLine] = useState(0);
   const [retryBlocked, setRetryBlocked] = useState(false);
@@ -97,7 +93,10 @@ export default function PatientChat() {
     let disposed = false;
     const query = new URLSearchParams(window.location.search);
     setLanguage(query.get("lang") === "kk" ? "kk" : "ru");
-    setDemo(query.get("demo") === "1");
+    const localDemo = document.querySelector(
+      '[data-demeu-local-demo="synthetic"]',
+    ) !== null;
+    setDemo(localDemo && query.get("demo") === "1");
     const key = token === null ? null : `demeu:session:${token}`;
     let saved: string | null = null;
     try { if (key) saved = window.sessionStorage.getItem(key); } catch { /* Storage can be disabled. */ }
@@ -127,7 +126,7 @@ export default function PatientChat() {
       setLanguage(restored.language);
       setMessages(restored.messages.map((message) => ({ ...message, id: nextMessageId.current++ })));
       setTurnsLeft(restored.turnsLeft);
-      setResult(restored.result ?? null);
+      setClosing(restored.closing ?? null);
       if (restored.status === "aborted") {
         try { if (key) window.sessionStorage.removeItem(key); } catch { /* No persistent fallback. */ }
         setPhase("expired");
@@ -176,7 +175,7 @@ export default function PatientChat() {
     setSessionId(null);
     setMessages([]);
     setTurnsLeft(null);
-    setResult(null);
+    setClosing(null);
     setConfirming(false);
     setAutoFinalized(false);
 
@@ -206,8 +205,8 @@ export default function PatientChat() {
     }
   }
 
-  function finish(nextResult: TriageResult, nextTurnsLeft?: number) {
-    setResult(nextResult);
+  function finish(nextResult: PatientClosing, nextTurnsLeft?: number) {
+    setClosing(nextResult);
     if (nextTurnsLeft !== undefined) setTurnsLeft(nextTurnsLeft);
     setConfirming(false);
     setFinalizeFailure(null);
@@ -229,7 +228,7 @@ export default function PatientChat() {
       setPhase("replay_failed");
       return;
     }
-    finish(response.data.result);
+    finish(response.data.closing);
   }
 
   async function sendTurn(content: string, existingId?: number) {
@@ -294,9 +293,9 @@ export default function PatientChat() {
     setInput("");
     if (textAreaRef.current) textAreaRef.current.style.height = "auto";
     setTurnsLeft(response.data.turnsLeft);
-    if (response.data.done && response.data.result) {
+    if (response.data.done && response.data.closing) {
       setAutoFinalized(response.data.turnsLeft === 0);
-      finish(response.data.result, response.data.turnsLeft);
+      finish(response.data.closing, response.data.turnsLeft);
     }
   }
 
@@ -316,7 +315,7 @@ export default function PatientChat() {
       setPhase("chat");
       return;
     }
-    finish(response.data.result);
+    finish(response.data.closing);
   }
 
   function submitInput() {
@@ -344,7 +343,7 @@ export default function PatientChat() {
   ).length;
   const lastAssistant = [...messages].reverse().find((message) => message.role === "assistant");
   const charsLeft = MAX_MESSAGE_LEN - input.length;
-  const emergency = result ? emergencyResult(result) : false;
+  const emergency = closing?.emergency ?? false;
   const showConversation = [
     "chat",
     "replaying",
@@ -361,13 +360,7 @@ export default function PatientChat() {
         onLanguage={setLanguage}
       />
 
-      {phase === "consent" && (
-        <ConsentScreen
-          language={language}
-          disabled={!queryReady}
-          onConsent={() => void openSession()}
-        />
-      )}
+      {phase === "consent" && <ConsentGate ready={queryReady} language={language} onConsent={() => void openSession()} />}
       {(phase === "starting" || phase === "restoring") && <LoadingState language={language} />}
       {phase === "restore_error" && (
         <TerminalState
@@ -500,10 +493,12 @@ export default function PatientChat() {
             {phase === "done" && autoFinalized && (
               <div className="sysnote">{text.autoFinalized}</div>
             )}
-            {phase === "done" && result && (
+            {phase === "done" && closing && (
               <PatientFinale language={language} emergency={emergency} />
             )}
-            {phase === "done" && demo && result && <DoctorPanel result={result} />}
+            {phase === "done" && demo && closing && (
+              <DoctorPanel result={SYNTHETIC_DEMO_RESULT} />
+            )}
             <div ref={endRef} />
           </div>
         </div>

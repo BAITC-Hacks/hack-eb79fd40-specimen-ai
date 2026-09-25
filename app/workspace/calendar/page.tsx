@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { profileDisplayName } from "@/lib/referrals/profiles";
 import type { ReferralDetail } from "@/lib/referrals/types";
 import { calendarDate } from "../client";
 import { calendarRecords, monthDays, shiftMonth, useToday, useWorkspaceData } from "../data";
@@ -11,7 +12,7 @@ import s from "../dashboard.module.css";
 
 const ATTENDANCE = { attended: "Явка подтверждена", not_attended: "Неявка подтверждена" };
 function Agenda({ records }: { records: ReferralDetail[] }) {
-  return records.length ? <div className={s.tableScroll}><table className={s.table}><thead><tr><th>Дата</th><th>Направление</th><th>Принимающая организация</th><th>Явка</th></tr></thead><tbody>{records.map((record) => <tr key={record.id}><td>{calendarDate(record.scheduledDate)}</td><td><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(record.id)}>{record.patientLabel}</Link><div className={s.muted}>{record.profile}</div></td><td>{record.destinationOrganization || "Не указана"}</td><td><span className={s.tag}>{record.attendance === null ? "Явка неизвестна" : ATTENDANCE[record.attendance]}</span></td></tr>)}</tbody></table></div> : <EmptyState title="Подтверждённых дат нет" description="Дата появится после явного подтверждения в карточке направления." />;
+  return records.length ? <div className={s.tableScroll}><table className={s.table}><thead><tr><th>Дата</th><th>Направление</th><th>Принимающая организация</th><th>Явка</th></tr></thead><tbody>{records.map((record) => <tr key={record.id}><td>{calendarDate(record.scheduledDate)}</td><td><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(record.id)}>{record.patientLabel}</Link><div className={s.muted}>{profileDisplayName(record.profile)}</div></td><td>{record.destinationOrganization || "Не указана"}</td><td><span className={s.tag}>{record.attendance === null ? "Явка неизвестна" : ATTENDANCE[record.attendance]}</span></td></tr>)}</tbody></table></div> : <EmptyState title="Подтверждённых дат нет" description="Дата появится после явного подтверждения в карточке направления." />;
 }
 export default function CalendarPage() {
   const { actor } = useWorkspaceContext();

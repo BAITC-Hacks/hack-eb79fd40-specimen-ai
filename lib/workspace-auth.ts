@@ -12,7 +12,12 @@ export interface WorkspaceActor {
   telegramChatId?: string;
 }
 
+export interface WorkspaceAuthActor extends WorkspaceActor {
+  organizationDisplayName: string;
+}
+
 interface WorkspaceAccount extends WorkspaceActor {
+  organizationDisplayName?: string;
   passwordHash: string;
   sessionVersion: number;
 }
@@ -116,6 +121,8 @@ async function accounts(): Promise<WorkspaceAccount[]> {
         typeof entry.displayName !== "string" || !entry.displayName.trim() || entry.displayName.length > 120 ||
         typeof entry.role !== "string" || !["owner", "doctor", "analyst"].includes(entry.role) ||
         typeof entry.organizationId !== "string" || !IDENTIFIER.test(entry.organizationId) ||
+        (entry.organizationDisplayName !== undefined &&
+          (typeof entry.organizationDisplayName !== "string" || !entry.organizationDisplayName.trim() || entry.organizationDisplayName.length > 160)) ||
         typeof entry.passwordHash !== "string" || !HASH_PATTERN.test(entry.passwordHash) ||
         !Number.isSafeInteger(entry.sessionVersion) || Number(entry.sessionVersion) < 1 ||
         (entry.telegramChatId !== undefined &&
@@ -140,6 +147,13 @@ function actor(account: WorkspaceAccount): WorkspaceActor {
     role: account.role,
     organizationId: account.organizationId,
     ...(account.telegramChatId === undefined ? {} : { telegramChatId: account.telegramChatId }),
+  };
+}
+
+function authActor(account: WorkspaceAccount): WorkspaceAuthActor {
+  return {
+    ...actor(account),
+    organizationDisplayName: account.organizationDisplayName?.trim() || account.organizationId,
   };
 }
 
@@ -171,7 +185,7 @@ function issueCookie(account: WorkspaceAccount): string {
   return cookieHeader(`${payload}.${sign(payload)}`);
 }
 
-export async function getWorkspaceActor(req: Request): Promise<WorkspaceActor | null> {
+async function getWorkspaceAccount(req: Request): Promise<WorkspaceAccount | null> {
   if (!workspaceConfigured()) return null;
   const configured = await accounts();
   const candidates = (req.headers.get("cookie") ?? "").split(";")
@@ -192,11 +206,15 @@ export async function getWorkspaceActor(req: Request): Promise<WorkspaceActor | 
       Number(payload.exp) <= Math.floor(Date.now() / 1_000) ||
       !Number.isSafeInteger(payload.version)
     ) return null;
-    const account = configured.find((entry) => entry.id === payload.id && entry.sessionVersion === payload.version);
-    return account ? actor(account) : null;
+    return configured.find((entry) => entry.id === payload.id && entry.sessionVersion === payload.version) ?? null;
   } catch {
     return null;
   }
+}
+
+export async function getWorkspaceActor(req: Request): Promise<WorkspaceActor | null> {
+  const account = await getWorkspaceAccount(req);
+  return account ? actor(account) : null;
 }
 
 export async function requireWorkspaceActor(req: Request): Promise<WorkspaceActor> {
@@ -261,7 +279,10 @@ function json(value: unknown, status = 200, headers: Record<string, string> = {}
 
 export async function handleWorkspaceAuth(req: Request): Promise<Response> {
   try {
-    if (req.method === "GET") return json({ enabled: workspaceEnabled(), actor: await getWorkspaceActor(req) });
+    if (req.method === "GET") {
+      const account = await getWorkspaceAccount(req);
+      return json({ enabled: workspaceEnabled(), actor: account ? authActor(account) : null });
+    }
     assertSameOrigin(req);
     if (req.method === "DELETE") return json({ ok: true }, 200, { "Set-Cookie": cookieHeader("", 0) });
     if (req.method !== "POST") return json({ error: "Метод недоступен", code: "METHOD_NOT_ALLOWED" }, 405);
@@ -276,7 +297,7 @@ export async function handleWorkspaceAuth(req: Request): Promise<Response> {
     const account = configured.find((entry) => entry.id === body.id);
     const valid = await verifyPassword(body.password, account?.passwordHash ?? DUMMY_HASH);
     if (!account || !valid) throw new WorkspaceAuthError(401, "UNAUTHORIZED");
-    return json({ actor: actor(account) }, 200, { "Set-Cookie": issueCookie(account) });
+    return json({ actor: authActor(account) }, 200, { "Set-Cookie": issueCookie(account) });
   } catch (error) {
     const known = isWorkspaceAuthError(error);
     const status = known ? error.status : 500;

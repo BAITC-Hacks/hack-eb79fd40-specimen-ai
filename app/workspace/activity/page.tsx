@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { profileDisplayName } from "@/lib/referrals/profiles";
 import type { ReferralDetail } from "@/lib/referrals/types";
 import { timestamp } from "../client";
 import { EVENT_LABELS, referralActivity, useWorkspaceData } from "../data";
@@ -10,7 +11,8 @@ import { EmptyState, Icon, PageHeading } from "../ui";
 import s from "../dashboard.module.css";
 
 const LABELS: Record<string, string> = { profile: "Профиль", destinationOrganization: "Принимающая организация", specialistReferred: "К узкому специалисту", preparationStarted: "Подготовка начата", sent: "Направление отправлено", queue: "Лист ожидания", scheduledDate: "Назначенная дата", attendance: "Явка", cancelled: "Отмена", requirementId: "Идентификатор обследования", label: "Обследование", resultAvailable: "Результат получен", performedOn: "Дата проведения", expiresOn: "Действует до", applicability: "Применимость" };
-function display(value: unknown): string {
+function display(value: unknown, key?: string): string {
+  if (key === "profile" && typeof value === "string") return profileDisplayName(value);
   if (value === null) return "неизвестно";
   if (typeof value === "boolean") return value ? "да" : "нет";
   const values: Record<string, string> = { unknown: "неизвестно", yes: "да", no: "нет", attended: "явка подтверждена", not_attended: "неявка подтверждена" };
@@ -31,7 +33,7 @@ export default function ActivityPage() {
     {resource.loading ? <p className={s.loading} role="status">Загружаем историю…</p> : resource.data && <section className={s.card}>
       {items.length ? <ol className={s.timeline}>{items.map(({ referralId, patientLabel, profile, event }) => {
         const before = event.before as Record<string, unknown> | null;
-        return <li key={event.id}><div className={s.row}><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(referralId)}>{patientLabel}</Link><span className={s.tag}>Ревизия {event.revision}</span></div><p>{EVENT_LABELS[event.type]} · {profile}</p><p className={s.muted}>{event.actorName} · источник: подтверждение врача</p><p className={s.small}>Записано: {timestamp(event.recordedAt)} · Событие: {timestamp(event.occurredAt)}</p>{event.reason && <p className={s.notice}>{event.reason}</p>}<details><summary className={s.sectionLink}>Что изменилось</summary><div className={s.details}>{Object.entries(event.after).filter(([key, value]) => LABELS[key] && (!before || before[key] !== value)).map(([key, value]) => <p key={key}><strong>{LABELS[key]}:</strong> {before && key in before ? display(before[key]) + " → " : ""}{display(value)}</p>)}</div></details></li>;
+        return <li key={event.id}><div className={s.row}><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(referralId)}>{patientLabel}</Link><span className={s.tag}>Ревизия {event.revision}</span></div><p>{EVENT_LABELS[event.type]} · {profileDisplayName(profile)}</p><p className={s.muted}>{event.actorName} · источник: подтверждение врача</p><p className={s.small}>Записано: {timestamp(event.recordedAt)} · Событие: {timestamp(event.occurredAt)}</p>{event.reason && <p className={s.notice}>{event.reason}</p>}<details><summary className={s.sectionLink}>Что изменилось</summary><div className={s.details}>{Object.entries(event.after).filter(([key, value]) => LABELS[key] && (!before || before[key] !== value)).map(([key, value]) => <p key={key}><strong>{LABELS[key]}:</strong> {before && key in before ? display(before[key], key) + " → " : ""}{display(value, key)}</p>)}</div></details></li>;
       })}</ol> : <EmptyState title={query || kind ? "Подтверждения не найдены" : "История пока пуста"} description={query || kind ? "Попробуйте другой поиск или сбросьте фильтры." : "Здесь появятся создание направления, подтверждения фактов и записи обследований."} />}
     </section>}
     <p className={s.muted}>Показаны события доступных вам направлений. Это не журнал входов, внешних систем или доставки сообщений. Время записи и время самого события могут отличаться.</p>

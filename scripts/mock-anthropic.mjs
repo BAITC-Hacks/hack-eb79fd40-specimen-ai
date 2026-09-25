@@ -1,4 +1,5 @@
 import http from "node:http";
+import { pathToFileURL } from "node:url";
 
 const port = Number(process.env.MOCK_PORT ?? 0);
 
@@ -34,7 +35,7 @@ function identifyScenario(text) {
   return "unknown";
 }
 
-function analysisFor(scenario, messages) {
+export function analysisFor(scenario, messages) {
   if (scenario === "chest-pain") {
     return {
       anamnesis: {
@@ -51,6 +52,13 @@ function analysisFor(scenario, messages) {
         chronic: [],
         allergies: [],
         medications: [],
+        history_status: {
+          past_history: "not_stated",
+          chronic: "not_stated",
+          allergies: "not_stated",
+          medications: "not_stated",
+        },
+        negative_findings: [],
         context: {
           age: 58,
           sex: "m",
@@ -83,6 +91,17 @@ function analysisFor(scenario, messages) {
         chronic: [],
         allergies: [],
         medications: [],
+        history_status: {
+          past_history: "not_stated",
+          chronic: "denied",
+          allergies: "denied",
+          medications: "denied",
+        },
+        negative_findings: [
+          "температуры нет",
+          "ноги не немеют",
+          "мочеиспускание не нарушено",
+        ],
         context: {
           age: 34,
           sex: "f",
@@ -115,6 +134,13 @@ function analysisFor(scenario, messages) {
         chronic: [],
         allergies: [],
         medications: [],
+        history_status: {
+          past_history: "not_stated",
+          chronic: "not_stated",
+          allergies: "not_stated",
+          medications: "not_stated",
+        },
+        negative_findings: ["температуры нет", "горло не болит"],
         context: {
           age: 27,
           sex: "m",
@@ -136,11 +162,40 @@ function analysisFor(scenario, messages) {
       chief_complaint: messages.find((message) => message?.role === "user" && typeof message.content === "string")?.content.slice(0, 500) ?? "Жалоба не описана",
       symptom: { onset: "не указано", location: "не указано", quality: "не указано", severity: null, modifiers: "не указаны", associated: [] },
       past_history: [], chronic: [], allergies: [], medications: [],
+      history_status: {
+        past_history: "not_stated",
+        chronic: "not_stated",
+        allergies: "not_stated",
+        medications: "denied",
+      },
+      negative_findings: ["Других симптомов нет"],
       context: { age: null, sex: "unknown", pregnancy: "na", risk_factors: [] },
     },
     evidence: { evidences: [], age: null, sex: "unknown" },
     unmapped: [],
   };
+}
+
+const HISTORY_FIELDS = ["past_history", "chronic", "allergies", "medications"];
+const HISTORY_STATUSES = new Set(["reported", "denied", "not_stated"]);
+
+export function assertAnalysisContract(analysis) {
+  const anamnesis = analysis?.anamnesis;
+  const status = anamnesis?.history_status;
+  if (!anamnesis || !status || !Array.isArray(anamnesis.negative_findings)) {
+    throw new Error("Mock extraction must include Task A history_status and negative_findings");
+  }
+  if (!anamnesis.negative_findings.every((item) => typeof item === "string")) {
+    throw new Error("Mock extraction negative_findings must contain strings");
+  }
+  for (const field of HISTORY_FIELDS) {
+    if (!Array.isArray(anamnesis[field]) || !HISTORY_STATUSES.has(status[field])) {
+      throw new Error(`Mock extraction has invalid ${field} history contract`);
+    }
+    if ((status[field] === "reported") !== (anamnesis[field].length > 0)) {
+      throw new Error(`Mock extraction has incoherent ${field} history contract`);
+    }
+  }
 }
 
 function chatReply(scenario, userTurns) {
@@ -197,9 +252,14 @@ const server = http.createServer(async (request, response) => {
     const scenario = identifyScenario(transcript);
     const structured = body.output_config?.format?.type === "json_schema";
     const userTurns = messages.filter((item) => item?.role === "user").length;
-    const answer = structured
-      ? JSON.stringify(analysisFor(scenario, messages))
-      : chatReply(scenario, userTurns);
+    let answer;
+    if (structured) {
+      const analysis = analysisFor(scenario, messages);
+      assertAnalysisContract(analysis);
+      answer = JSON.stringify(analysis);
+    } else {
+      answer = chatReply(scenario, userTurns);
+    }
 
     response.writeHead(200, { "content-type": "application/json" });
     response.end(JSON.stringify(anthropicMessage(answer, body.model)));
@@ -215,12 +275,14 @@ const server = http.createServer(async (request, response) => {
   }
 });
 
-server.listen(port, "127.0.0.1", () => {
-  const address = server.address();
-  const boundPort = typeof address === "object" && address ? address.port : port;
-  console.log(`mock Anthropic ready on 127.0.0.1:${boundPort}`);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  server.listen(port, "127.0.0.1", () => {
+    const address = server.address();
+    const boundPort = typeof address === "object" && address ? address.port : port;
+    console.log(`mock Anthropic ready on 127.0.0.1:${boundPort}`);
+  });
 
-for (const signal of ["SIGINT", "SIGTERM"]) {
-  process.on(signal, () => server.close(() => process.exit(0)));
+  for (const signal of ["SIGINT", "SIGTERM"]) {
+    process.on(signal, () => server.close(() => process.exit(0)));
+  }
 }

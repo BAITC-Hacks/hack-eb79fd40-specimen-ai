@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { finalizeSession } from "../../lib/finalize";
+import { ABSTAIN_HYPOTHESIS } from "../../lib/triage";
 import { MemorySessionStore } from "../../lib/store";
 import {
   TELEGRAM_MESSAGE_LIMIT,
@@ -125,8 +126,8 @@ function result(
     urgency_reasons: ["правило emergency имеет приоритет"],
     routing: [{ specialty: "кардиология", confidence: 0.71 }],
     hypothesis: {
-      text: "Требуется срочная оценка врача.",
-      confidence: source === "model" ? 0.71 : source === "llm_fallback" ? 0.35 : 0,
+      text: source === "llm_fallback" ? ABSTAIN_HYPOTHESIS : "Требуется срочная оценка врача.",
+      confidence: source === "model" ? 0.71 : 0,
       disclaimer: "Это предварительная гипотеза, а не диагноз. Решает врач.",
     },
     ...(model ? { model } : {}),
@@ -147,6 +148,22 @@ function successfulFetch(
 }
 
 describe("Telegram rendering", () => {
+  it("renders the scoped episode and doctor without exposing a visible session UUID", () => {
+    const current = result("model");
+    const context = {
+      episodeLabel: "Новый завершённый опрос",
+      doctorDisplayName: "Врач Ардан",
+      intakeUrl: "https://demeu.example.test/workspace/intakes/session-12345678",
+    };
+    const text = renderSummary(session(current), current, context);
+    const lines = text.split("\n");
+
+    expect(lines[0]).toBe("🔴 НЕОТЛОЖНО — Demeu, сводка первичного опроса");
+    expect(lines[1]).toBe("Эпизод: Новый завершённый опрос · Врач: Врач Ардан");
+    expect(text.replace(context.intakeUrl, "")).not.toContain("session-12345678");
+    expect(lines.at(-1)).toBe(context.intakeUrl);
+  });
+
   it.each(["model", "llm_fallback", "rules_only"] as const)(
     "renders required summary sections for source %s",
     (source) => {
@@ -173,7 +190,7 @@ describe("Telegram rendering", () => {
         expect(text).toContain("Недоступна.");
         expect(text).not.toContain("кардиология");
       }
-      expect(text).toContain("ПРЕДВАРИТЕЛЬНАЯ ГИПОТЕЗА");
+      expect(text).toContain(current.model?.abstained ? "ГИПОТЕЗА НЕ СФОРМИРОВАНА" : "ПРЕДВАРИТЕЛЬНАЯ ГИПОТЕЗА");
       expect(text).toContain(current.hypothesis.disclaimer);
       expect(text).toContain("ИСТОЧНИК:");
     },
@@ -192,6 +209,48 @@ describe("Telegram rendering", () => {
     expect(
       renderSummary(session(result("rules_only")), result("rules_only")),
     ).not.toContain("ВКЛАД ПРИЗНАКОВ");
+  });
+
+  it.each(["low_confidence", "out_of_label_space"] as const)(
+    "keeps abstain explicit without any confidence wording for %s",
+    (reason) => {
+      const current = result("llm_fallback");
+      current.model!.abstain_reason = reason;
+      current.hypothesis.text = ABSTAIN_HYPOTHESIS;
+      current.hypothesis.confidence = 0;
+
+      const text = renderSummary(session(current), current);
+
+      expect(text).toContain("МОДЕЛЬ ВОЗДЕРЖАЛАСЬ");
+      expect(text).toContain("ГИПОТЕЗА НЕ СФОРМИРОВАНА");
+      expect(text).toContain(ABSTAIN_HYPOTHESIS);
+      expect(text).not.toMatch(/уверенн/iu);
+    },
+  );
+
+  it("renders explicit negative history separately from unanswered history", () => {
+    const current = result("rules_only");
+    current.anamnesis = {
+      ...current.anamnesis,
+      chronic: [],
+      allergies: [],
+      medications: [],
+      history_status: {
+        past_history: "not_stated",
+        chronic: "denied",
+        allergies: "denied",
+        medications: "not_stated",
+      },
+      negative_findings: ["температуры нет", "ноги не немеют"],
+    };
+
+    const text = renderSummary(session(current), current);
+
+    expect(text).toContain("Перенесённое: не уточнено");
+    expect(text).toContain("Хронические: отрицает");
+    expect(text).toContain("лекарства: не уточнено");
+    expect(text).toContain("аллергии: отрицает");
+    expect(text).toContain("Явно отрицает: температуры нет, ноги не немеют");
   });
 
   it("does not claim model uncertainty when no model was run", () => {
@@ -277,6 +336,27 @@ describe("Telegram rendering", () => {
     expect(() =>
       splitForTelegramWithDisclaimer("body", disclaimer, disclaimer.length),
     ).toThrow("leaves no room for content");
+  });
+
+  it("keeps the scoped intake URL as the final line while every chunk retains the disclaimer", () => {
+    const current = result("rules_only");
+    current.hypothesis.text = "длинная сводка ".repeat(100);
+    const context = {
+      episodeLabel: "Новый завершённый опрос",
+      doctorDisplayName: "Врач Ардан",
+      intakeUrl: "https://demeu.example.test/workspace/intakes/session-12345678",
+    };
+    const chunks = splitForTelegramWithDisclaimer(
+      renderSummary(session(current), current, context),
+      current.hypothesis.disclaimer,
+      420,
+      context.intakeUrl,
+    );
+
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.every((chunk) => chunk.length <= 420 && chunk.includes(current.hypothesis.disclaimer))).toBe(true);
+    expect(chunks.at(-1)?.split("\n").at(-1)).toBe(context.intakeUrl);
+    expect(chunks.join("\n").match(/https:\/\/demeu\.example\.test\/workspace\/intakes\/session-12345678/gu)).toHaveLength(1);
   });
 
   it("renders an aborted notice without analytical result sections", () => {

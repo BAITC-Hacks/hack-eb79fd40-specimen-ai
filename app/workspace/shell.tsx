@@ -8,7 +8,8 @@ import { advanceWorkspaceAuthEpoch, ROLE_LABELS, workspaceRequest } from "./clie
 import { Icon } from "./ui";
 import styles from "./shell.module.css";
 
-const WorkspaceContext = createContext<{ actor: ReferralActor; logout: () => Promise<void> } | null>(null);
+export type AuthenticatedActor = ReferralActor & { organizationDisplayName: string };
+const WorkspaceContext = createContext<{ actor: AuthenticatedActor; logout: () => Promise<void> } | null>(null);
 export function useWorkspaceContext() {
   const context = useContext(WorkspaceContext);
   if (!context) throw new Error("Workspace context is available only after authentication");
@@ -24,7 +25,7 @@ const NAV = [
   { href: "/workspace/data-quality", label: "Качество данных", icon: "data-quality", section: "Аналитика и данные", private: false },
   { href: "/workspace/settings", label: "Настройки", icon: "settings", section: "Управление", private: false },
 ];
-type Auth = { actor: ReferralActor | null; enabled: boolean };
+type Auth = { actor: AuthenticatedActor | null; enabled: boolean };
 
 export default function WorkspaceShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -96,7 +97,7 @@ export default function WorkspaceShell({ children }: { children: ReactNode }) {
     const data = new FormData(form);
     setBusy(true); setError("");
     try {
-      const result = await workspaceRequest<{ actor: ReferralActor }>("/api/workspace/auth", { id: data.get("id"), password: data.get("password") });
+      const result = await workspaceRequest<{ actor: AuthenticatedActor }>("/api/workspace/auth", { id: data.get("id"), password: data.get("password") });
       advanceWorkspaceAuthEpoch(); authGeneration.current += 1; form.reset(); setAuth({ actor: result.actor, enabled: true }); setLogoutFailed(false); setForbiddenPath(null);
     } catch (reason) { setError((reason as Error).message); }
     finally { setBusy(false); }
@@ -132,7 +133,7 @@ export default function WorkspaceShell({ children }: { children: ReactNode }) {
     <aside ref={sidebar} id="workspace-sidebar" className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ""}`}>
       <button className={styles.mobileClose} aria-label="Закрыть навигацию" onClick={() => { setMenuOpen(false); menuButton.current?.focus(); }}><Icon name="close" /></button>
       <Link href="/workspace" className={styles.wordmark} onClick={() => setMenuOpen(false)}>Demeu<span className={styles.brandMark}>+</span></Link>
-      <div className={styles.workspaceScope}><span className={styles.organizationIcon}><Icon name="building" size={19} /></span><div><strong>{actor.organizationId}</strong><span>{actor.role === "doctor" ? "Ваши направления" : "Ваша организация"}</span></div></div>
+      <div className={styles.workspaceScope}><span className={styles.organizationIcon}><Icon name="building" size={19} /></span><div><strong>{actor.organizationDisplayName}</strong><span>{actor.role === "doctor" ? "Ваши направления" : "Ваша организация"}</span></div></div>
       <nav className={styles.navigation} aria-label="Рабочее пространство">{["Рабочее пространство", "Аналитика и данные", "Управление"].map((group) => <div className={styles.navGroup} key={group}><p>{group}</p>{navigation.filter((item) => item.section === group).map((item) => {
         const selected = item.href === pathname || (item.href !== "/workspace" && pathname.startsWith(`${item.href}/`));
         return <Link key={item.href} className={`${styles.navLink} ${selected ? styles.navActive : ""}`} href={item.href} aria-current={selected ? "page" : undefined} onClick={() => setMenuOpen(false)}><Icon name={item.icon} size={19} /><span>{item.label}</span>{selected && <span className={styles.activeDot} />}</Link>;

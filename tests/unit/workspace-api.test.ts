@@ -8,7 +8,7 @@ import { failingLlm } from "../fixtures/triage.ports";
 import { WorkspaceAuthError, type WorkspaceActor } from "../../lib/workspace-auth";
 import {
   handleReferrals, handleReferral, handleReferralEvents, handleReferralExaminations,
-  handlePatientMemo, handleWorkspaceAggregates, handleWorkspaceIntakes, handleWorkspaceLink,
+  handlePatientMemo, handleWorkspaceAggregates, handleWorkspaceIntake, handleWorkspaceIntakes, handleWorkspaceLink,
   workspaceBoundary,
   type WorkspaceApiDeps,
 } from "../../lib/workspace-api";
@@ -178,6 +178,37 @@ describe("source sessions, ownership and data projections", () => {
     expect(JSON.stringify(data)).not.toContain("private transcript");
     const organization = await (await handleWorkspaceIntakes(req(), deps(owner))).json();
     expect(new Set(organization.intakes.map((entry: { sessionId: string }) => entry.sessionId))).toEqual(new Set([mine.id, colleague.id]));
+  });
+
+  it("scopes an intake detail to its doctor and same-organization owner with indistinguishable denials", async () => {
+    const mine = await intake();
+    const own = await handleWorkspaceIntake(req("GET", undefined, BASE, `/api/workspace/intakes/${mine.id}`), mine.id, deps());
+    expect(own.status).toBe(200);
+    expect(own.headers.get("cache-control")).toBe("no-store");
+    const projection = await own.json();
+    expect(Object.keys(projection.intake).sort()).toEqual(["createdAt", "deliveryStatus", "referralId", "result", "sessionId", "status"]);
+    expect(JSON.stringify(projection)).not.toContain(mine.doctorToken);
+    expect(JSON.stringify(projection)).not.toContain("private transcript");
+    expect((await handleWorkspaceIntake(req(), mine.id, deps(owner))).status).toBe(200);
+
+    const missing = await handleWorkspaceIntake(req(), "missing", deps());
+    for (const principal of [other, outsider, analyst]) {
+      const hidden = await handleWorkspaceIntake(req(), mine.id, deps(principal));
+      expect(hidden.status).toBe(404);
+      expect(await hidden.json()).toEqual(await missing.clone().json());
+    }
+  });
+
+  it("requires login before resolving an intake detail", async () => {
+    const mine = await intake();
+    const getSession = vi.fn(sessions.getSession.bind(sessions));
+    const response = await handleWorkspaceIntake(req(), mine.id, {
+      ...deps(),
+      actor: async (): Promise<WorkspaceActor> => { throw new WorkspaceAuthError(401, "UNAUTHORIZED"); },
+      sessions: { getSession, createDoctorToken: sessions.createDoctorToken.bind(sessions), listSessions: sessions.listSessions.bind(sessions) },
+    });
+    expect(response.status).toBe(401);
+    expect(getSession).not.toHaveBeenCalled();
   });
 
   it("derives a source snapshot and owner server-side, including owner acting for a doctor", async () => {

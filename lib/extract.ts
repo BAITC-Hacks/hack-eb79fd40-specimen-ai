@@ -8,7 +8,13 @@ import {
   structured,
   type LlmDependencies,
 } from "./llm";
-import type { Anamnesis, ChatMessage, EvidenceVector } from "./types";
+import type {
+  Anamnesis,
+  ChatMessage,
+  EvidenceVector,
+  HistoryStatus,
+  HistoryStatusValue,
+} from "./types";
 
 export interface ExtractionOut {
   anamnesis: Anamnesis;
@@ -106,6 +112,30 @@ const ANAMNESIS_SCHEMA: Record<string, unknown> = {
     chronic: { type: "array", items: { type: "string" } },
     allergies: { type: "array", items: { type: "string" } },
     medications: { type: "array", items: { type: "string" } },
+    history_status: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        past_history: {
+          type: "string",
+          enum: ["reported", "denied", "not_stated"],
+        },
+        chronic: {
+          type: "string",
+          enum: ["reported", "denied", "not_stated"],
+        },
+        allergies: {
+          type: "string",
+          enum: ["reported", "denied", "not_stated"],
+        },
+        medications: {
+          type: "string",
+          enum: ["reported", "denied", "not_stated"],
+        },
+      },
+      required: ["past_history", "chronic", "allergies", "medications"],
+    },
+    negative_findings: { type: "array", items: { type: "string" } },
     context: {
       type: "object",
       additionalProperties: false,
@@ -125,6 +155,8 @@ const ANAMNESIS_SCHEMA: Record<string, unknown> = {
     "chronic",
     "allergies",
     "medications",
+    "history_status",
+    "negative_findings",
     "context",
   ],
 };
@@ -167,7 +199,9 @@ const EXTRACT_SYSTEM = `Ты — модуль извлечения призна�
 1. Выбирай только базовые коды E_... из словаря ниже.
 2. Для B-кода не передавай value. Для C/M-кода value обязателен и выбирается только из перечисленных значений.
 3. Код ставится только по подтверждённым словам пациента. Вопрос ассистента сам по себе не является признаком.
-4. Отрицание означает отсутствие: отрицавшийся признак не добавляй. Не выводи значения «нет», «nowhere» и другие значения отсутствия как присутствующий признак.
+4. Отрицание означает отсутствие: отрицавшийся признак не добавляй в положительные массивы или EvidenceVector. Не выводи значения «нет», «nowhere» и другие значения отсутствия как присутствующий признак.
+4.1. Каждое явное отрицание пациента сохрани отдельно. Для симптомов и функций запиши краткую дословную формулировку в anamnesis.negative_findings, например «температуры нет», «ноги не немеют», «мочеиспускание не нарушено». Вопрос ассистента без ответа ничего не подтверждает.
+4.2. Для past_history, chronic, allergies и medications выставь anamnesis.history_status: reported — пациент назвал хотя бы один пункт; denied — пациент явно отрицает всю категорию; not_stated — ответа нет. При denied и not_stated соответствующий положительный массив пуст.
 5. Короткий ответ пациента можно раскрыть только через непосредственно предшествующий вопрос ассистента.
 6. Перебери весь диалог и выведи КАЖДЫЙ поддерживаемый подтверждённый признак, а не только основную жалобу. Отдельно проверь локализацию, характер и распространение боли, условия усиления или облегчения, сопутствующие симптомы и явно сообщённый анамнез.
 7. Одна фраза может подтверждать несколько совместимых кодов, если каждый из них буквально следует из слов пациента. Например, явно сообщённая боль в верхней части груди в покое может одновременно подтверждать наличие боли, её локализацию и боль в груди в покое.
@@ -206,6 +240,50 @@ function stringArray(value: unknown, label: string): string[] {
     throw new Error(`${label} must be a string array`);
   }
   return [...value];
+}
+
+function historyStatusValue(value: unknown, label: string): HistoryStatusValue {
+  if (value === "reported" || value === "denied" || value === "not_stated") {
+    return value;
+  }
+  throw new Error(`${label} must be reported, denied or not_stated`);
+}
+
+function parseHistoryStatus(value: unknown): HistoryStatus {
+  if (!isRecord(value)) throw new Error("anamnesis.history_status must be an object");
+  assertExactKeys(
+    value,
+    ["past_history", "chronic", "allergies", "medications"],
+    "anamnesis.history_status",
+  );
+  return {
+    past_history: historyStatusValue(
+      value.past_history,
+      "anamnesis.history_status.past_history",
+    ),
+    chronic: historyStatusValue(
+      value.chronic,
+      "anamnesis.history_status.chronic",
+    ),
+    allergies: historyStatusValue(
+      value.allergies,
+      "anamnesis.history_status.allergies",
+    ),
+    medications: historyStatusValue(
+      value.medications,
+      "anamnesis.history_status.medications",
+    ),
+  };
+}
+
+function assertHistoryCoherence(
+  status: HistoryStatusValue,
+  values: readonly string[],
+  label: string,
+): void {
+  if ((status === "reported") !== (values.length > 0)) {
+    throw new Error(`${label} contradicts its positive values`);
+  }
 }
 
 function age(value: unknown, label: string): number | null {
@@ -256,6 +334,8 @@ function parseAnamnesis(raw: unknown): Anamnesis {
       "chronic",
       "allergies",
       "medications",
+      "history_status",
+      "negative_findings",
       "context",
     ],
     "anamnesis",
@@ -267,6 +347,15 @@ function parseAnamnesis(raw: unknown): Anamnesis {
     "anamnesis.symptom",
   );
   const parsedSeverity = severity(raw.symptom.severity);
+  const pastHistory = stringArray(raw.past_history, "anamnesis.past_history");
+  const chronic = stringArray(raw.chronic, "anamnesis.chronic");
+  const allergies = stringArray(raw.allergies, "anamnesis.allergies");
+  const medications = stringArray(raw.medications, "anamnesis.medications");
+  const historyStatus = parseHistoryStatus(raw.history_status);
+  assertHistoryCoherence(historyStatus.past_history, pastHistory, "past_history");
+  assertHistoryCoherence(historyStatus.chronic, chronic, "chronic");
+  assertHistoryCoherence(historyStatus.allergies, allergies, "allergies");
+  assertHistoryCoherence(historyStatus.medications, medications, "medications");
   if (!isRecord(raw.context)) throw new Error("anamnesis.context must be an object");
   assertExactKeys(raw.context, ["age", "sex", "pregnancy", "risk_factors"], "anamnesis.context");
 
@@ -280,10 +369,18 @@ function parseAnamnesis(raw: unknown): Anamnesis {
       modifiers: stringField(raw.symptom, "modifiers", "anamnesis.symptom"),
       associated: stringArray(raw.symptom.associated, "anamnesis.symptom.associated"),
     },
-    past_history: stringArray(raw.past_history, "anamnesis.past_history"),
-    chronic: stringArray(raw.chronic, "anamnesis.chronic"),
-    allergies: stringArray(raw.allergies, "anamnesis.allergies"),
-    medications: stringArray(raw.medications, "anamnesis.medications"),
+    past_history: pastHistory,
+    chronic,
+    allergies,
+    medications,
+    history_status: historyStatus,
+    negative_findings: [
+      ...new Set(
+        stringArray(raw.negative_findings, "anamnesis.negative_findings")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      ),
+    ],
     context: {
       age: age(raw.context.age, "anamnesis.context.age"),
       sex: sex(raw.context.sex, "anamnesis.context.sex"),
@@ -495,6 +592,13 @@ function emptyAnamnesis(): Anamnesis {
     chronic: [],
     allergies: [],
     medications: [],
+    history_status: {
+      past_history: "not_stated",
+      chronic: "not_stated",
+      allergies: "not_stated",
+      medications: "not_stated",
+    },
+    negative_findings: [],
     context: {
       age: null,
       sex: "unknown",

@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { PDFFont } from "pdf-lib";
 import { describe, expect, it, vi } from "vitest";
 import { renderSummaryPdf } from "../../lib/pdf";
+import { ABSTAIN_HYPOTHESIS } from "../../lib/clinical-copy";
 import { PDF_RESULT, PDF_SESSION } from "../fixtures/pdf";
 
 const OUTPUT_PATH = "/tmp/demeu-summary-test.pdf";
@@ -163,7 +164,11 @@ describe("PDF Cyrillic smoke", () => {
       });
 
       expect(extracted.status).toBe(0);
-      expect(extracted.stdout).toContain("ПРЕДВАРИТЕЛЬНАЯ ГИПОТЕЗА");
+      expect(extracted.stdout).toContain(
+        source === "llm_fallback"
+          ? "ГИПОТЕЗА НЕ СФОРМИРОВАНА"
+          : "ПРЕДВАРИТЕЛЬНАЯ ГИПОТЕЗА",
+      );
       expect(extracted.stdout).toMatch(/не диагноз/iu);
       expect(extracted.stdout).toContain("ПОЛНЫЙ ТРАНСКРИПТ");
       expect(extracted.stdout).toContain("Два часа назад, боль восемь из десяти.");
@@ -172,6 +177,8 @@ describe("PDF Cyrillic smoke", () => {
         expect(extracted.stdout).not.toContain("Варианты модели:");
         expect(extracted.stdout).toContain("Маршрутизация недоступна.");
       } else {
+        expect(extracted.stdout).toContain(ABSTAIN_HYPOTHESIS);
+        expect(extracted.stdout).not.toMatch(/уверенн/iu);
         expect(extracted.stdout).toContain("Модель воздержалась:");
         expect(extracted.stdout).not.toContain("Варианты модели:");
         expect(extracted.stdout).toContain(

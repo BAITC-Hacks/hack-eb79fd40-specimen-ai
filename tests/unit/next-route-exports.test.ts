@@ -4,6 +4,7 @@ import * as finalizeRoute from "../../app/api/chat/finalize/route";
 import * as startRoute from "../../app/api/chat/start/route";
 import * as healthRoute from "../../app/api/healthz/route";
 import * as linkRoute from "../../app/api/link/route";
+import * as intakeDetailRoute from "../../app/api/workspace/intakes/[id]/route";
 
 describe("Next App Router route module exports", () => {
   it.each([
@@ -12,6 +13,7 @@ describe("Next App Router route module exports", () => {
     ["chat/start", startRoute, ["POST"]],
     ["healthz", healthRoute, ["GET", "dynamic"]],
     ["link", linkRoute, ["POST", "runtime", "dynamic"]],
+    ["workspace/intakes/[id]", intakeDetailRoute, ["GET", "runtime", "dynamic"]],
   ])("keeps %s limited to values accepted by Next", (_name, route, expected) => {
     expect(Object.keys(route).sort()).toEqual([...expected].sort());
   });

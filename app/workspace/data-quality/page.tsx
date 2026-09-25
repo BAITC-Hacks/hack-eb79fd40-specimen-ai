@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReferralAggregates, ReferralDetail } from "@/lib/referrals/types";
+import { FLOW_LABELS } from "../client";
 import { useWorkspaceContext } from "../shell";
 import { EmptyState, Icon, KpiCard, PageHeading } from "../ui";
 import { aggregateCoverage, insightEndpoint, referralQuality } from "../insights";
@@ -12,7 +13,8 @@ export default function DataQualityPage() {
   const analyst = actor.role === "analyst";
   const { data, loading, error, refresh } = useInsightData<{ referrals?: ReferralDetail[]; aggregates?: ReferralAggregates }>(insightEndpoint(actor.role, "quality"));
   const quality = !analyst && data?.referrals ? referralQuality(data.referrals) : null;
-  const coverage = analyst && data?.aggregates ? aggregateCoverage(data.aggregates) : null;
+  const aggregates = analyst ? data?.aggregates : undefined;
+  const coverage = aggregates ? aggregateCoverage(aggregates) : null;
   const scope = actor.role === "doctor" ? "Ваши направления" : "Направления вашей организации";
   const rows = quality ? [
     { label: "Лист ожидания", count: quality.queueUnknown, note: "Не подтверждено, находится ли пациент в листе ожидания." },
@@ -35,7 +37,10 @@ export default function DataQualityPage() {
       </div>
       <section className={styles.card}>
         <div className={styles.sectionHead}><div><h2>{analyst ? "Покрытие сводных показателей" : "Сведения, которые остаются неизвестными"}</h2><p className={styles.muted}>{analyst ? "Только разрешённые агрегаты, без загрузки карточек пациентов" : "Каждый показатель считается отдельно; строки могут относиться к одним и тем же направлениям"}</p></div></div>
-        {analyst ? !coverage ? <EmptyState title="Показатели защищены" description="Срез скрыт из-за малых групп. Количество записей и долю известных сведений определить нельзя." /> : <div className={styles.notice}><Icon name="data-quality" size={20} /><div><strong>{coverage.knownTime} из {coverage.total} записей имеют наблюдаемое время этапа</strong>{coverage.total === 0 ? "Направлений в этом срезе пока нет." : "Неизвестные времена не подменяются нулями. Эти данные описывают историю кабинета, а не длительность фактической очереди."} Разбивка по персональным полям недоступна роли аналитика.</div></div> : quality?.total === 0 ? <EmptyState title="Пока нечего проверять" description="После создания направлений здесь появятся показатели полноты сведений." /> : quality && <div className={styles.tablewrap}><table className={styles.table}><caption>Неизвестные сведения: число направлений из {quality.total} доступных записей.</caption><thead><tr><th scope="col">Сведение</th><th scope="col">Неизвестно</th><th scope="col">Как читать показатель</th></tr></thead><tbody>{rows.map((row) => <tr key={row.label}><th scope="row">{row.label}</th><td className={styles.number}>{row.count} из {quality.total}</td><td className={styles.muted}>{row.note}</td></tr>)}</tbody></table></div>}
+        {analyst ? aggregates?.groups.length ? <>
+          {aggregates.suppressed && <div className={styles.notice}><Icon name="lock" size={19} /><div><strong>Показаны только разрешённые группы</strong>Малые группы, восстановимый общий итог и отдельные показатели времени скрыты по тому же правилу, что на странице аналитики.</div></div>}
+          <div className={styles.tablewrap}><table className={styles.table}><caption>Доступное покрытие сводных показателей по этапам.</caption><thead><tr><th scope="col">Этап</th><th scope="col">Записей</th><th scope="col">Известно время</th><th scope="col">Как читать показатель</th></tr></thead><tbody>{aggregates.groups.map((group) => <tr key={group.flow}><th scope="row">{FLOW_LABELS[group.flow]}</th><td className={styles.number}>{group.count}</td><td className={styles.number}>{group.observedTimeCount === null ? "Скрыто" : `${group.observedTimeCount} из ${group.count}`}</td><td className={styles.muted}>Время относится к истории записей текущего этапа в кабинете.</td></tr>)}</tbody></table></div>
+        </> : <EmptyState title="Пока нет групп для показа" description="В каждом этапе недостаточно записей для безопасного отображения. Это не нулевой результат." /> : quality?.total === 0 ? <EmptyState title="Пока нечего проверять" description="После создания направлений здесь появятся показатели полноты сведений." /> : quality && <div className={styles.tablewrap}><table className={styles.table}><caption>Неизвестные сведения: число направлений из {quality.total} доступных записей.</caption><thead><tr><th scope="col">Сведение</th><th scope="col">Неизвестно</th><th scope="col">Как читать показатель</th></tr></thead><tbody>{rows.map((row) => <tr key={row.label}><th scope="row">{row.label}</th><td className={styles.number}>{row.count} из {quality.total}</td><td className={styles.muted}>{row.note}</td></tr>)}</tbody></table></div>}
       </section>
     </>}
     <div className={styles.columns}>

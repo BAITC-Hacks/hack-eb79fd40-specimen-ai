@@ -60,7 +60,18 @@ export async function handleChatStart(
       );
     }
 
-    const session = await sessionStore.createSession(token, language);
+    if (!sessionStore.createSessionOnce) throw new Error("Session store cannot consume personal links");
+    const session = await sessionStore.createSessionOnce(token, language);
+    if (!session) {
+      return NextResponse.json(
+        {
+          error: "Ссылка уже использована",
+          code: "LINK_ALREADY_USED",
+          request_id: requestId,
+        },
+        { status: 409 },
+      );
+    }
     const greeting = greetingForLanguage(session.language);
     await sessionStore.appendMessage(session.id, {
       role: "assistant",

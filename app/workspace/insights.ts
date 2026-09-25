@@ -5,7 +5,7 @@ export function insightEndpoint(role: ReferralActor["role"], page: "analytics" |
 }
 
 export function aggregateCoverage(value: ReferralAggregates): { total: number; knownTime: number; unknownTime: number } | null {
-  if (value.suppressed || value.total === null) return null;
+  if (value.total === null) return null;
   let knownTime = 0;
   for (const group of value.groups) {
     if (group.observedTimeCount === null) return null;

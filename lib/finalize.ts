@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { analyze as analyzeResult } from "./triage";
+import type { ProcessingMode } from "./processing-mode";
 import { workspaceNotifierFromEnv } from "./workspace-notifier";
 import {
   SessionNotCollectingError,
@@ -29,6 +30,7 @@ export interface FinalizeDeps {
   analyze?: AnalyzePort;
   doctorSummary?: DoctorSummaryPort;
   schedule?: BackgroundScheduler;
+  processingMode?: ProcessingMode;
 }
 
 export interface FinalizeOutcome {
@@ -112,7 +114,8 @@ export async function finalizeSession(
   deps: FinalizeDeps = {},
 ): Promise<FinalizeOutcome> {
   const sessionStore = deps.sessionStore ?? store();
-  const analyze = deps.analyze ?? analyzeResult;
+  const analyze = deps.analyze ?? ((messages) =>
+    analyzeResult(messages, { processingMode: deps.processingMode }));
   const doctorSummary =
     deps.doctorSummary ??
     workspaceNotifierFromEnv() ??

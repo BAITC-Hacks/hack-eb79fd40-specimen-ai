@@ -106,6 +106,34 @@ describe("POST /api/chat/start", () => {
     await expect(response.json()).resolves.toMatchObject({ code: "TOKEN_NOT_FOUND" });
   });
 
+  it("consumes a personal link once, including concurrent starts", async () => {
+    const sessionStore = new MemorySessionStore();
+    const token = await sessionStore.createDoctorToken();
+
+    const responses = await Promise.all([
+      handleChatStart(request(token), sessionStore),
+      handleChatStart(request(token), sessionStore),
+    ]);
+
+    expect(responses.map((response) => response.status).sort()).toEqual([200, 409]);
+    const conflict = responses.find((response) => response.status === 409)!;
+    await expect(conflict.json()).resolves.toMatchObject({ code: "LINK_ALREADY_USED" });
+    await expect(sessionStore.listSessions()).resolves.toHaveLength(1);
+  });
+
+  it("does not free a consumed link when its zero-turn session is aborted", async () => {
+    const sessionStore = new MemorySessionStore();
+    const token = await sessionStore.createDoctorToken();
+    const first = await handleChatStart(request(token), sessionStore);
+    const { sessionId } = await first.json();
+    await sessionStore.abortSession(sessionId, "patient_left");
+
+    const replay = await handleChatStart(request(token), sessionStore);
+
+    expect(replay.status).toBe(409);
+    await expect(replay.json()).resolves.toMatchObject({ code: "LINK_ALREADY_USED" });
+  });
+
   it("maps a store failure to 500, never 404", async () => {
     const failingStore: SessionStore = {
       createDoctorToken: async () => "",

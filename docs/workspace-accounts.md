@@ -22,6 +22,7 @@ Account file shape:
       "displayName": "Врач 1",
       "role": "doctor",
       "organizationId": "clinic-1",
+      "organizationDisplayName": "Городская поликлиника № 1",
       "passwordHash": "<generated scrypt hash>",
       "sessionVersion": 1,
       "telegramChatId": "<optional numeric recipient>"
@@ -30,11 +31,11 @@ Account file shape:
 }
 ```
 
-Replace placeholders before enabling. IDs are stable ASCII identifiers, unique across accounts; roles are exactly `doctor`, `owner`, or `analyst`. Do not reuse a deleted account ID for another person. `organizationId` defines the access boundary; an owner belongs to one organization. The optional Telegram recipient is server managed, never supplied by the patient. Omit the property when unavailable. Keep the file private (for example, mode `0600`) and update it atomically. This iteration does not create or deploy real accounts.
+Replace placeholders before enabling. IDs are stable ASCII identifiers, unique across accounts; roles are exactly `doctor`, `owner`, or `analyst`. Do not reuse a deleted account ID for another person. `organizationId` defines the access boundary; an owner belongs to one organization. Optional `organizationDisplayName` is a human-readable UI label only and does not change access boundaries; use the same label for every account with the same `organizationId`. Existing files may omit it and then the UI falls back to `organizationId`. Add or change this field with the writer stopped, preserve mode `0600`, validate the complete JSON, and replace the accounts file atomically. Do not alter password hashes or `sessionVersion` for this display-only update. The optional Telegram recipient is server managed, never supplied by the patient. Omit the property when unavailable. Keep the file private (for example, mode `0600`) and update it atomically. This iteration does not create or deploy real accounts.
 
 Passwords use Node's scrypt with a random 16-byte salt, N=16384, r=8, p=1, and a 64-byte key. Stored format is `scrypt$16384$8$1$<salt hex>$<key hex>`. Generate a hash with `npx tsx scripts/hash-workspace-password.ts`, supplying one password line through stdin. The helper rejects command-line passwords and interactive terminal stdin; it prints only the resulting hash. Use a password manager's stdin integration or a protected temporary input file with shell redirection. Do not put the password in an argument, shell history, or a committed fixture. Generation requires at least 12 characters and at most 1024 UTF-8 bytes.
 
-`POST /api/workspace/auth` accepts JSON `{ "id": "doctor-1", "password": "..." }` and returns `{ actor }`. The actor contains only `id`, `displayName`, `role`, `organizationId`, and optional `telegramChatId`. Password hashes and session versions are never returned. `GET` returns `{ enabled, actor }`, with `actor: null` when no valid session exists. `DELETE` clears the browser cookie and returns `{ "ok": true }`.
+`POST /api/workspace/auth` accepts JSON `{ "id": "doctor-1", "password": "..." }` and returns `{ actor }`. The authentication DTO contains `id`, `displayName`, `role`, `organizationId`, `organizationDisplayName`, and optional `telegramChatId`. Password hashes and session versions are never returned. Referral ownership continues to persist only the stable IDs; the display label is not copied into referral records. `GET` returns `{ enabled, actor }`, with `actor: null` when no valid session exists. `DELETE` clears the browser cookie and returns `{ "ok": true }`.
 
 Cookies expire after eight hours. They contain a signed account ID, expiry in epoch seconds, and session version. They are HttpOnly, SameSite=Strict, Path=/; production uses Secure and the `__Host-demeu_workspace` name without a Domain attribute. Development uses `demeu_workspace` to support local HTTP. Roles and membership are loaded from the account file on every authentication check. Increment `sessionVersion` to revoke existing cookies after a password change or incident; deleting an account also revokes it. Logout clears the current browser cookie, but a separately copied signed cookie remains valid until expiry or server-side version revocation. Changing the signing secret revokes all cookies.
 

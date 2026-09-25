@@ -8,12 +8,19 @@ import {
   type PDFFont,
   type PDFPage,
 } from "pdf-lib";
-import type {
-  ReadonlySession,
-  RedFlag,
-  TriageResult,
-  Urgency,
+import {
+  normalizeAnamnesis,
+  type HistoryStatusValue,
+  type ReadonlySession,
+  type RedFlag,
+  type TriageResult,
+  type Urgency,
 } from "./types";
+import {
+  displayedHypothesis,
+  hypothesisHeading,
+  processingModeNotice,
+} from "./clinical-copy";
 
 const BODY_FONT_PATH = resolve(
   process.cwd(),
@@ -57,6 +64,15 @@ function joined(values: readonly string[]): string {
   return values.length > 0 ? values.join(", ") : "нет данных";
 }
 
+function historyValue(
+  values: readonly string[],
+  status: HistoryStatusValue,
+): string {
+  if (status === "denied") return "отрицает";
+  if (status === "not_stated") return "не указано";
+  return values.join(", ") || "не указано";
+}
+
 function severity(value: number | null): string {
   return value === null ? "—" : `${value}/10`;
 }
@@ -81,14 +97,17 @@ function verifiedFlags(
 }
 
 function sourceDescription(result: TriageResult): string {
+  if (result.processing_mode === "deterministic") {
+    return "детерминированный опросник и правила безопасности";
+  }
   if (result.source === "model") {
     return `обученная модель ${result.model?.model_version ?? "без версии"}`;
   }
   if (result.source === "llm_fallback") {
     if (!result.model) return "обученная модель не запускалась; использована языковая модель";
     return result.model.abstain_reason === "out_of_label_space"
-      ? "случай вне обученного набора; использована языковая модель"
-      : "обученная модель воздержалась из-за низкой уверенности; использована языковая модель";
+      ? "случай вне обученного набора; гипотеза не сформирована"
+      : "обученная модель воздержалась; гипотеза не сформирована";
   }
   return "структурированные признаки не извлечены; сводка построена по правилам";
 }
@@ -114,7 +133,7 @@ function summaryBlocks(
   if (result.model?.abstained) {
     const reason = result.model.abstain_reason === "out_of_label_space"
       ? "случай вне обученного пространства"
-      : "недостаточная уверенность";
+      : "порог модели не пройден";
     modelLines.push(`Модель воздержалась: ${reason}. Вклад признаков не показан.`);
   } else if (result.model) {
     const pathologies = result.model.pathologies.slice(0, 3);
@@ -143,7 +162,16 @@ function summaryBlocks(
     modelLines.push("Обученная модель не запускалась.");
   }
 
-  const anamnesis = result.anamnesis;
+  const anamnesis = normalizeAnamnesis(result.anamnesis);
+  const hypothesisConfidence = result.model?.abstained
+    ? []
+    : [
+        result.source === "model"
+          ? `Уверенность: ${Math.round(result.hypothesis.confidence * 100)}%`
+          : result.source === "llm_fallback"
+            ? "Уверенность: низкая"
+            : "Числовая уверенность не рассчитывалась",
+      ];
   return [
     {
       heading: "1. ПРИОРИТЕТ",
@@ -170,14 +198,10 @@ function summaryBlocks(
           : ["Маршрутизация недоступна."],
     },
     {
-      heading: "4. ПРЕДВАРИТЕЛЬНАЯ ГИПОТЕЗА",
+      heading: `4. ${hypothesisHeading(result).toUpperCase()}`,
       lines: [
-        result.hypothesis.text,
-        result.source === "model"
-          ? `Уверенность: ${Math.round(result.hypothesis.confidence * 100)}%`
-          : result.source === "llm_fallback"
-            ? "Уверенность: низкая"
-            : "Числовая уверенность не рассчитывалась",
+        displayedHypothesis(result),
+        ...hypothesisConfidence,
         result.hypothesis.disclaimer,
       ],
     },
@@ -192,10 +216,13 @@ function summaryBlocks(
         `Сила: ${severity(anamnesis.symptom.severity)}`,
         `Модификаторы: ${anamnesis.symptom.modifiers || "не указаны"}`,
         `Сопутствующее: ${joined(anamnesis.symptom.associated)}`,
-        `Перенесённое: ${joined(anamnesis.past_history)}`,
-        `Хронические состояния: ${joined(anamnesis.chronic)}`,
-        `Лекарства: ${joined(anamnesis.medications)}`,
-        `Аллергии: ${joined(anamnesis.allergies)}`,
+        `Перенесённое: ${historyValue(anamnesis.past_history, anamnesis.history_status.past_history)}`,
+        `Хронические состояния: ${historyValue(anamnesis.chronic, anamnesis.history_status.chronic)}`,
+        `Лекарства: ${historyValue(anamnesis.medications, anamnesis.history_status.medications)}`,
+        `Аллергии: ${historyValue(anamnesis.allergies, anamnesis.history_status.allergies)}`,
+        ...(anamnesis.negative_findings.length > 0
+          ? [`Явно отрицает: ${anamnesis.negative_findings.join(", ")}`]
+          : []),
         `Контекст: возраст ${anamnesis.context.age ?? "не указан"}; пол ${anamnesis.context.sex}; беременность ${anamnesis.context.pregnancy}; факторы риска ${joined(anamnesis.context.risk_factors)}`,
       ],
     },
@@ -320,7 +347,7 @@ export async function renderSummaryPdf(
     document.embedFont(await serifFontBytes(), { subset: true }),
   ]);
   document.setTitle("Demeu — сводка первичного опроса");
-  document.setSubject("Предварительная гипотеза, приоритет и маршрутизация для врача");
+  document.setSubject("Сводка первичного опроса, приоритет и маршрутизация для врача");
   document.setProducer("Demeu");
 
   let page: PDFPage = document.addPage(PageSizes.A4);
@@ -366,6 +393,7 @@ export async function renderSummaryPdf(
   });
   draw(`Сессия: ${session.id}`);
   draw(`Источник: ${sourceDescription(result)}`);
+  draw(processingModeNotice(result.processing_mode));
   y -= 6;
 
   for (const block of summaryBlocks(session, result)) {
@@ -377,7 +405,7 @@ export async function renderSummaryPdf(
     for (const [index, line] of block.lines.entries()) {
       draw(line, {
         font:
-          block.heading === "4. ПРЕДВАРИТЕЛЬНАЯ ГИПОТЕЗА" && index === 0
+          block.heading.startsWith("4. ") && index === 0
             ? serifFont
             : bodyFont,
       });

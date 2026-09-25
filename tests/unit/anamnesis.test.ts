@@ -5,6 +5,7 @@ import {
   GREETING_KK,
   GREETING_RU,
   anamnesisTurnSystem,
+  emergencyReplyForLanguage,
   runAnamnesisTurn,
   stripDoneMarker,
   toApiMessages,
@@ -87,7 +88,7 @@ describe("DONE marker", () => {
     const parsed = stripDoneMarker(`Передаю данные врачу.\n${marker}`);
 
     expect(parsed).toEqual({
-      reply: "Передаю данные врачу.",
+      reply: "Спасибо, я передаю данные врачу.",
       done: true,
     });
     expect(parsed.reply).not.toMatch(/ANAMNESIS/iu);
@@ -98,6 +99,18 @@ describe("DONE marker", () => {
       reply: "Спасибо, я передаю данные врачу.",
       done: true,
     });
+  });
+
+  it("replaces a patient-facing conclusion with the server-owned closing", () => {
+    const turn = stripDoneMarker(
+      `Похоже на обычную простуду лёгкого течения.\n${DONE_MARKER}`,
+    );
+
+    expect(turn).toEqual({
+      reply: "Спасибо, я передаю данные врачу.",
+      done: true,
+    });
+    expect(turn.reply).not.toMatch(/похоже|простуд/iu);
   });
 
   it("uses the accepted Kazakh closing when the model returns only the marker", () => {
@@ -140,7 +153,7 @@ describe("DONE marker", () => {
     );
 
     expect(turn).toEqual({
-      reply: "Немедленно позвоните 103. Данные переданы врачу.",
+      reply: "Спасибо, я передаю данные врачу.",
       done: true,
     });
     expect(fakeChatTurn).toHaveBeenCalledWith(
@@ -148,6 +161,19 @@ describe("DONE marker", () => {
       expect.any(Array),
     );
     expect(fakeChatTurn.mock.calls[0]?.[0]).toContain(GREETING_RU);
+  });
+
+  it("provides a deterministic server-owned emergency reply", () => {
+    expect(emergencyReplyForLanguage("ru")).toBe(
+      "Сейчас лучше не ждать приёма. Позвоните 103 или обратитесь в приёмный покой. Ваши ответы переданы врачу.",
+    );
+    expect(emergencyReplyForLanguage("ru")).not.toMatch(/похоже|вероятно/iu);
+  });
+
+  it("forbids patient-facing condition labels and compound explanations", () => {
+    expect(ANAMNESIS_SYSTEM).toContain("Не называй пациенту болезни");
+    expect(ANAMNESIS_SYSTEM).toContain("только один короткий вопрос");
+    expect(ANAMNESIS_SYSTEM).toContain("Не пиши «похоже на»");
   });
 
   it("builds a strict Kazakh turn prompt with the exact accepted greeting", () => {

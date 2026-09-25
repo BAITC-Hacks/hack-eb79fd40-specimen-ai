@@ -16,11 +16,17 @@ import { describe, expect, it } from "vitest";
 import type { ChatMessage, TriageResult } from "../../lib/types";
 import {
   CANONICAL_BASE,
+  anthropicRequestUpperBound,
   assertSmokeResult,
   runL1,
   runL2,
   validateProductionOrigin,
 } from "../../deploy/smoke.mjs";
+
+it("records a zero Anthropic request bound for deterministic L2 artifacts", () => {
+  expect(anthropicRequestUpperBound("deterministic")).toBe(0);
+  expect(anthropicRequestUpperBound("external_llm")).toBe(24);
+});
 
 type FetchCall = { url: string; init?: RequestInit };
 
@@ -43,6 +49,7 @@ const health = {
   commit: "0123456789abcdef0123456789abcdef01234567",
   model_version: "lr-v1",
   llm_ok: false,
+  processing_mode: "external_llm",
 };
 
 describe("production smoke scripts", () => {
@@ -490,7 +497,7 @@ globalThis.fetch = async (input) => {
     return new Response("<!doctype html>", { headers: { "content-type": "text/html" } });
   }
   if (path === "/api/healthz") {
-    return json({ ok: true, commit: "offline", model_version: "lr-v1", llm_ok: false });
+    return json({ ok: true, commit: "offline", model_version: "lr-v1", llm_ok: false, processing_mode: "external_llm" });
   }
   if (path === "/api/link") return json({ token: "1234567890abcdef" });
   if (path === "/api/chat/start") return json({ code: "TOKEN_NOT_FOUND" }, 404);
@@ -578,7 +585,7 @@ globalThis.fetch = async (input) => {
     return new Response("<!doctype html>", { headers: { "content-type": "text/html" } });
   }
   if (path === "/api/healthz") {
-    return json({ ok: true, commit: "offline", model_version: "lr-v1", llm_ok: false });
+    return json({ ok: true, commit: "offline", model_version: "lr-v1", llm_ok: false, processing_mode: "external_llm" });
   }
   if (path === "/api/link") return json({ token: "1234567890abcdef" });
   if (path === "/api/chat/start") return json({ code: "TOKEN_NOT_FOUND" }, 404);

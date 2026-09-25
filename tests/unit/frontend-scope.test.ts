@@ -35,9 +35,14 @@ describe("frontend scope guard", () => {
     expect(css).not.toMatch(/fonts\.googleapis|@import\s+url/);
   });
 
-  it("gates the doctor panel on demo plus a factual result", () => {
+  it("gates a clearly synthetic doctor panel on a local-only demo marker", () => {
     const page = readFileSync(`${ROOT}/app/c/[token]/page.tsx`, "utf8");
-    expect(page).toContain("demo && result && <DoctorPanel result={result}");
+    const layout = readFileSync(`${ROOT}/app/c/[token]/layout.tsx`, "utf8");
+    expect(page).toContain("demo && closing && (");
+    expect(page).toContain("<DoctorPanel result={SYNTHETIC_DEMO_RESULT}");
+    expect(page).not.toContain("<DoctorPanel result={result}");
+    expect(layout).toContain('process.env.NODE_ENV !== "production"');
+    expect(layout).toContain('process.env.DEMEU_LOCAL_DEMO === "1"');
     expect(page).toContain('setPhase("replay_failed")');
     expect(page).not.toContain('setPhase("done"); //');
   });

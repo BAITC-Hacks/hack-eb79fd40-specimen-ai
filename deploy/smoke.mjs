@@ -228,7 +228,7 @@ function createClient({
 
 function assertExactHealth(health) {
   must(
-    Object.keys(health).sort().join(",") === "commit,llm_ok,model_version,ok",
+    Object.keys(health).sort().join(",") === "commit,llm_ok,model_version,ok,processing_mode",
     "healthz fields differ from the SPINE contract",
   );
   must(health.ok === true, "healthz ok is not true");
@@ -238,6 +238,10 @@ function assertExactHealth(health) {
     "healthz model_version is empty",
   );
   must(typeof health.llm_ok === "boolean", "healthz llm_ok is not boolean");
+  must(
+    health.processing_mode === "external_llm" || health.processing_mode === "deterministic",
+    "healthz processing_mode is invalid",
+  );
 }
 
 function assertOnlyNegativeRestrictedUsage(value) {
@@ -453,6 +457,7 @@ export async function runL1({
     health: {
       contract_verified: true,
       llm_ok: health.llm_ok,
+      processing_mode: health.processing_mode,
     },
     valid_start: "not_called; current route is static and does not prove LLM readiness",
     http_requests: client.count(),
@@ -463,6 +468,10 @@ function sameJson(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
+export function anthropicRequestUpperBound(processingMode) {
+  return processingMode === "deterministic" ? 0 : 24;
+}
+
 export async function runL2({
   baseUrl = CANONICAL_BASE,
   expectedOrigin = CANONICAL_BASE,
@@ -471,7 +480,10 @@ export async function runL2({
   const client = createClient({ baseUrl, expectedOrigin, fetchImpl, cap: L2_HTTP_CAP });
   const health = await client.request("/api/healthz", { timeoutMs: 15_000 });
   assertExactHealth(health);
-  must(health.llm_ok === true, "L2 preflight requires healthz llm_ok=true");
+  must(
+    health.processing_mode === "deterministic" || health.llm_ok === true,
+    "external LLM mode requires healthz llm_ok=true",
+  );
 
   const summaries = [];
   for (const scenario of SCENARIOS) {
@@ -547,14 +559,16 @@ export async function runL2({
   return {
     level: "L2",
     ok: true,
+    processing_mode: health.processing_mode,
     health: {
       contract_verified: true,
       llm_ok: health.llm_ok,
+      processing_mode: health.processing_mode,
     },
     scenarios: summaries,
     http_requests: client.count(),
     http_request_cap: L2_HTTP_CAP,
-    anthropic_request_upper_bound: 24,
+    anthropic_request_upper_bound: anthropicRequestUpperBound(health.processing_mode),
     client_retries: 0,
     telegram_delivery: "not observable from the public API; verify Bot API acceptance separately",
   };
@@ -583,7 +597,10 @@ async function runScenario1Once({
   const health = await client.request("/api/healthz", { timeoutMs: 15_000 });
   assertExactHealth(health);
   must(health.commit === expectedCommit, "healthz commit differs from EXPECTED_COMMIT");
-  must(health.llm_ok === true, "scenario 1 preflight requires healthz llm_ok=true");
+  must(
+    health.processing_mode === "deterministic" || health.llm_ok === true,
+    "external LLM mode requires healthz llm_ok=true",
+  );
 
   const link = await client.request("/api/link", { method: "POST", body: {} });
   must(typeof link.token === "string" && /^[0-9a-f]{16}$/.test(link.token), "link token is malformed");
@@ -650,6 +667,7 @@ async function runScenario1Once({
     health_commit: health.commit,
     health_model_version: health.model_version,
     health_llm_ok: health.llm_ok,
+    health_processing_mode: health.processing_mode,
     http_requests: client.count(),
     http_cap: SCENARIO1_HTTP_CAP,
     client_retries: 0,

@@ -65,7 +65,7 @@ describe("single-process session operation coordinator", () => {
     expect((await sessionStore.getSession(session.id))?.turnCount).toBe(2);
   });
 
-  it("sweeps after old operations and blocks new operations without creating a cycle", async () => {
+  it("never turns maintenance into a process-wide patient barrier", async () => {
     const releaseOld = deferred();
     const releaseSweep = deferred();
     const oldEntered = deferred();
@@ -74,22 +74,22 @@ describe("single-process session operation coordinator", () => {
     const old = withSessionOperation("barrier", async () => {
       events.push("old"); oldEntered.resolve(); await releaseOld.promise; events.push("old_done");
     });
-    const queuedOld = withSessionOperation("barrier", async () => { events.push("queued_old"); });
     const sweep = withSessionSweep(async () => {
       events.push("sweep"); sweepEntered.resolve(); await releaseSweep.promise; events.push("sweep_done");
     });
     const next = withSessionOperation("new-session", async () => { events.push("new"); });
     await oldEntered.promise;
-    expect(events).toEqual(["old"]);
-    releaseOld.resolve();
     await sweepEntered.promise;
-    expect(events).toEqual(["old", "old_done", "queued_old", "sweep"]);
+    await next;
+    expect(events).toEqual(expect.arrayContaining(["old", "sweep", "new"]));
+    expect(events).not.toContain("old_done");
+    releaseOld.resolve();
     releaseSweep.resolve();
-    await Promise.all([old, queuedOld, sweep, next]);
-    expect(events).toEqual(["old", "old_done", "queued_old", "sweep", "sweep_done", "new"]);
+    await Promise.all([old, sweep]);
+    expect(events).toEqual(expect.arrayContaining(["old_done", "sweep_done"]));
   });
 
-  it("releases both per-session queues and sweep gates after rejection", async () => {
+  it("releases per-session queues and isolates maintenance rejection", async () => {
     const first = withSessionOperation("failed", async () => { throw new Error("operation failed"); });
     const second = withSessionOperation("failed", async () => "recovered");
     await expect(first).rejects.toThrow("operation failed");
@@ -100,7 +100,7 @@ describe("single-process session operation coordinator", () => {
     expect(await next).toBe("works");
   });
 
-  it("waits for an active chat before expired-token start performs its deletion cascade", async () => {
+  it("does not let an active chat block expired-token validation", async () => {
     let now = 1_000;
     const sessionStore = new MemorySessionStore({ now: () => now });
     const token = await sessionStore.createDoctorToken();
@@ -116,11 +116,10 @@ describe("single-process session operation coordinator", () => {
     const start = withSessionSweep(() => handleChatStart(new NextRequest("http://localhost/api/chat/start", {
       method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token }),
     }), sessionStore));
-    expect(await sessionStore.getSession(session.id)).toBeDefined();
-    release.resolve();
-    await active;
     expect((await start).status).toBe(404);
     expect(await sessionStore.getSession(session.id)).toBeUndefined();
+    release.resolve();
+    await expect(active).rejects.toThrow("Session not found");
   });
 
   it("keeps invalid body validation with the existing handler and never retries a failing operation", async () => {

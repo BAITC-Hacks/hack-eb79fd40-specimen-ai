@@ -21,8 +21,8 @@ describe("workspace insights: scoped data and honest quantities", () => {
     expect(insightEndpoint("doctor", "quality")).toBe("/api/referrals");
     expect(insightEndpoint("owner", "quality")).toBe("/api/referrals");
   });
-  it("never derives a count from suppressed groups, even if fields contain residual values", () => {
-    expect(aggregateCoverage(aggregate({ suppressed: true }))).toBeNull();
+  it("uses explicitly allowed totals during partial suppression but never reconstructs hidden cells", () => {
+    expect(aggregateCoverage(aggregate({ suppressed: true }))).toEqual({ total: 10, knownTime: 5, unknownTime: 5 });
     expect(aggregateCoverage(aggregate({ suppressed: true, total: null, groups: [
       { flow: "preparing", count: 6, meanObservedDays: null, observedTimeCount: null },
     ] }))).toBeNull();

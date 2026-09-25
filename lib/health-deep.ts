@@ -5,6 +5,10 @@ import {
 } from "node:crypto";
 import type { NextRequest } from "next/server";
 import { buildHealthResponse, type HealthResponse } from "./health";
+import { processingModeFromEnv } from "./processing-mode";
+import { runDeterministicAnamnesisTurn } from "./deterministic";
+import { analyze } from "./triage";
+import type { ChatMessage } from "./types";
 
 export const DEEP_HEALTH_PROOF_HEADER = "x-demeu-health-proof";
 export const DEEP_HEALTH_PROOF_CONTEXT = "demeu-health-extract:v1:";
@@ -24,6 +28,7 @@ export interface HealthHandlerResult {
 export interface DeepHealthDependencies {
   env?: HealthEnv;
   probeOnce?: Probe;
+  deterministicProbeOnce?: Probe;
 }
 
 export function computeDeepHealthProof(key: string, commit: string): string {
@@ -90,6 +95,59 @@ export function createCachedExtractionProbe(run: Probe = createExtractionProbe()
 
 const productionProbeOnce = createCachedExtractionProbe();
 
+export function createDeterministicReadinessProbe(): Probe {
+  return async () => {
+    const unreachableLlm = { analyze: async () => { throw new Error("external LLM called"); } };
+    const unreachableModel = { predict: () => { throw new Error("model called"); } };
+    const scenarios: Array<{ messages: ChatMessage[]; emergency: boolean }> = [
+      {
+        messages: [
+          { role: "assistant", content: "Сізді не мазалайды?" },
+          { role: "user", content: "Кеудемді қатты қысады, дем алуым қиындады" },
+        ],
+        emergency: true,
+      },
+      {
+        messages: [
+          { role: "assistant", content: "Что вас беспокоит?" },
+          { role: "user", content: "Ноющая боль в пояснице" },
+          { role: "assistant", content: "Когда это началось?" },
+          { role: "user", content: "Две недели назад" },
+        ],
+        emergency: false,
+      },
+      {
+        messages: [
+          { role: "assistant", content: "Что вас беспокоит?" },
+          { role: "user", content: "Со вчера насморк и немного чихаю" },
+          { role: "assistant", content: "Когда это началось?" },
+          { role: "user", content: "Вчера" },
+        ],
+        emergency: false,
+      },
+    ];
+    if (runDeterministicAnamnesisTurn(scenarios[1].messages.slice(0, 2), "ru").done) {
+      return false;
+    }
+    const results = await Promise.all(scenarios.map(({ messages }) => analyze(messages, {
+      processingMode: "deterministic",
+      llm: unreachableLlm,
+      model: unreachableModel,
+    })));
+    return results.every((result, index) =>
+      result.processing_mode === "deterministic" &&
+      result.source === "rules_only" &&
+      !result.model &&
+      result.anamnesis.chief_complaint.length > 0 &&
+      result.red_flags.some((flag) => flag.emergency) === scenarios[index].emergency,
+    ) && results[0].red_flags.some((flag) => flag.code === "chest_pain");
+  };
+}
+
+const productionDeterministicProbeOnce = createCachedExtractionProbe(
+  createDeterministicReadinessProbe(),
+);
+
 function deepResponse(env: HealthEnv, llm_ok: boolean): HealthResponse {
   return { ...buildHealthResponse(env), llm_ok };
 }
@@ -101,6 +159,11 @@ export async function handleHealthRequest(
   const env = deps.env ?? process.env;
   if (request.nextUrl.searchParams.get("probe") !== "extract") {
     return { status: 200, body: buildHealthResponse(env) };
+  }
+
+  if (processingModeFromEnv(env) === "deterministic") {
+    const ok = await (deps.deterministicProbeOnce ?? productionDeterministicProbeOnce)();
+    return { status: ok ? 200 : 404, body: deepResponse(env, ok) };
   }
 
   const key = env.ANTHROPIC_API_KEY;

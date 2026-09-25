@@ -43,6 +43,13 @@ const EMPTY_ANAMNESIS: Anamnesis = {
   chronic: [],
   allergies: [],
   medications: [],
+  history_status: {
+    past_history: "not_stated",
+    chronic: "not_stated",
+    allergies: "not_stated",
+    medications: "not_stated",
+  },
+  negative_findings: [],
   context: {
     age: null,
     sex: "unknown",

@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
-import { access, mkdtemp, cp, readdir, rm, symlink } from "node:fs/promises";
+import { access, mkdtemp, cp, mkdir, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
+import { randomBytes, scrypt } from "node:crypto";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -8,6 +9,33 @@ import { once } from "node:events";
 import { runDemoScenarios } from "./e2e.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const WORKSPACE_ID = "e2e-doctor";
+const WORKSPACE_PASSWORD = "E2eDoctor2026!";
+
+function derivePassword(password, salt) {
+  return new Promise((resolveKey, reject) => {
+    scrypt(password, salt, 64, { N: 16_384, r: 8, p: 1, maxmem: 64 * 1_024 * 1_024 }, (error, key) => {
+      if (error) reject(error);
+      else resolveKey(key);
+    });
+  });
+}
+
+async function writeWorkspaceAccount(dataDir) {
+  const salt = randomBytes(16);
+  const hash = await derivePassword(WORKSPACE_PASSWORD, salt);
+  const accountsFile = join(dataDir, "accounts.json");
+  await mkdir(dataDir, { recursive: true });
+  await writeFile(accountsFile, `${JSON.stringify({ accounts: [{
+    id: WORKSPACE_ID,
+    displayName: "E2E doctor",
+    role: "doctor",
+    organizationId: "e2e-organization",
+    passwordHash: `scrypt$16384$8$1$${salt.toString("hex")}$${hash.toString("hex")}`,
+    sessionVersion: 1,
+  }] }, null, 2)}\n`, { mode: 0o600 });
+  return accountsFile;
+}
 
 function freePort() {
   return new Promise((resolvePort, reject) => {
@@ -131,6 +159,8 @@ async function main() {
 
     const guardImport = `--import=${join(snapshot, "scripts/e2e-fetch-guard.mjs")}`;
     const isolatedEnv = isolatedMockEnv(process.env, guardImport);
+    const dataDir = join(snapshot, ".e2e-runtime");
+    const accountsFile = await writeWorkspaceAccount(dataDir);
 
     build = spawnCaptured(
       process.execPath,
@@ -157,6 +187,9 @@ async function main() {
       ANTHROPIC_API_KEY: "local-mock-key",
       ANTHROPIC_BASE_URL: `http://127.0.0.1:${mockPort}`,
       APP_BASE_URL: `http://127.0.0.1:${appPort}`,
+      DEMEU_ACCOUNTS_FILE: accountsFile,
+      DEMEU_DATA_DIR: dataDir,
+      DEMEU_AUTH_SECRET: randomBytes(32).toString("hex"),
       HOSTNAME: "127.0.0.1",
       PORT: String(appPort),
     };
@@ -182,6 +215,7 @@ async function main() {
       baseUrl: `http://127.0.0.1:${appPort}`,
       fixtureDir: join(ROOT, "tests/fixtures/transcripts"),
       provenance: "mock",
+      workspaceCredentials: { id: WORKSPACE_ID, password: WORKSPACE_PASSWORD },
     });
     if (app.output().includes("E2E_EXTERNAL_FETCH_BLOCKED")) {
       throw new Error("Mock E2E attempted an external network request");

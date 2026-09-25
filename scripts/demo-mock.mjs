@@ -140,7 +140,11 @@ async function smoke(base, telegramBase, ownIds) {
     sessionId: start.result.sessionId,
     message: "Мне 58 лет, я мужчина. Сильная давящая боль в груди и одышка в покое, боль 8 из 10.",
   }, patientCookie)).result;
-  if (turn.done !== true || turn.result?.urgency !== "emergency") throw new Error("Patient chat did not complete safely");
+  if (turn.done !== true || turn.closing?.emergency !== true || turn.result !== undefined) {
+    throw new Error("Patient chat did not complete safely");
+  }
+  const intake = (await request(base, `/api/workspace/intakes/${start.result.sessionId}`, undefined, cookieA)).result.intake;
+  if (intake.result?.urgency !== "emergency") throw new Error("Doctor intake has no emergency result");
   const until = Date.now() + 15_000;
   let outbox = [];
   while (Date.now() < until) {
@@ -167,7 +171,10 @@ async function smoke(base, telegramBase, ownIds) {
     genericTurn = (await request(base, "/api/chat", { sessionId: genericStart.result.sessionId, message }, genericCookie)).result;
     if (genericTurn.done) break;
   }
-  if (!genericTurn?.done || genericTurn.result?.source === "rules_only" || !genericTurn.result?.anamnesis?.chief_complaint?.includes("трудно спать")) {
+  const genericIntake = genericTurn?.done
+    ? (await request(base, `/api/workspace/intakes/${genericStart.result.sessionId}`, undefined, cookieB)).result.intake
+    : null;
+  if (!genericTurn?.done || genericTurn.result !== undefined || genericIntake?.result?.source === "rules_only" || !genericIntake?.result?.anamnesis?.chief_complaint?.includes("трудно спать")) {
     throw new Error("Generic patient flow fell back to empty extraction");
   }
   return { patientUrl: `${base}/c/${link.token}`, sessionId: start.result.sessionId, outboxCount: outbox.length };

@@ -15,6 +15,11 @@ export function isSelectableProfile(value: string): boolean {
   return REFERRAL_PROFILES.some((profile) => profile === canonicalProfile(value));
 }
 
+export function profileDisplayName(value: string): string {
+  const canonical = canonicalProfile(value);
+  return isSelectableProfile(canonical) ? canonical : `${canonical} · профиль до справочника`;
+}
+
 export function normalizeIcd10Code(value: string | null | undefined): string | null {
   return value?.trim().toUpperCase() || null;
 }

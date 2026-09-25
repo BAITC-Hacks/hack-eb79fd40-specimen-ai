@@ -1,4 +1,5 @@
 import type { ChatMessage, TriageResult } from "@/lib/types";
+import type { PatientClosing } from "@/lib/patient-response";
 
 export type Language = "ru" | "kk";
 
@@ -28,12 +29,28 @@ export interface ChatTurnResponse {
   reply: string;
   done: boolean;
   turnsLeft: number;
-  result?: TriageResult;
+  closing?: PatientClosing;
+}
+
+const pendingChatRequestIds = new Map<string, string>();
+const MAX_PENDING_CHAT_REQUESTS = 256;
+
+function chatRequestId(sessionId: string, message: string): { key: string; requestId: string } {
+  const key = `${sessionId}\0${message}`;
+  const existing = pendingChatRequestIds.get(key);
+  if (existing) return { key, requestId: existing };
+  const requestId = globalThis.crypto.randomUUID();
+  pendingChatRequestIds.set(key, requestId);
+  while (pendingChatRequestIds.size > MAX_PENDING_CHAT_REQUESTS) {
+    const oldest = pendingChatRequestIds.keys().next().value;
+    if (typeof oldest !== "string") break;
+    pendingChatRequestIds.delete(oldest);
+  }
+  return { key, requestId };
 }
 
 export interface FinalizeChatResponse {
-  result: TriageResult;
-  source: TriageResult["source"];
+  closing: PatientClosing;
   replayed: boolean;
 }
 
@@ -43,7 +60,7 @@ export interface ResumeChatResponse {
   messages: ChatMessage[];
   turnsLeft: number;
   status: "collecting" | "completed" | "aborted";
-  result?: TriageResult;
+  closing?: PatientClosing;
 }
 
 export function resumeChat(sessionId: string, token: string): Promise<ApiResult<ResumeChatResponse>> {
@@ -54,7 +71,8 @@ export function resumeChat(sessionId: string, token: string): Promise<ApiResult<
       turnsLeft(value.turnsLeft) && ["collecting", "completed", "aborted"].includes(String(value.status)) &&
       Array.isArray(value.messages) && value.messages.every((message) => isRecord(message) &&
         (message.role === "user" || message.role === "assistant") && typeof message.content === "string") &&
-      (value.status === "completed" ? isTriageResult(value.result) : value.result === undefined),
+      value.result === undefined && value.source === undefined &&
+      (value.status === "completed" ? isPatientClosing(value.closing) : value.closing === undefined),
   });
 }
 
@@ -198,6 +216,9 @@ export function isTriageResult(value: unknown): value is TriageResult {
     (value.source !== "model" &&
       value.source !== "llm_fallback" &&
       value.source !== "rules_only") ||
+    (value.processing_mode !== undefined &&
+      value.processing_mode !== "external_llm" &&
+      value.processing_mode !== "deterministic") ||
     (value.model !== undefined && !isModel(value.model))
   ) {
     return false;
@@ -236,6 +257,10 @@ function isStartResponse(value: unknown): value is StartChatResponse {
   );
 }
 
+function isPatientClosing(value: unknown): value is PatientClosing {
+  return isRecord(value) && typeof value.emergency === "boolean" && nonEmpty(value.text);
+}
+
 function isChatResponse(value: unknown): value is ChatTurnResponse {
   if (
     !isRecord(value) ||
@@ -245,15 +270,17 @@ function isChatResponse(value: unknown): value is ChatTurnResponse {
   ) {
     return false;
   }
-  const hasResult = value.result !== undefined;
-  return value.done === hasResult && (!hasResult || isTriageResult(value.result));
+  const hasClosing = value.closing !== undefined;
+  return value.result === undefined && value.source === undefined &&
+    value.done === hasClosing && (!hasClosing || isPatientClosing(value.closing));
 }
 
 function isFinalizeResponse(value: unknown): value is FinalizeChatResponse {
   return (
     isRecord(value) &&
-    isTriageResult(value.result) &&
-    value.source === value.result.source &&
+    isPatientClosing(value.closing) &&
+    value.result === undefined &&
+    value.source === undefined &&
     typeof value.replayed === "boolean"
   );
 }
@@ -373,11 +400,17 @@ export function sendChat(
   sessionId: string,
   message: string,
 ): Promise<ApiResult<ChatTurnResponse>> {
+  const { key, requestId } = chatRequestId(sessionId, message);
   return requestJson({
     url: "/api/chat",
-    body: { sessionId, message },
+    body: { sessionId, message, requestId },
     timeoutMs: 45_000,
     guard: isChatResponse,
+  }).then((result) => {
+    if (result.ok && pendingChatRequestIds.get(key) === requestId) {
+      pendingChatRequestIds.delete(key);
+    }
+    return result;
   });
 }
 

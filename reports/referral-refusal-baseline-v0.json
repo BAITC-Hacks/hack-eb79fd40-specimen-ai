@@ -1,0 +1,1668 @@
+{
+  "cohort": {
+    "by_month": {
+      "2025-01": {
+        "censored_neither": 1138,
+        "conflicting_both": 1,
+        "hospitalized_only": 244549,
+        "input_rows": 275605,
+        "mature_rows": 274466,
+        "refused_only": 29917
+      },
+      "2025-02": {
+        "censored_neither": 1422,
+        "conflicting_both": 0,
+        "hospitalized_only": 234437,
+        "input_rows": 265462,
+        "mature_rows": 264040,
+        "refused_only": 29603
+      },
+      "2025-03": {
+        "censored_neither": 1402,
+        "conflicting_both": 0,
+        "hospitalized_only": 200101,
+        "input_rows": 226063,
+        "mature_rows": 224661,
+        "refused_only": 24560
+      }
+    },
+    "censored_neither": 3962,
+    "conflicting_both": 1,
+    "hospitalized_only": 679087,
+    "input_rows": 767130,
+    "mature_rows": 763167,
+    "policy": "exclude_censored_neither_and_conflicting_both",
+    "refused_only": 84080
+  },
+  "decision": {
+    "model_beats_pair_baseline": true,
+    "model_pr_auc_minus_pair": 0.03526788,
+    "recommended_candidate_for_future_runtime": "one_hot_logistic_regression",
+    "rule": "model_test_pr_auc_must_strictly_exceed_pair_baseline",
+    "runtime_changed_by_this_task": false
+  },
+  "features": {
+    "authorization": "ClickUp_z8udzk8t1g_registration_time_contract",
+    "available_excluded_columns": [
+      "hospitalization_code",
+      "registration_dt",
+      "region_code",
+      "profile_code",
+      "operation_code",
+      "has_operation",
+      "plan_lead_days",
+      "polyclinic_lag_days",
+      "has_polyclinic",
+      "reg_month",
+      "reg_dow",
+      "is_refused",
+      "wait_days",
+      "hospitalized"
+    ],
+    "encoding": "train_partition_one_hot_min_frequency_20",
+    "excluded": {
+      "ambiguous_waitlist_join": [
+        "region_code",
+        "profile_code"
+      ],
+      "derived_calendar_not_in_task_contract": [
+        "reg_month",
+        "reg_dow"
+      ],
+      "free_text_not_in_handoff": [
+        "diagnosis_name"
+      ],
+      "identifier": [
+        "hospitalization_code"
+      ],
+      "operation_semantics_not_authorized": [
+        "operation_code",
+        "operation_name",
+        "has_operation"
+      ],
+      "planned_or_polyclinic_timing": [
+        "planned_dt",
+        "polyclinic_dt",
+        "plan_lead_days",
+        "polyclinic_lag_days",
+        "has_polyclinic"
+      ],
+      "split_axis_only": [
+        "registration_dt"
+      ],
+      "target_or_outcome": [
+        "is_refused",
+        "refusal_dt",
+        "hospitalized",
+        "hospitalization_dt",
+        "wait_days"
+      ]
+    },
+    "included": [
+      "bed_profile",
+      "icd10_ref_diag_code",
+      "referring_mo",
+      "hospital_mo",
+      "territorial_type",
+      "finance_source",
+      "referral_purpose"
+    ],
+    "missing_value_policy": "explicit_sentinel"
+  },
+  "limitations": [
+    "target_is_any_refusal_not_reason_specific",
+    "refusal_reason_absent",
+    "point_in_time_semantics_authorized_by_task_not_source_owner_verified",
+    "bed_profile_has_substantial_missingness",
+    "source_license_not_verified",
+    "raw_source_hashes_unavailable_in_handoff",
+    "national_2025_q1_not_pilot_hospital",
+    "march_previously_examined_in_source_handoff",
+    "patient_group_leakage_not_measurable",
+    "no_runtime_parity_or_activation"
+  ],
+  "model_artifact": {
+    "bytes": 1100721,
+    "exact_threshold": 0.17016485706102835,
+    "feature_order": [
+      "bed_profile",
+      "icd10_ref_diag_code",
+      "referring_mo",
+      "hospital_mo",
+      "territorial_type",
+      "finance_source",
+      "referral_purpose"
+    ],
+    "path_policy": "data_processed_or_system_temp",
+    "selected_c": 1.0,
+    "serializer_byte_stable": false,
+    "sha256": "6bce4ce9fc1e30d76dff58c1223cd51b031c92311d6038d6c05435674042b194",
+    "tracked_in_git": false
+  },
+  "model_name": "referral-refusal-baseline-v0",
+  "presentation_contract": {
+    "input_fields": [
+      "bed_profile",
+      "icd10_ref_diag_code",
+      "referring_mo",
+      "hospital_mo",
+      "territorial_type",
+      "finance_source",
+      "referral_purpose"
+    ],
+    "output_fields": [
+      "refusal_probability_among_mature_outcomes",
+      "working_threshold",
+      "risk_band",
+      "method",
+      "model_version",
+      "limitations_label"
+    ],
+    "paragraph": "The card supplies only registration-time bed profile, ICD-10, referring and receiving organizations, territory, finance source, and referral purpose; scoring returns the observed refusal probability among mature non-conflicting outcomes, the validation-selected working threshold, a two-band comparison to that threshold, method and version, plus an experimental limitations label.",
+    "risk_band_definition": {
+      "at_or_above_working_threshold": "probability >= working_threshold",
+      "below_working_threshold": "probability < working_threshold"
+    }
+  },
+  "privacy": {
+    "contains_category_values": false,
+    "contains_identifiers": false,
+    "contains_row_data": false,
+    "model_binary_contains_source_categories": true,
+    "model_binary_git_tracking": "forbidden"
+  },
+  "reproducibility": {
+    "input_sha256_verified": true,
+    "joblib_serializer_byte_stable": false,
+    "packages": {
+      "joblib": "1.4.2",
+      "numpy": "1.26.4",
+      "pandas": "2.2.2",
+      "pyarrow": "17.0.0",
+      "scikit-learn": "1.5.2",
+      "scipy": "1.13.1"
+    },
+    "python": "3.12",
+    "random_seed": 20250921,
+    "test_partition_evaluated_after_all_selection": true
+  },
+  "runtime_activation": "blocked_pending_product_decision_and_runtime_parity",
+  "schema_version": 1,
+  "selection": {
+    "constant_baseline": {
+      "calibration_deciles": {
+        "actual_bins": 1,
+        "bins": [
+          {
+            "bin": 1,
+            "mean_predicted": 0.10900075,
+            "observed_rate": 0.11211559,
+            "rows": 264040,
+            "score_max": 0.10900075,
+            "score_min": 0.10900075
+          }
+        ],
+        "requested_bins": 10
+      },
+      "metrics": {
+        "brier": 0.09955539,
+        "f1": 0.20162578,
+        "positives": 29603,
+        "pr_auc": 0.11211559,
+        "precision": 0.11211559,
+        "predicted_positive": 264040,
+        "prevalence": 0.11211559,
+        "recall": 1.0,
+        "rows": 264040,
+        "threshold": 0.1090007405483375
+      }
+    },
+    "model_candidates": [
+      {
+        "c": 0.1,
+        "family": "one_hot_logistic_regression",
+        "optimization": {
+          "converged": true,
+          "iterations": 13,
+          "max_iterations": 300,
+          "solver": "liblinear",
+          "tolerance": 0.0001
+        },
+        "threshold_selection": "validation_max_f1",
+        "validation": {
+          "calibration_deciles": {
+            "actual_bins": 10,
+            "bins": [
+              {
+                "bin": 1,
+                "mean_predicted": 0.01841315,
+                "observed_rate": 0.01344544,
+                "rows": 26403,
+                "score_max": 0.02490125,
+                "score_min": 0.00606964
+              },
+              {
+                "bin": 2,
+                "mean_predicted": 0.03021852,
+                "observed_rate": 0.02193431,
+                "rows": 26397,
+                "score_max": 0.0350275,
+                "score_min": 0.02490442
+              },
+              {
+                "bin": 3,
+                "mean_predicted": 0.0402319,
+                "observed_rate": 0.0393665,
+                "rows": 26393,
+                "score_max": 0.04535556,
+                "score_min": 0.03502763
+              },
+              {
+                "bin": 4,
+                "mean_predicted": 0.05113527,
+                "observed_rate": 0.04969156,
+                "rows": 26423,
+                "score_max": 0.05746956,
+                "score_min": 0.04535766
+              },
+              {
+                "bin": 5,
+                "mean_predicted": 0.06443534,
+                "observed_rate": 0.0680656,
+                "rows": 26401,
+                "score_max": 0.07188451,
+                "score_min": 0.05747036
+              },
+              {
+                "bin": 6,
+                "mean_predicted": 0.08034997,
+                "observed_rate": 0.08956976,
+                "rows": 26404,
+                "score_max": 0.08995702,
+                "score_min": 0.07188505
+              },
+              {
+                "bin": 7,
+                "mean_predicted": 0.10245574,
+                "observed_rate": 0.10970576,
+                "rows": 26407,
+                "score_max": 0.11630155,
+                "score_min": 0.08995825
+              },
+              {
+                "bin": 8,
+                "mean_predicted": 0.13386882,
+                "observed_rate": 0.14959855,
+                "rows": 26404,
+                "score_max": 0.15469554,
+                "score_min": 0.11630163
+              },
+              {
+                "bin": 9,
+                "mean_predicted": 0.18481455,
+                "observed_rate": 0.21091501,
+                "rows": 26404,
+                "score_max": 0.22379092,
+                "score_min": 0.15470556
+              },
+              {
+                "bin": 10,
+                "mean_predicted": 0.33894677,
+                "observed_rate": 0.36884563,
+                "rows": 26404,
+                "score_max": 0.99430758,
+                "score_min": 0.22380059
+              }
+            ],
+            "requested_bins": 10
+          },
+          "metrics": {
+            "brier": 0.08736817,
+            "f1": 0.37371114,
+            "positives": 29603,
+            "pr_auc": 0.33899274,
+            "precision": 0.30749602,
+            "predicted_positive": 45851,
+            "prevalence": 0.11211559,
+            "recall": 0.4762693,
+            "rows": 264040,
+            "threshold": 0.16804279484979348
+          }
+        }
+      },
+      {
+        "c": 1.0,
+        "family": "one_hot_logistic_regression",
+        "optimization": {
+          "converged": true,
+          "iterations": 16,
+          "max_iterations": 300,
+          "solver": "liblinear",
+          "tolerance": 0.0001
+        },
+        "threshold_selection": "validation_max_f1",
+        "validation": {
+          "calibration_deciles": {
+            "actual_bins": 10,
+            "bins": [
+              {
+                "bin": 1,
+                "mean_predicted": 0.00888652,
+                "observed_rate": 0.01022572,
+                "rows": 26404,
+                "score_max": 0.0137825,
+                "score_min": 0.00134414
+              },
+              {
+                "bin": 2,
+                "mean_predicted": 0.01807254,
+                "observed_rate": 0.02159173,
+                "rows": 26399,
+                "score_max": 0.02258164,
+                "score_min": 0.0137826
+              },
+              {
+                "bin": 3,
+                "mean_predicted": 0.02807224,
+                "observed_rate": 0.03491366,
+                "rows": 26408,
+                "score_max": 0.0336443,
+                "score_min": 0.02258223
+              },
+              {
+                "bin": 4,
+                "mean_predicted": 0.04031231,
+                "observed_rate": 0.05067222,
+                "rows": 26405,
+                "score_max": 0.04743577,
+                "score_min": 0.03364499
+              },
+              {
+                "bin": 5,
+                "mean_predicted": 0.05576175,
+                "observed_rate": 0.06987578,
+                "rows": 26404,
+                "score_max": 0.06475442,
+                "score_min": 0.0474368
+              },
+              {
+                "bin": 6,
+                "mean_predicted": 0.07484592,
+                "observed_rate": 0.08760036,
+                "rows": 26404,
+                "score_max": 0.08580958,
+                "score_min": 0.06475663
+              },
+              {
+                "bin": 7,
+                "mean_predicted": 0.10056274,
+                "observed_rate": 0.11019681,
+                "rows": 26371,
+                "score_max": 0.11726622,
+                "score_min": 0.08581008
+              },
+              {
+                "bin": 8,
+                "mean_predicted": 0.1378775,
+                "observed_rate": 0.15024398,
+                "rows": 26437,
+                "score_max": 0.16205883,
+                "score_min": 0.11726627
+              },
+              {
+                "bin": 9,
+                "mean_predicted": 0.19818217,
+                "observed_rate": 0.21209711,
+                "rows": 26403,
+                "score_max": 0.24377558,
+                "score_min": 0.1620634
+              },
+              {
+                "bin": 10,
+                "mean_predicted": 0.37799193,
+                "observed_rate": 0.37367923,
+                "rows": 26405,
+                "score_max": 0.99870408,
+                "score_min": 0.24378045
+              }
+            ],
+            "requested_bins": 10
+          },
+          "metrics": {
+            "brier": 0.08674649,
+            "f1": 0.37624592,
+            "positives": 29603,
+            "pr_auc": 0.34620466,
+            "precision": 0.30142003,
+            "predicted_positive": 49154,
+            "prevalence": 0.11211559,
+            "recall": 0.50048982,
+            "rows": 264040,
+            "threshold": 0.17016485706102835
+          }
+        }
+      },
+      {
+        "c": 10.0,
+        "family": "one_hot_logistic_regression",
+        "optimization": {
+          "converged": true,
+          "iterations": 20,
+          "max_iterations": 300,
+          "solver": "liblinear",
+          "tolerance": 0.0001
+        },
+        "threshold_selection": "validation_max_f1",
+        "validation": {
+          "calibration_deciles": {
+            "actual_bins": 10,
+            "bins": [
+              {
+                "bin": 1,
+                "mean_predicted": 0.00474643,
+                "observed_rate": 0.01321769,
+                "rows": 26404,
+                "score_max": 0.00929112,
+                "score_min": 5.241e-05
+              },
+              {
+                "bin": 2,
+                "mean_predicted": 0.01382668,
+                "observed_rate": 0.02007272,
+                "rows": 26404,
+                "score_max": 0.0185447,
+                "score_min": 0.00929244
+              },
+              {
+                "bin": 3,
+                "mean_predicted": 0.02420289,
+                "observed_rate": 0.03511098,
+                "rows": 26402,
+                "score_max": 0.0303464,
+                "score_min": 0.01854527
+              },
+              {
+                "bin": 4,
+                "mean_predicted": 0.03724413,
+                "observed_rate": 0.05142771,
+                "rows": 26406,
+                "score_max": 0.04473698,
+                "score_min": 0.03034776
+              },
+              {
+                "bin": 5,
+                "mean_predicted": 0.05387076,
+                "observed_rate": 0.0686858,
+                "rows": 26381,
+                "score_max": 0.06340583,
+                "score_min": 0.04473801
+              },
+              {
+                "bin": 6,
+                "mean_predicted": 0.0739475,
+                "observed_rate": 0.0881674,
+                "rows": 26427,
+                "score_max": 0.08501869,
+                "score_min": 0.06340712
+              },
+              {
+                "bin": 7,
+                "mean_predicted": 0.10051046,
+                "observed_rate": 0.11032419,
+                "rows": 26404,
+                "score_max": 0.11783845,
+                "score_min": 0.08501953
+              },
+              {
+                "bin": 8,
+                "mean_predicted": 0.13934496,
+                "observed_rate": 0.15043175,
+                "rows": 26404,
+                "score_max": 0.16494286,
+                "score_min": 0.11784009
+              },
+              {
+                "bin": 9,
+                "mean_predicted": 0.20260804,
+                "observed_rate": 0.21079545,
+                "rows": 26400,
+                "score_max": 0.25036613,
+                "score_min": 0.16494588
+              },
+              {
+                "bin": 10,
+                "mean_predicted": 0.38980096,
+                "observed_rate": 0.37287943,
+                "rows": 26408,
+                "score_max": 0.99914487,
+                "score_min": 0.25038157
+              }
+            ],
+            "requested_bins": 10
+          },
+          "metrics": {
+            "brier": 0.08686749,
+            "f1": 0.37533165,
+            "positives": 29603,
+            "pr_auc": 0.34592502,
+            "precision": 0.29728876,
+            "predicted_positive": 50678,
+            "prevalence": 0.11211559,
+            "recall": 0.50893491,
+            "rows": 264040,
+            "threshold": 0.16986968846656303
+          }
+        }
+      }
+    ],
+    "primary_metric": "validation_pr_auc",
+    "selected_model": {
+      "c": 1.0,
+      "family": "one_hot_logistic_regression",
+      "threshold": 0.17016485706102835
+    },
+    "smoothed_pair_baseline": {
+      "candidates": [
+        {
+          "smoothing_strength": 1.0,
+          "threshold_selection": "validation_max_f1",
+          "validation": {
+            "calibration_deciles": {
+              "actual_bins": 10,
+              "bins": [
+                {
+                  "bin": 1,
+                  "mean_predicted": 0.00334654,
+                  "observed_rate": 0.02631579,
+                  "rows": 25878,
+                  "score_max": 0.00853076,
+                  "score_min": 9.627e-05
+                },
+                {
+                  "bin": 2,
+                  "mean_predicted": 0.01388886,
+                  "observed_rate": 0.02945972,
+                  "rows": 26375,
+                  "score_max": 0.02026365,
+                  "score_min": 0.0085447
+                },
+                {
+                  "bin": 3,
+                  "mean_predicted": 0.02604468,
+                  "observed_rate": 0.03654139,
+                  "rows": 26901,
+                  "score_max": 0.03268967,
+                  "score_min": 0.02027173
+                },
+                {
+                  "bin": 4,
+                  "mean_predicted": 0.04076799,
+                  "observed_rate": 0.05338242,
+                  "rows": 26076,
+                  "score_max": 0.04905966,
+                  "score_min": 0.03277081
+                },
+                {
+                  "bin": 5,
+                  "mean_predicted": 0.05885808,
+                  "observed_rate": 0.07828689,
+                  "rows": 26735,
+                  "score_max": 0.06875009,
+                  "score_min": 0.0490724
+                },
+                {
+                  "bin": 6,
+                  "mean_predicted": 0.07949848,
+                  "observed_rate": 0.0919814,
+                  "rows": 26451,
+                  "score_max": 0.09158156,
+                  "score_min": 0.06875319
+                },
+                {
+                  "bin": 7,
+                  "mean_predicted": 0.10696313,
+                  "observed_rate": 0.11506839,
+                  "rows": 26393,
+                  "score_max": 0.12235825,
+                  "score_min": 0.09161008
+                },
+                {
+                  "bin": 8,
+                  "mean_predicted": 0.13883084,
+                  "observed_rate": 0.15116323,
+                  "rows": 26263,
+                  "score_max": 0.15886808,
+                  "score_min": 0.12247262
+                },
+                {
+                  "bin": 9,
+                  "mean_predicted": 0.1929798,
+                  "observed_rate": 0.1906197,
+                  "rows": 26545,
+                  "score_max": 0.24341211,
+                  "score_min": 0.1588708
+                },
+                {
+                  "bin": 10,
+                  "mean_predicted": 0.36907143,
+                  "observed_rate": 0.34731105,
+                  "rows": 26423,
+                  "score_max": 0.96312909,
+                  "score_min": 0.24362517
+                }
+              ],
+              "requested_bins": 10
+            },
+            "metrics": {
+              "brier": 0.08984602,
+              "f1": 0.34598082,
+              "positives": 29603,
+              "pr_auc": 0.30478074,
+              "precision": 0.27591751,
+              "predicted_positive": 49754,
+              "prevalence": 0.11211559,
+              "recall": 0.46373678,
+              "rows": 264040,
+              "threshold": 0.16531757753044876
+            },
+            "prediction_sources": {
+              "global": 0,
+              "hospital": 1,
+              "hospital_profile_blend": 998,
+              "pair": 262941,
+              "profile": 100
+            }
+          }
+        },
+        {
+          "smoothing_strength": 5.0,
+          "threshold_selection": "validation_max_f1",
+          "validation": {
+            "calibration_deciles": {
+              "actual_bins": 10,
+              "bins": [
+                {
+                  "bin": 1,
+                  "mean_predicted": 0.00644285,
+                  "observed_rate": 0.01925052,
+                  "rows": 26285,
+                  "score_max": 0.0116484,
+                  "score_min": 0.00048484
+                },
+                {
+                  "bin": 2,
+                  "mean_predicted": 0.01791722,
+                  "observed_rate": 0.02781811,
+                  "rows": 26170,
+                  "score_max": 0.02363506,
+                  "score_min": 0.0116681
+                },
+                {
+                  "bin": 3,
+                  "mean_predicted": 0.03002956,
+                  "observed_rate": 0.04006609,
+                  "rows": 26631,
+                  "score_max": 0.03743057,
+                  "score_min": 0.02365202
+                },
+                {
+                  "bin": 4,
+                  "mean_predicted": 0.04450965,
+                  "observed_rate": 0.05634017,
+                  "rows": 26340,
+                  "score_max": 0.05264158,
+                  "score_min": 0.03743078
+                },
+                {
+                  "bin": 5,
+                  "mean_predicted": 0.06194967,
+                  "observed_rate": 0.0759752,
+                  "rows": 26456,
+                  "score_max": 0.07101152,
+                  "score_min": 0.05272234
+                },
+                {
+                  "bin": 6,
+                  "mean_predicted": 0.08180437,
+                  "observed_rate": 0.09448849,
+                  "rows": 26490,
+                  "score_max": 0.09408412,
+                  "score_min": 0.07101633
+                },
+                {
+                  "bin": 7,
+                  "mean_predicted": 0.10810353,
+                  "observed_rate": 0.1165921,
+                  "rows": 26151,
+                  "score_max": 0.12267528,
+                  "score_min": 0.09408792
+                },
+                {
+                  "bin": 8,
+                  "mean_predicted": 0.13847967,
+                  "observed_rate": 0.14976118,
+                  "rows": 26589,
+                  "score_max": 0.15727938,
+                  "score_min": 0.1226888
+                },
+                {
+                  "bin": 9,
+                  "mean_predicted": 0.1897356,
+                  "observed_rate": 0.19043308,
+                  "rows": 26508,
+                  "score_max": 0.23693946,
+                  "score_min": 0.15744703
+                },
+                {
+                  "bin": 10,
+                  "mean_predicted": 0.35024761,
+                  "observed_rate": 0.34920515,
+                  "rows": 26420,
+                  "score_max": 0.85106813,
+                  "score_min": 0.23702209
+                }
+              ],
+              "requested_bins": 10
+            },
+            "metrics": {
+              "brier": 0.08950806,
+              "f1": 0.34735335,
+              "positives": 29603,
+              "pr_auc": 0.30510917,
+              "precision": 0.27794678,
+              "predicted_positive": 49308,
+              "prevalence": 0.11211559,
+              "recall": 0.46295984,
+              "rows": 264040,
+              "threshold": 0.16444963986121122
+            },
+            "prediction_sources": {
+              "global": 0,
+              "hospital": 1,
+              "hospital_profile_blend": 998,
+              "pair": 262941,
+              "profile": 100
+            }
+          }
+        },
+        {
+          "smoothing_strength": 10.0,
+          "threshold_selection": "validation_max_f1",
+          "validation": {
+            "calibration_deciles": {
+              "actual_bins": 10,
+              "bins": [
+                {
+                  "bin": 1,
+                  "mean_predicted": 0.00814159,
+                  "observed_rate": 0.01496733,
+                  "rows": 26324,
+                  "score_max": 0.01399819,
+                  "score_min": 0.00097761
+                },
+                {
+                  "bin": 2,
+                  "mean_predicted": 0.0203674,
+                  "observed_rate": 0.02976168,
+                  "rows": 26477,
+                  "score_max": 0.02575134,
+                  "score_min": 0.01403028
+                },
+                {
+                  "bin": 3,
+                  "mean_predicted": 0.03290564,
+                  "observed_rate": 0.04082869,
+                  "rows": 26403,
+                  "score_max": 0.0400999,
+                  "score_min": 0.02575343
+                },
+                {
+                  "bin": 4,
+                  "mean_predicted": 0.04774608,
+                  "observed_rate": 0.05609424,
+                  "rows": 26402,
+                  "score_max": 0.05642849,
+                  "score_min": 0.04010926
+                },
+                {
+                  "bin": 5,
+                  "mean_predicted": 0.06485292,
+                  "observed_rate": 0.07746666,
+                  "rows": 26321,
+                  "score_max": 0.07365722,
+                  "score_min": 0.0564408
+                },
+                {
+                  "bin": 6,
+                  "mean_predicted": 0.08403816,
+                  "observed_rate": 0.09284656,
+                  "rows": 26323,
+                  "score_max": 0.09575595,
+                  "score_min": 0.0736957
+                },
+                {
+                  "bin": 7,
+                  "mean_predicted": 0.10946868,
+                  "observed_rate": 0.11937378,
+                  "rows": 26572,
+                  "score_max": 0.12305767,
+                  "score_min": 0.0957682
+                },
+                {
+                  "bin": 8,
+                  "mean_predicted": 0.13846039,
+                  "observed_rate": 0.14877318,
+                  "rows": 26369,
+                  "score_max": 0.1569481,
+                  "score_min": 0.12309771
+                },
+                {
+                  "bin": 9,
+                  "mean_predicted": 0.18680868,
+                  "observed_rate": 0.19056804,
+                  "rows": 26442,
+                  "score_max": 0.22956476,
+                  "score_min": 0.15695966
+                },
+                {
+                  "bin": 10,
+                  "mean_predicted": 0.33780081,
+                  "observed_rate": 0.35009657,
+                  "rows": 26407,
+                  "score_max": 0.83977323,
+                  "score_min": 0.22966881
+                }
+              ],
+              "requested_bins": 10
+            },
+            "metrics": {
+              "brier": 0.08945996,
+              "f1": 0.3472691,
+              "positives": 29603,
+              "pr_auc": 0.30455933,
+              "precision": 0.27328952,
+              "predicted_positive": 51579,
+              "prevalence": 0.11211559,
+              "recall": 0.47616796,
+              "rows": 264040,
+              "threshold": 0.15829578932903993
+            },
+            "prediction_sources": {
+              "global": 0,
+              "hospital": 1,
+              "hospital_profile_blend": 998,
+              "pair": 262941,
+              "profile": 100
+            }
+          }
+        },
+        {
+          "smoothing_strength": 20.0,
+          "threshold_selection": "validation_max_f1",
+          "validation": {
+            "calibration_deciles": {
+              "actual_bins": 10,
+              "bins": [
+                {
+                  "bin": 1,
+                  "mean_predicted": 0.01028727,
+                  "observed_rate": 0.01444305,
+                  "rows": 26241,
+                  "score_max": 0.01781331,
+                  "score_min": 0.00198212
+                },
+                {
+                  "bin": 2,
+                  "mean_predicted": 0.0232834,
+                  "observed_rate": 0.02546033,
+                  "rows": 26394,
+                  "score_max": 0.0299117,
+                  "score_min": 0.01786882
+                },
+                {
+                  "bin": 3,
+                  "mean_predicted": 0.036635,
+                  "observed_rate": 0.04508384,
+                  "rows": 26240,
+                  "score_max": 0.04358716,
+                  "score_min": 0.02993158
+                },
+                {
+                  "bin": 4,
+                  "mean_predicted": 0.05144604,
+                  "observed_rate": 0.0577247,
+                  "rows": 26713,
+                  "score_max": 0.06008059,
+                  "score_min": 0.04361168
+                },
+                {
+                  "bin": 5,
+                  "mean_predicted": 0.06870048,
+                  "observed_rate": 0.07571722,
+                  "rows": 26282,
+                  "score_max": 0.07793855,
+                  "score_min": 0.06009792
+                },
+                {
+                  "bin": 6,
+                  "mean_predicted": 0.08729907,
+                  "observed_rate": 0.09091936,
+                  "rows": 26551,
+                  "score_max": 0.09860738,
+                  "score_min": 0.07794229
+                },
+                {
+                  "bin": 7,
+                  "mean_predicted": 0.11130124,
+                  "observed_rate": 0.11959616,
+                  "rows": 26347,
+                  "score_max": 0.12396895,
+                  "score_min": 0.0986661
+                },
+                {
+                  "bin": 8,
+                  "mean_predicted": 0.13815635,
+                  "observed_rate": 0.15189778,
+                  "rows": 26452,
+                  "score_max": 0.15601993,
+                  "score_min": 0.12405056
+                },
+                {
+                  "bin": 9,
+                  "mean_predicted": 0.18253799,
+                  "observed_rate": 0.18998443,
+                  "rows": 26339,
+                  "score_max": 0.22229796,
+                  "score_min": 0.15602187
+                },
+                {
+                  "bin": 10,
+                  "mean_predicted": 0.32201392,
+                  "observed_rate": 0.34930705,
+                  "rows": 26481,
+                  "score_max": 0.81847685,
+                  "score_min": 0.22231372
+                }
+              ],
+              "requested_bins": 10
+            },
+            "metrics": {
+              "brier": 0.08953704,
+              "f1": 0.34784941,
+              "positives": 29603,
+              "pr_auc": 0.30332461,
+              "precision": 0.27969514,
+              "predicted_positive": 48678,
+              "prevalence": 0.11211559,
+              "recall": 0.4599196,
+              "rows": 264040,
+              "threshold": 0.16163332078774015
+            },
+            "prediction_sources": {
+              "global": 0,
+              "hospital": 1,
+              "hospital_profile_blend": 998,
+              "pair": 262941,
+              "profile": 100
+            }
+          }
+        },
+        {
+          "smoothing_strength": 50.0,
+          "threshold_selection": "validation_max_f1",
+          "validation": {
+            "calibration_deciles": {
+              "actual_bins": 10,
+              "bins": [
+                {
+                  "bin": 1,
+                  "mean_predicted": 0.01455624,
+                  "observed_rate": 0.01423636,
+                  "rows": 26341,
+                  "score_max": 0.02233006,
+                  "score_min": 0.00503966
+                },
+                {
+                  "bin": 2,
+                  "mean_predicted": 0.02883568,
+                  "observed_rate": 0.02685769,
+                  "rows": 26175,
+                  "score_max": 0.03559393,
+                  "score_min": 0.0225063
+                },
+                {
+                  "bin": 3,
+                  "mean_predicted": 0.04342661,
+                  "observed_rate": 0.04276932,
+                  "rows": 26678,
+                  "score_max": 0.05086778,
+                  "score_min": 0.03562044
+                },
+                {
+                  "bin": 4,
+                  "mean_predicted": 0.05841414,
+                  "observed_rate": 0.06332353,
+                  "rows": 26183,
+                  "score_max": 0.0663954,
+                  "score_min": 0.05103772
+                },
+                {
+                  "bin": 5,
+                  "mean_predicted": 0.07440044,
+                  "observed_rate": 0.07493834,
+                  "rows": 26355,
+                  "score_max": 0.08306581,
+                  "score_min": 0.06640906
+                },
+                {
+                  "bin": 6,
+                  "mean_predicted": 0.09205527,
+                  "observed_rate": 0.09187239,
+                  "rows": 26613,
+                  "score_max": 0.10278133,
+                  "score_min": 0.08310132
+                },
+                {
+                  "bin": 7,
+                  "mean_predicted": 0.11422274,
+                  "observed_rate": 0.11242177,
+                  "rows": 26365,
+                  "score_max": 0.12485894,
+                  "score_min": 0.10282884
+                },
+                {
+                  "bin": 8,
+                  "mean_predicted": 0.13748282,
+                  "observed_rate": 0.15579751,
+                  "rows": 26451,
+                  "score_max": 0.15295557,
+                  "score_min": 0.12486093
+                },
+                {
+                  "bin": 9,
+                  "mean_predicted": 0.17559631,
+                  "observed_rate": 0.19189894,
+                  "rows": 26441,
+                  "score_max": 0.20982831,
+                  "score_min": 0.15297096
+                },
+                {
+                  "bin": 10,
+                  "mean_predicted": 0.2970802,
+                  "observed_rate": 0.34597927,
+                  "rows": 26438,
+                  "score_max": 0.76326801,
+                  "score_min": 0.20994433
+                }
+              ],
+              "requested_bins": 10
+            },
+            "metrics": {
+              "brier": 0.08994367,
+              "f1": 0.34605902,
+              "positives": 29603,
+              "pr_auc": 0.29919842,
+              "precision": 0.2809583,
+              "predicted_positive": 47459,
+              "prevalence": 0.11211559,
+              "recall": 0.45042732,
+              "rows": 264040,
+              "threshold": 0.16059942742650288
+            },
+            "prediction_sources": {
+              "global": 0,
+              "hospital": 1,
+              "hospital_profile_blend": 998,
+              "pair": 262941,
+              "profile": 100
+            }
+          }
+        },
+        {
+          "smoothing_strength": 100.0,
+          "threshold_selection": "validation_max_f1",
+          "validation": {
+            "calibration_deciles": {
+              "actual_bins": 10,
+              "bins": [
+                {
+                  "bin": 1,
+                  "mean_predicted": 0.01963152,
+                  "observed_rate": 0.01556509,
+                  "rows": 26341,
+                  "score_max": 0.02839857,
+                  "score_min": 0.00812137
+                },
+                {
+                  "bin": 2,
+                  "mean_predicted": 0.03516821,
+                  "observed_rate": 0.02740088,
+                  "rows": 26459,
+                  "score_max": 0.04323431,
+                  "score_min": 0.02855155
+                },
+                {
+                  "bin": 3,
+                  "mean_predicted": 0.04999686,
+                  "observed_rate": 0.04253383,
+                  "rows": 26379,
+                  "score_max": 0.0572605,
+                  "score_min": 0.04326255
+                },
+                {
+                  "bin": 4,
+                  "mean_predicted": 0.06493739,
+                  "observed_rate": 0.06729674,
+                  "rows": 26346,
+                  "score_max": 0.07184828,
+                  "score_min": 0.05728234
+                },
+                {
+                  "bin": 5,
+                  "mean_predicted": 0.0792486,
+                  "observed_rate": 0.07354497,
+                  "rows": 26460,
+                  "score_max": 0.08564185,
+                  "score_min": 0.07186762
+                },
+                {
+                  "bin": 6,
+                  "mean_predicted": 0.09540042,
+                  "observed_rate": 0.09192825,
+                  "rows": 26314,
+                  "score_max": 0.10583062,
+                  "score_min": 0.08566052
+                },
+                {
+                  "bin": 7,
+                  "mean_predicted": 0.11575256,
+                  "observed_rate": 0.11486435,
+                  "rows": 26022,
+                  "score_max": 0.12570177,
+                  "score_min": 0.10585749
+                },
+                {
+                  "bin": 8,
+                  "mean_predicted": 0.1365828,
+                  "observed_rate": 0.15246553,
+                  "rows": 26911,
+                  "score_max": 0.15075829,
+                  "score_min": 0.12573126
+                },
+                {
+                  "bin": 9,
+                  "mean_predicted": 0.16996779,
+                  "observed_rate": 0.19273595,
+                  "rows": 26404,
+                  "score_max": 0.1984903,
+                  "score_min": 0.15077402
+                },
+                {
+                  "bin": 10,
+                  "mean_predicted": 0.27481569,
+                  "observed_rate": 0.34188002,
+                  "rows": 26404,
+                  "score_max": 0.69230424,
+                  "score_min": 0.19882307
+                }
+              ],
+              "requested_bins": 10
+            },
+            "metrics": {
+              "brier": 0.09055565,
+              "f1": 0.3449792,
+              "positives": 29603,
+              "pr_auc": 0.29323661,
+              "precision": 0.2826298,
+              "predicted_positive": 46361,
+              "prevalence": 0.11211559,
+              "recall": 0.44262406,
+              "rows": 264040,
+              "threshold": 0.15863126928087587
+            },
+            "prediction_sources": {
+              "global": 0,
+              "hospital": 1,
+              "hospital_profile_blend": 998,
+              "pair": 262941,
+              "profile": 100
+            }
+          }
+        },
+        {
+          "smoothing_strength": 200.0,
+          "threshold_selection": "validation_max_f1",
+          "validation": {
+            "calibration_deciles": {
+              "actual_bins": 10,
+              "bins": [
+                {
+                  "bin": 1,
+                  "mean_predicted": 0.02692468,
+                  "observed_rate": 0.01781635,
+                  "rows": 26268,
+                  "score_max": 0.03686007,
+                  "score_min": 0.01226279
+                },
+                {
+                  "bin": 2,
+                  "mean_predicted": 0.04387829,
+                  "observed_rate": 0.02736874,
+                  "rows": 26417,
+                  "score_max": 0.05072369,
+                  "score_min": 0.03689095
+                },
+                {
+                  "bin": 3,
+                  "mean_predicted": 0.05772973,
+                  "observed_rate": 0.04152367,
+                  "rows": 26515,
+                  "score_max": 0.06468812,
+                  "score_min": 0.05079841
+                },
+                {
+                  "bin": 4,
+                  "mean_predicted": 0.07171312,
+                  "observed_rate": 0.07070323,
+                  "rows": 26293,
+                  "score_max": 0.07775241,
+                  "score_min": 0.06471381
+                },
+                {
+                  "bin": 5,
+                  "mean_predicted": 0.08356062,
+                  "observed_rate": 0.07504337,
+                  "rows": 26518,
+                  "score_max": 0.09026579,
+                  "score_min": 0.07776093
+                },
+                {
+                  "bin": 6,
+                  "mean_predicted": 0.09828875,
+                  "observed_rate": 0.09042957,
+                  "rows": 26352,
+                  "score_max": 0.10727253,
+                  "score_min": 0.0902756
+                },
+                {
+                  "bin": 7,
+                  "mean_predicted": 0.11643144,
+                  "observed_rate": 0.12077789,
+                  "rows": 26379,
+                  "score_max": 0.1252129,
+                  "score_min": 0.10727638
+                },
+                {
+                  "bin": 8,
+                  "mean_predicted": 0.1352407,
+                  "observed_rate": 0.14548001,
+                  "rows": 26416,
+                  "score_max": 0.1477775,
+                  "score_min": 0.12522437
+                },
+                {
+                  "bin": 9,
+                  "mean_predicted": 0.16370307,
+                  "observed_rate": 0.19638136,
+                  "rows": 26474,
+                  "score_max": 0.18563745,
+                  "score_min": 0.14782892
+                },
+                {
+                  "bin": 10,
+                  "mean_predicted": 0.25021461,
+                  "observed_rate": 0.33516359,
+                  "rows": 26408,
+                  "score_max": 0.59648548,
+                  "score_min": 0.1857531
+                }
+              ],
+              "requested_bins": 10
+            },
+            "metrics": {
+              "brier": 0.09145467,
+              "f1": 0.34076846,
+              "positives": 29603,
+              "pr_auc": 0.28562712,
+              "precision": 0.26416287,
+              "predicted_positive": 53785,
+              "prevalence": 0.11211559,
+              "recall": 0.47995136,
+              "rows": 264040,
+              "threshold": 0.14664491746073244
+            },
+            "prediction_sources": {
+              "global": 0,
+              "hospital": 1,
+              "hospital_profile_blend": 998,
+              "pair": 262941,
+              "profile": 100
+            }
+          }
+        }
+      ],
+      "definition": "hospital_mo_plus_bed_profile_smoothed_to_hospital_profile_priors",
+      "fallback_order": [
+        "hospital_profile_blend",
+        "hospital",
+        "profile",
+        "global"
+      ],
+      "primary_metric": "validation_pr_auc",
+      "selected": {
+        "smoothing_strength": 5.0,
+        "threshold": 0.16444963986121122
+      },
+      "tie_breaker": "validation_brier_then_lower_smoothing_strength"
+    },
+    "threshold_criterion": "validation_max_f1_per_method",
+    "tie_breaker": "validation_brier_then_lower_c"
+  },
+  "source": {
+    "bytes": 13791102,
+    "column_count": 21,
+    "columns": [
+      "hospitalization_code",
+      "registration_dt",
+      "referring_mo",
+      "hospital_mo",
+      "icd10_ref_diag_code",
+      "bed_profile",
+      "territorial_type",
+      "referral_purpose",
+      "finance_source",
+      "region_code",
+      "profile_code",
+      "operation_code",
+      "has_operation",
+      "plan_lead_days",
+      "polyclinic_lag_days",
+      "has_polyclinic",
+      "reg_month",
+      "reg_dow",
+      "is_refused",
+      "wait_days",
+      "hospitalized"
+    ],
+    "license_status": "not_verified",
+    "period": {
+      "registration_max": "2025-03-31",
+      "registration_min": "2025-01-01"
+    },
+    "raw_source_hashes_status": "unavailable_in_handoff",
+    "rows": 767130,
+    "sha256": "c9386df30d37f3035aa653772abb74f648348a17b7de5497e9306b088bc01798"
+  },
+  "split": {
+    "strategy": "calendar_months",
+    "test": {
+      "evaluated_after_selection": true,
+      "period": "2025-03",
+      "positives": 24560,
+      "prevalence": 0.10932026,
+      "previously_examined_in_source_handoff": true,
+      "rows": 224661,
+      "used_for_selection": false
+    },
+    "train": {
+      "period": "2025-01",
+      "positives": 29917,
+      "prevalence": 0.10900075,
+      "rows": 274466
+    },
+    "validation": {
+      "period": "2025-02",
+      "positives": 29603,
+      "prevalence": 0.11211559,
+      "rows": 264040,
+      "used_for": "model_and_threshold_selection"
+    }
+  },
+  "status": "experimental_not_runtime_ready",
+  "target": {
+    "definition": "refusal_dt_present_among_mature_non_conflicting_outcomes",
+    "evaluation_population": "mature_outcomes_only",
+    "field": "is_refused",
+    "negative_rows": 679087,
+    "positive_rows": 84080,
+    "prediction_time": "registration_dt"
+  },
+  "task": "B3_referral_refusal_offline_benchmark",
+  "test": {
+    "constant_baseline": {
+      "calibration_deciles": {
+        "actual_bins": 1,
+        "bins": [
+          {
+            "bin": 1,
+            "mean_predicted": 0.10900075,
+            "observed_rate": 0.10932026,
+            "rows": 224661,
+            "score_max": 0.10900075,
+            "score_min": 0.10900075
+          }
+        ],
+        "requested_bins": 10
+      },
+      "metrics": {
+        "brier": 0.09736945,
+        "f1": 0.19709415,
+        "positives": 24560,
+        "pr_auc": 0.10932026,
+        "precision": 0.10932026,
+        "predicted_positive": 224661,
+        "prevalence": 0.10932026,
+        "recall": 1.0,
+        "rows": 224661,
+        "threshold": 0.1090007405483375
+      }
+    },
+    "one_hot_logistic_regression": {
+      "calibration_deciles": {
+        "actual_bins": 10,
+        "bins": [
+          {
+            "bin": 1,
+            "mean_predicted": 0.00870463,
+            "observed_rate": 0.01224126,
+            "rows": 22465,
+            "score_max": 0.01345972,
+            "score_min": 0.00085359
+          },
+          {
+            "bin": 2,
+            "mean_predicted": 0.01762398,
+            "observed_rate": 0.01971781,
+            "rows": 22467,
+            "score_max": 0.02197903,
+            "score_min": 0.01346193
+          },
+          {
+            "bin": 3,
+            "mean_predicted": 0.02753543,
+            "observed_rate": 0.03090075,
+            "rows": 22459,
+            "score_max": 0.03311741,
+            "score_min": 0.02198006
+          },
+          {
+            "bin": 4,
+            "mean_predicted": 0.03974817,
+            "observed_rate": 0.04639152,
+            "rows": 22461,
+            "score_max": 0.04683011,
+            "score_min": 0.03311997
+          },
+          {
+            "bin": 5,
+            "mean_predicted": 0.05487009,
+            "observed_rate": 0.06377392,
+            "rows": 22470,
+            "score_max": 0.06374547,
+            "score_min": 0.04683737
+          },
+          {
+            "bin": 6,
+            "mean_predicted": 0.0738981,
+            "observed_rate": 0.08597748,
+            "rows": 22471,
+            "score_max": 0.08486967,
+            "score_min": 0.06374639
+          },
+          {
+            "bin": 7,
+            "mean_predicted": 0.09947856,
+            "observed_rate": 0.11277259,
+            "rows": 22470,
+            "score_max": 0.11634573,
+            "score_min": 0.08487098
+          },
+          {
+            "bin": 8,
+            "mean_predicted": 0.13686224,
+            "observed_rate": 0.14521658,
+            "rows": 22463,
+            "score_max": 0.16084431,
+            "score_min": 0.11634722
+          },
+          {
+            "bin": 9,
+            "mean_predicted": 0.19752156,
+            "observed_rate": 0.20283082,
+            "rows": 22467,
+            "score_max": 0.24423881,
+            "score_min": 0.16085174
+          },
+          {
+            "bin": 10,
+            "mean_predicted": 0.37579421,
+            "observed_rate": 0.37333096,
+            "rows": 22468,
+            "score_max": 0.99887953,
+            "score_min": 0.24424498
+          }
+        ],
+        "requested_bins": 10
+      },
+      "metrics": {
+        "brier": 0.08453568,
+        "f1": 0.37409832,
+        "positives": 24560,
+        "pr_auc": 0.3476473,
+        "precision": 0.29793859,
+        "predicted_positive": 41428,
+        "prevalence": 0.10932026,
+        "recall": 0.50256515,
+        "rows": 224661,
+        "threshold": 0.17016485706102835
+      }
+    },
+    "smoothed_pair_baseline": {
+      "calibration_deciles": {
+        "actual_bins": 10,
+        "bins": [
+          {
+            "bin": 1,
+            "mean_predicted": 0.00637193,
+            "observed_rate": 0.01587799,
+            "rows": 22358,
+            "score_max": 0.01149987,
+            "score_min": 0.00048484
+          },
+          {
+            "bin": 2,
+            "mean_predicted": 0.01770514,
+            "observed_rate": 0.02561712,
+            "rows": 22524,
+            "score_max": 0.02357128,
+            "score_min": 0.01150145
+          },
+          {
+            "bin": 3,
+            "mean_predicted": 0.03004604,
+            "observed_rate": 0.03871283,
+            "rows": 22499,
+            "score_max": 0.03743057,
+            "score_min": 0.02363506
+          },
+          {
+            "bin": 4,
+            "mean_predicted": 0.04453158,
+            "observed_rate": 0.0566487,
+            "rows": 22260,
+            "score_max": 0.05268932,
+            "score_min": 0.03743078
+          },
+          {
+            "bin": 5,
+            "mean_predicted": 0.06193022,
+            "observed_rate": 0.07230722,
+            "rows": 22681,
+            "score_max": 0.07101152,
+            "score_min": 0.05272234
+          },
+          {
+            "bin": 6,
+            "mean_predicted": 0.08172422,
+            "observed_rate": 0.09194123,
+            "rows": 22460,
+            "score_max": 0.09403002,
+            "score_min": 0.07101633
+          },
+          {
+            "bin": 7,
+            "mean_predicted": 0.10783235,
+            "observed_rate": 0.10532887,
+            "rows": 22425,
+            "score_max": 0.12254275,
+            "score_min": 0.09408412
+          },
+          {
+            "bin": 8,
+            "mean_predicted": 0.1384495,
+            "observed_rate": 0.14751622,
+            "rows": 22506,
+            "score_max": 0.15727938,
+            "score_min": 0.12256808
+          },
+          {
+            "bin": 9,
+            "mean_predicted": 0.18976814,
+            "observed_rate": 0.19180459,
+            "rows": 22476,
+            "score_max": 0.2373541,
+            "score_min": 0.15744703
+          },
+          {
+            "bin": 10,
+            "mean_predicted": 0.35391432,
+            "observed_rate": 0.34700961,
+            "rows": 22472,
+            "score_max": 0.85106813,
+            "score_min": 0.23742011
+          }
+        ],
+        "requested_bins": 10
+      },
+      "metrics": {
+        "brier": 0.08696721,
+        "f1": 0.34907876,
+        "positives": 24560,
+        "pr_auc": 0.31237942,
+        "precision": 0.27691536,
+        "predicted_positive": 41872,
+        "prevalence": 0.10932026,
+        "recall": 0.47210912,
+        "rows": 224661,
+        "threshold": 0.16444963986121122
+      },
+      "prediction_sources": {
+        "global": 0,
+        "hospital": 0,
+        "hospital_profile_blend": 1182,
+        "pair": 223323,
+        "profile": 156
+      }
+    }
+  }
+}

@@ -11,10 +11,11 @@ import {
   createProductionLlm,
   shouldAbstain,
 } from "../../lib/triage";
-import type {
-  Anamnesis,
-  ChatMessage,
-  TriageResult,
+import {
+  normalizeAnamnesis,
+  type Anamnesis,
+  type ChatMessage,
+  type TriageResult,
 } from "../../lib/types";
 
 interface DemoCase {
@@ -183,7 +184,7 @@ const DEMOS: readonly DemoCase[] = [
 
 function rawExtraction(current: DemoCase): Record<string, unknown> {
   return {
-    anamnesis: current.anamnesis,
+    anamnesis: normalizeAnamnesis(current.anamnesis),
     evidence: {
       evidences: current.rawEvidences,
       age: current.anamnesis.context.age,

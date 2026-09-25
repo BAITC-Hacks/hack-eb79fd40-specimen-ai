@@ -13,6 +13,7 @@ interface SessionSnapshot {
   schema_version: 1;
   doctors: [string, number][];
   sessions: Session[];
+  consumedDoctorTokens: string[];
 }
 
 function record(value: unknown): value is Record<string, unknown> {
@@ -61,15 +62,20 @@ function validateSnapshot(value: unknown): SessionSnapshot {
     !Array.isArray(value.doctors) || !Array.isArray(value.sessions) ||
     !value.doctors.every((entry) => Array.isArray(entry) && entry.length === 2 &&
       text(entry[0]) && timestamp(entry[1])) ||
-    !value.sessions.every(validSession)
+    !value.sessions.every(validSession) ||
+    (value.consumedDoctorTokens !== undefined &&
+      (!Array.isArray(value.consumedDoctorTokens) || !value.consumedDoctorTokens.every(text)))
   ) throw new Error("Invalid session snapshot");
   const tokens = value.doctors.map(([token]) => token);
   const ids = value.sessions.map((session) => session.id);
+  const consumedDoctorTokens = value.consumedDoctorTokens ?? [];
   if (new Set(tokens).size !== tokens.length || new Set(ids).size !== ids.length ||
+      new Set(consumedDoctorTokens).size !== consumedDoctorTokens.length ||
+      consumedDoctorTokens.some((token: string) => !tokens.includes(token)) ||
       value.sessions.some((session) => !tokens.includes(session.doctorToken))) {
     throw new Error("Invalid session snapshot references");
   }
-  return value as unknown as SessionSnapshot;
+  return { ...(value as unknown as SessionSnapshot), consumedDoctorTokens };
 }
 
 export interface FileSessionStoreOptions {
@@ -87,7 +93,7 @@ export class FileSessionStore implements SessionStore {
     this.now = options.now ?? Date.now;
     this.state = new FileState({
       path: options.path,
-      initial: () => ({ schema_version: 1, doctors: [], sessions: [] }),
+      initial: () => ({ schema_version: 1, doctors: [], sessions: [], consumedDoctorTokens: [] }),
       validate: validateSnapshot,
       maxBytes: options.maxBytes,
     });
@@ -97,11 +103,13 @@ export class FileSessionStore implements SessionStore {
     return this.state.transaction(async (draft) => {
       const doctors = new Map(draft.doctors);
       const sessions = new Map(draft.sessions.map((session) => [session.id, session]));
+      const consumedDoctorTokens = new Set(draft.consumedDoctorTokens);
       // Reuse the canonical semantics, with no notifier/external side effects.
-      const memory = new MemorySessionStore({ doctors, sessions, now: this.now });
+      const memory = new MemorySessionStore({ doctors, sessions, consumedDoctorTokens, now: this.now });
       const result = await fn(memory);
       draft.doctors = [...doctors.entries()];
       draft.sessions = [...sessions.values()];
+      draft.consumedDoctorTokens = [...consumedDoctorTokens];
       return result;
     });
   }
@@ -114,6 +122,9 @@ export class FileSessionStore implements SessionStore {
   }
   createSession(token: string, language: Session["language"] = "ru"): Promise<Session> {
     return this.mutate((memory) => memory.createSession(token, language));
+  }
+  createSessionOnce(token: string, language: Session["language"] = "ru"): Promise<Session | undefined> {
+    return this.mutate((memory) => memory.createSessionOnce(token, language));
   }
   getSession(id: string): Promise<ReadonlySession | undefined> {
     return this.state.read((snapshot) => snapshot.sessions.find((session) => session.id === id));

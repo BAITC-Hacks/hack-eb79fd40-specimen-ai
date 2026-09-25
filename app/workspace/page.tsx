@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { profileDisplayName } from "@/lib/referrals/profiles";
 import type { ReferralAggregates, ReferralDetail, ReferralFlow } from "@/lib/referrals/types";
 import { calendarDate, FLOW_LABELS, timestamp } from "./client";
 import { aggregateView, attentionReason, attentionReferrals, dashboardCounts, EVENT_LABELS, referralActivity, upcomingReferrals, useToday, useWorkspaceData } from "./data";
@@ -65,7 +66,7 @@ export default function Overview() {
           {delayed.length > 3 && <Link className={s.sectionLink} href="/workspace/referrals">Показать все в списке →</Link>}
         </section>
         </div><div className={s.stack}>
-        <section className={s.card}><div className={s.head}><h2>Назначенные даты</h2><Link className={s.sectionLink} href="/workspace/calendar">Календарь →</Link></div>{upcoming.length ? <ul className={s.rows}>{upcoming.map((r) => <li key={r.id}><div className={s.row}><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(r.id)}>{r.patientLabel}</Link><span className={s.tag}>{calendarDate(r.scheduledDate)}</span></div><p className={s.muted}>{r.profile} · {r.destinationOrganization || "Организация не указана"}</p></li>)}</ul> : <EmptyState title="Предстоящих дат нет" description="Здесь появятся даты, которые подтвердит врач." />}</section>
+        <section className={s.card}><div className={s.head}><h2>Назначенные даты</h2><Link className={s.sectionLink} href="/workspace/calendar">Календарь →</Link></div>{upcoming.length ? <ul className={s.rows}>{upcoming.map((r) => <li key={r.id}><div className={s.row}><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(r.id)}>{r.patientLabel}</Link><span className={s.tag}>{calendarDate(r.scheduledDate)}</span></div><p className={s.muted}>{profileDisplayName(r.profile)} · {r.destinationOrganization || "Организация не указана"}</p></li>)}</ul> : <EmptyState title="Предстоящих дат нет" description="Здесь появятся даты, которые подтвердит врач." />}</section>
         <section className={s.card}><div className={s.head}><h2>Последние подтверждения</h2><Link className={s.sectionLink} href="/workspace/activity">Вся история →</Link></div>{activity.length ? <ul className={s.rows}>{activity.map(({ referralId, patientLabel, event }) => <li key={event.id}><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(referralId)}>{patientLabel}</Link><p className={s.muted}>{EVENT_LABELS[event.type]} · {event.actorName}</p><span className={s.small}>Записано {timestamp(event.recordedAt)}</span></li>)}</ul> : <EmptyState title="История ещё не началась" description="Создание и каждое подтверждение сохраняются вместе с автором." />}</section>
         </div>
       </div>

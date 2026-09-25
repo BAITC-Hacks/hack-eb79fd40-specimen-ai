@@ -69,6 +69,20 @@ export function ConsentScreen({
   );
 }
 
+export function ConsentGate({
+  ready,
+  language,
+  onConsent,
+}: {
+  ready: boolean;
+  language: Language;
+  onConsent: () => void;
+}) {
+  return ready
+    ? <ConsentScreen language={language} onConsent={onConsent} />
+    : <LoadingState language={language} />;
+}
+
 export function LoadingState({ language }: { language: Language }) {
   const text = PATIENT[language];
   return (

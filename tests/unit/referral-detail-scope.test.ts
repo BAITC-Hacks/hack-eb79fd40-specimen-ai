@@ -33,6 +33,9 @@ describe("referral detail record boundary", () => {
     expect(source).toContain('{disabled ? <button className="btn subtle" disabled>');
     expect(source).toContain("onClick={() => void notify()}");
     expect(source).toContain("if (requestGeneration === generation.current) setMemo(result.memo)");
+    expect(source).toContain('state: "pending", message: "Отправляем памятку врачу…"');
+    expect(source).toContain('role={notifyStatus.state === "error" ? "alert" : "status"}');
+    expect(source).not.toContain('setMessage("Памятка отправлена в Telegram врача.")');
   });
   it("surfaces triage urgency, reasons, routing and source without unsupported percentages", () => {
     expect(source).toContain('referral.triageSnapshot?.urgency === "emergency"');

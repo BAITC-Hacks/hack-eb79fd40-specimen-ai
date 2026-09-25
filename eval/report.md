@@ -2,7 +2,7 @@ mode: no-llm
 
 # Demeu evaluation report
 
-Run: `no-llm-57fd289ba123cc99`; cases SHA256: `d2fb9292b1d85a92261ad48466dee348a21826549ed72ea63b729acf8de6aa95`; model: `lr-v1`.
+Run: `no-llm-c5452d0be45b18a4`; cases SHA256: `d2fb9292b1d85a92261ad48466dee348a21826549ed72ea63b729acf8de6aa95`; model: `lr-v1`.
 
 > top-1/top-3 измерены при ИДЕАЛЬНОМ извлечении (mode=no-llm): LLM-адаптер не участвовал, сквозное качество ниже; extraction_f1 не измерялся
 > метрики urgency/routing — против невалидированной врачами таблицы `data/pathology_map.json`

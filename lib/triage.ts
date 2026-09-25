@@ -11,6 +11,23 @@ import {
   predict as predictModel,
   type ModelArtifact,
 } from "./model";
+import { assembleDeterministicAnamnesis } from "./deterministic";
+import {
+  PROCESSING_MODE,
+  type ProcessingMode,
+} from "./processing-mode";
+import {
+  ABSTAIN_HYPOTHESIS,
+  DETERMINISTIC_HYPOTHESIS,
+  DISCLAIMER,
+  RULES_ONLY_HYPOTHESIS,
+} from "./clinical-copy";
+export {
+  ABSTAIN_HYPOTHESIS,
+  DETERMINISTIC_HYPOTHESIS,
+  DISCLAIMER,
+  RULES_ONLY_HYPOTHESIS,
+} from "./clinical-copy";
 import { contextFlags, detectRedFlags } from "./redflags";
 import type {
   Anamnesis,
@@ -21,6 +38,7 @@ import type {
   TriageResult,
   Urgency,
 } from "./types";
+import { normalizeAnamnesis } from "./types";
 
 export interface LlmAnalysis {
   anamnesis: Anamnesis;
@@ -53,8 +71,8 @@ export interface ModelPort {
   ): Promise<ModelPortResult> | ModelPortResult;
 }
 
-export const DISCLAIMER =
-  "Это предварительная гипотеза, это не диагноз, решает врач.";
+const ANALYTICAL_HYPOTHESIS_PENDING =
+  "Данные собраны; предварительную гипотезу уточняет врач.";
 
 const RANK: Record<Urgency, number> = {
   routine: 0,
@@ -133,18 +151,15 @@ export function createProductionLlm(
       if (!extraction.extraction_ok) {
         throw new Error("production extraction unavailable");
       }
-      const complaint = extraction.anamnesis.chief_complaint.trim();
       return {
-        anamnesis: extraction.anamnesis,
+        anamnesis: normalizeAnamnesis(extraction.anamnesis),
         evidence: extraction.evidence,
         unmapped: extraction.unmapped,
         urgency: "planned",
         urgency_reasons: ["Срочность уточняется моделью и правилами."],
         routing: [],
         hypothesis: {
-          text: complaint
-            ? `Требуется оценка жалобы: ${complaint}`
-            : "Собранные данные требуют уточнения врачом.",
+          text: ANALYTICAL_HYPOTHESIS_PENDING,
           confidence: 0,
         },
       };
@@ -180,6 +195,13 @@ const EMPTY_ANAMNESIS: Anamnesis = {
   chronic: [],
   allergies: [],
   medications: [],
+  history_status: {
+    past_history: "not_stated",
+    chronic: "not_stated",
+    allergies: "not_stated",
+    medications: "not_stated",
+  },
+  negative_findings: [],
   context: {
     age: null,
     sex: "unknown",
@@ -391,6 +413,7 @@ export function mergeUrgency(
 function rulesOnlyResult(
   messages: ChatMessage[],
   regexFlags: RedFlag[],
+  processingMode: ProcessingMode = "external_llm",
 ): TriageResult {
   const merged = mergeUrgency(
     "planned",
@@ -400,12 +423,6 @@ function rulesOnlyResult(
     ],
     regexFlags,
   );
-  const patientText = messages
-    .filter((message) => message.role === "user")
-    .map((message) => message.content)
-    .join(" ")
-    .trim();
-
   return {
     anamnesis: EMPTY_ANAMNESIS,
     red_flags: regexFlags,
@@ -413,21 +430,55 @@ function rulesOnlyResult(
     urgency_reasons: merged.urgency_reasons,
     routing: [],
     hypothesis: {
-      text: patientText
-        ? `Доступна только rule-based оценка реплики пациента: ${patientText}`
-        : "Недостаточно данных для предварительной гипотезы.",
+      text: RULES_ONLY_HYPOTHESIS,
       confidence: 0,
       disclaimer: DISCLAIMER,
     },
     source: "rules_only",
+    processing_mode: processingMode,
+  };
+}
+
+function deterministicResult(
+  messages: ChatMessage[],
+  regexFlags: RedFlag[],
+): TriageResult {
+  const anamnesis = assembleDeterministicAnamnesis(messages);
+  const flags = [...regexFlags, ...contextFlags(anamnesis, messages)];
+  const merged = mergeUrgency(
+    "planned",
+    ["Плановый приоритет установлен детерминированным опросником; правила безопасности имеют приоритет."],
+    flags,
+  );
+  return {
+    anamnesis,
+    red_flags: flags,
+    urgency: merged.urgency,
+    urgency_reasons: merged.urgency_reasons,
+    routing: [],
+    hypothesis: {
+      text: DETERMINISTIC_HYPOTHESIS,
+      confidence: 0,
+      disclaimer: DISCLAIMER,
+    },
+    source: "rules_only",
+    processing_mode: "deterministic",
   };
 }
 
 export async function analyze(
   messages: ChatMessage[],
-  deps?: { llm?: LlmPort; model?: ModelPort },
+  deps?: {
+    llm?: LlmPort;
+    model?: ModelPort;
+    processingMode?: ProcessingMode;
+  },
 ): Promise<TriageResult> {
   const regexFlags = detectRedFlags(messages);
+  const processingMode = deps?.processingMode ?? PROCESSING_MODE;
+  if (processingMode === "deterministic") {
+    return deterministicResult(messages, regexFlags);
+  }
   let out: LlmAnalysis;
   let derivedFlags: RedFlag[];
 
@@ -451,9 +502,13 @@ export async function analyze(
       evidence: sanitized.evidence,
       unmapped: sanitized.unmapped,
     };
+    out = {
+      ...out,
+      anamnesis: normalizeAnamnesis(out.anamnesis),
+    };
     derivedFlags = contextFlags(out.anamnesis, messages);
   } catch {
-    return rulesOnlyResult(messages, regexFlags);
+    return rulesOnlyResult(messages, regexFlags, processingMode);
   }
 
   const redFlags = [...regexFlags, ...derivedFlags];
@@ -511,14 +566,16 @@ export async function analyze(
   const llmConfidence = Number.isFinite(out.hypothesis?.confidence)
     ? out.hypothesis.confidence
     : 0;
-  const hypothesisConfidence =
-    source === "model"
+  const hypothesisConfidence = model?.abstained
+    ? 0
+    : source === "model"
       ? (modelConfidence ?? 0)
       : Math.min(Math.max(llmConfidence, 0), 0.5);
-  const hypothesisText =
-    typeof out.hypothesis?.text === "string" && out.hypothesis.text.trim()
+  const hypothesisText = model?.abstained
+    ? ABSTAIN_HYPOTHESIS
+    : typeof out.hypothesis?.text === "string" && out.hypothesis.text.trim()
       ? out.hypothesis.text
-      : "Данные собраны; предварительную гипотезу уточняет врач.";
+      : ANALYTICAL_HYPOTHESIS_PENDING;
   if (source === "llm_fallback") {
     routing = fallbackRouting(merged.urgency);
   }
@@ -536,5 +593,6 @@ export async function analyze(
     },
     ...(model ? { model } : {}),
     source,
+    processing_mode: processingMode,
   };
 }

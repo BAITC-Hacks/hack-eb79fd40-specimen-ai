@@ -25,8 +25,15 @@ describe("red flag negation and role filtering", () => {
     "Нет боли в груди, только кашель",
     "В груди не болит",
     "Судорог не было",
+    "Не было кровотечения",
+    "Никогда не было кровотечения",
     "Не задыхаюсь",
     "Без кровотечения, просто слабость",
+    "Кеудемді қатты қыспайды",
+    "Дем алуым қиын емес",
+    "Қан құсқан жоқпын",
+    "Есімнен танған жоқпын",
+    "Өзіме қол жұмсағым келмейді",
   ])("suppresses a locally negated symptom: %s", (utterance) => {
     expect(detectRedFlags(patientSays(utterance))).toEqual([]);
   });
@@ -41,5 +48,11 @@ describe("red flag negation and role filtering", () => {
     const flags = detectRedFlags(patientSays("Не могу дышать"));
 
     expect(flags.some(({ code }) => code === "dyspnea_rest")).toBe(true);
+  });
+
+  it("detects the exact Kazakh demo phrase as chest pain and dyspnea", () => {
+    const flags = detectRedFlags(patientSays("Кеуде қатты ауырады, демім жетпейді"));
+
+    expect(flags.map(({ code }) => code)).toEqual(["chest_pain", "dyspnea_rest"]);
   });
 });

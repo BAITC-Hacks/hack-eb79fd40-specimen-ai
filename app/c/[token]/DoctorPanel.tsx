@@ -1,4 +1,13 @@
-import type { TriageResult } from "@/lib/types";
+import {
+  normalizeAnamnesis,
+  type HistoryStatusValue,
+  type TriageResult,
+} from "@/lib/types";
+import {
+  displayedHypothesis,
+  hypothesisHeading,
+  processingModeNotice,
+} from "@/lib/clinical-copy";
 
 const URGENCY_LABEL: Record<TriageResult["urgency"], string> = {
   emergency: "Неотложно",
@@ -9,30 +18,77 @@ const URGENCY_LABEL: Record<TriageResult["urgency"], string> = {
 
 const SEX_LABEL = { m: "мужской", f: "женский", unknown: "не указан" } as const;
 
+export const SYNTHETIC_DEMO_RESULT: TriageResult = {
+  anamnesis: {
+    chief_complaint: "Учебный пример: боль в пояснице",
+    symptom: {
+      onset: "две недели назад",
+      location: "поясница",
+      quality: "ноющая",
+      severity: 4,
+      modifiers: "сильнее к вечеру",
+      associated: [],
+    },
+    past_history: [],
+    chronic: [],
+    allergies: [],
+    medications: [],
+    context: {
+      age: 34,
+      sex: "f",
+      pregnancy: "no",
+      risk_factors: [],
+    },
+  },
+  red_flags: [],
+  urgency: "planned",
+  urgency_reasons: ["Синтетический пример без признаков неотложности."],
+  routing: [{ specialty: "неврология", confidence: 1 }],
+  hypothesis: {
+    text: "Учебная предварительная гипотеза для демонстрации интерфейса врачу.",
+    confidence: 0,
+    disclaimer: "Это не диагноз. Финальное решение принимает врач.",
+  },
+  source: "rules_only",
+  processing_mode: "deterministic",
+};
+
 function percent(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
 function sourceLabel(result: TriageResult): string {
+  if (result.processing_mode === "deterministic") {
+    return "источник: детерминированный опросник и правила";
+  }
   if (result.source === "model") return "источник: обученная модель";
   if (result.source === "rules_only") {
     return "источник: только правила — аналитический модуль был недоступен";
   }
   return result.model?.abstained
-    ? "источник: модель воздержалась · гипотеза языковой модели"
+    ? "источник: модель воздержалась · гипотеза не сформирована"
     : "источник: языковая модель";
+}
+
+function historyValue(
+  values: readonly string[],
+  status: HistoryStatusValue,
+): string {
+  if (status === "denied") return "отрицает";
+  if (status === "not_stated") return "не указано";
+  return values.join(", ") || "не указано";
 }
 
 export default function DoctorPanel({ result }: { result: TriageResult }) {
   const model = result.model;
   const showPrediction = Boolean(model && !model.abstained);
-  const anamnesis = result.anamnesis;
+  const anamnesis = normalizeAnamnesis(result.anamnesis);
 
   return (
     <section className="demo" aria-label="Сводка для врача (демо)">
       <div className="demo-cap">
-        <span>Демо-режим — сводка для врача</span>
-        <span>фактический ответ API</span>
+        <span>Локальное демо — сводка для врача</span>
+        <span>только вымышленные данные</span>
       </div>
 
       <div className="urgency-head">
@@ -41,6 +97,7 @@ export default function DoctorPanel({ result }: { result: TriageResult }) {
         </span>
         <span className="source-badge">{sourceLabel(result)}</span>
       </div>
+      <p className="muted">{processingModeNotice(result.processing_mode)}</p>
 
       {result.red_flags.length > 0 && (
         <section>
@@ -92,13 +149,13 @@ export default function DoctorPanel({ result }: { result: TriageResult }) {
         <p className="muted">Маршрут не определён.</p>
       )}
 
-      <h2>Предварительная гипотеза</h2>
+      <h2>{hypothesisHeading(result)}</h2>
       <div className="hypo">
-        <div className="text">{result.hypothesis.text}</div>
+        <div className="text">{displayedHypothesis(result)}</div>
         {result.source === "model" && (
           <div className="conf">Уверенность модели: {percent(result.hypothesis.confidence)}</div>
         )}
-        {result.source === "llm_fallback" && (
+        {result.source === "llm_fallback" && !model?.abstained && (
           <div className="conf">Уверенность ограничена: гипотеза сформирована языковой моделью.</div>
         )}
         <div className="disclaimer">{result.hypothesis.disclaimer}</div>
@@ -108,11 +165,11 @@ export default function DoctorPanel({ result }: { result: TriageResult }) {
         <div className="abstain">
           Модель воздержалась: {model.abstain_reason === "out_of_label_space"
             ? "случай вне области обучения."
-            : "ни один вариант не набрал достаточной уверенности."}
+            : "порог модели не пройден."}
         </div>
       )}
 
-      {result.source === "rules_only" && (
+      {result.source === "rules_only" && result.processing_mode !== "deterministic" && (
         <div className="abstain">
           Признаки не извлечены. Сводка построена на правилах; врачу доступен полный транскрипт.
         </div>
@@ -146,9 +203,15 @@ export default function DoctorPanel({ result }: { result: TriageResult }) {
             : `${anamnesis.symptom.severity}/10`}
         </dd>
         <dt>Сопутствующее</dt><dd>{anamnesis.symptom.associated.join(", ") || "—"}</dd>
-        <dt>Хроника</dt><dd>{anamnesis.chronic.join(", ") || "—"}</dd>
-        <dt>Аллергии</dt><dd>{anamnesis.allergies.join(", ") || "—"}</dd>
-        <dt>Препараты</dt><dd>{anamnesis.medications.join(", ") || "—"}</dd>
+        <dt>Хроника</dt><dd>{historyValue(anamnesis.chronic, anamnesis.history_status.chronic)}</dd>
+        <dt>Аллергии</dt><dd>{historyValue(anamnesis.allergies, anamnesis.history_status.allergies)}</dd>
+        <dt>Препараты</dt><dd>{historyValue(anamnesis.medications, anamnesis.history_status.medications)}</dd>
+        {anamnesis.negative_findings.length > 0 && (
+          <>
+            <dt>Явно отрицает</dt>
+            <dd>{anamnesis.negative_findings.join(", ")}</dd>
+          </>
+        )}
         <dt>Возраст / пол</dt>
         <dd>{anamnesis.context.age ?? "—"} / {SEX_LABEL[anamnesis.context.sex]}</dd>
       </dl>

@@ -32,7 +32,7 @@ beforeEach(async () => {
   directory = await mkdtemp(path.join(tmpdir(), "demeu-auth-test-"));
   filename = path.join(directory, "accounts.json");
   configured = ["doctor", "owner", "analyst"].map((role) => ({
-    id: role, displayName: `Test ${role}`, role, organizationId: "clinic-a", passwordHash, sessionVersion: 1,
+    id: role, displayName: `Test ${role}`, role, organizationId: "clinic-a", organizationDisplayName: "Клиника А", passwordHash, sessionVersion: 1,
     ...(role === "doctor" ? { telegramChatId: "1234567" } : {}),
   }));
   await save();
@@ -76,13 +76,15 @@ describe("workspace identities and signed cookies", () => {
     expect(response.status).toBe(200);
     const payload = await response.json();
     expect(payload).toEqual({ enabled: true, actor: {
-      id, displayName: `Test ${id}`, role: id, organizationId: "clinic-a",
+      id, displayName: `Test ${id}`, role: id, organizationId: "clinic-a", organizationDisplayName: "Клиника А",
       ...(id === "doctor" ? { telegramChatId: "1234567" } : {}),
     } });
     expect(JSON.stringify(payload)).not.toContain(passwordHash);
     expect(payload.actor).not.toHaveProperty("sessionVersion");
-    expect(await requireWorkspaceActor(request("GET", cookie))).toEqual(payload.actor);
-    expect(await currentWorkspaceActor(id)).toEqual(payload.actor);
+    const persistedActor = { ...payload.actor };
+    delete persistedActor.organizationDisplayName;
+    expect(await requireWorkspaceActor(request("GET", cookie))).toEqual(persistedActor);
+    expect(await currentWorkspaceActor(id)).toEqual(persistedActor);
   });
 
   it("uses secure host-only HttpOnly cookies in production and clears them on logout", async () => {

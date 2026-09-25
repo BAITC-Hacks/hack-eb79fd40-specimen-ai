@@ -8,6 +8,23 @@ window were observed live, but the first cutover failed closed on a no-SNI clien
 
 ## Required server state
 
+Текущий сентябрьский production на `84.247.161.211` использует:
+
+```dotenv
+VPS_RECON_CONFIRMED=yes
+TLS_BRANCH=branch-b-caddy
+DEMEU_DOMAIN=84.247.161.211
+APP_BASE_URL=https://84.247.161.211
+APP_PORT=3100
+DEMEU_HOST_DATA_DIR=/var/lib/demeu
+DEMEU_HOST_ACCOUNTS_FILE=/etc/demeu/accounts.json
+```
+
+Для этого точного домена оба release-скрипта всегда используют четыре Compose-файла в порядке
+`docker-compose.yml`, `compose.caddy.yml`, `compose.workspace.yml`, `compose.new-server-ip.yml`.
+Для остальных поддержанных TLS-профилей workspace overlay также обязателен, а специальный ingress
+overlay не подключается.
+
 The accepted reconnaissance found Docker/Compose available and ports 80, 443, and 3100 free, so the
 selected target configuration is branch B. Put these values in the server-only `/opt/demeu/.env`:
 
@@ -17,6 +34,7 @@ TLS_BRANCH=branch-b-caddy
 DEMEU_DOMAIN=109.123.248.16
 APP_BASE_URL=https://109.123.248.16
 APP_PORT=3100
+DEMEU_PROCESSING_MODE=external_llm
 ```
 
 `TLS_BRANCH` is exactly one of `branch-a-nginx`, `branch-a-caddy`, or `branch-b-caddy`.
@@ -24,7 +42,9 @@ The script still refuses to guess when reconnaissance or this selection is missi
 read-only preflight immediately before activation because listener state can change. Keep the application
 credentials in the same server-only `.env`, mode `0600`. Rotate every previously exposed token before
 the first live deployment. The script validates credentials without printing their values and verifies
-that the running container has exactly one `ANTHROPIC_API_KEY` variable.
+that the running container has exactly one `ANTHROPIC_API_KEY` variable in `external_llm` mode.
+`DEMEU_PROCESSING_MODE` accepts only `external_llm` or `deterministic` and defaults to the former.
+Deterministic mode does not require an Anthropic key.
 
 Set `TELEGRAM_DOCTOR_CHAT_IDS` to a comma-separated ordered list of numeric Telegram `chat_id`
 values for broadcast delivery. Duplicate values are removed while preserving first occurrence.
@@ -50,12 +70,19 @@ DEMEU_DEEP_PROBE=I_AUTHORIZE_ONE_STRUCTURED_EXTRACTION \
 
 The default mode performs a fast-forward-only `git pull`, audits history for an Anthropic credential
 pattern, validates the chosen TLS compose branch in quiet mode, builds, starts the stack, and verifies
-the shallow `/api/healthz` from inside the app container. It then makes exactly one authorized
+the shallow `/api/healthz`, `/workspace`, and anonymous `/api/workspace/auth` bootstrap from inside
+the app container. The auth response must prove that workspace mode is enabled and that no actor is
+implicitly authenticated. It then makes exactly one authorized
 structured extraction call through the HMAC-protected loopback-only `?probe=extract` gate before
 marking the image green. The opt-in is checked before Docker or provider access; no new secret is
 stored because the proof is derived inside the container from the runtime key and commit. Both
 `commit` and deep `llm_ok:true` must match. Recovery and Docker health remain shallow and make no
-provider call. On failure the
+provider call. In deterministic mode the script skips the authorization, key-cardinality and Anthropic
+probe gates, then requires a provider-free deep self-test of the fixed questionnaire and three safety
+scenarios. It still requires the exact commit, model version, processing mode and all other deployment
+gates. Preflight captures the mode reported by the currently running container independently of the
+new desired mode; a legacy four-field health response is accepted only as a ready `external_llm`
+release. On failure the
 last green image is restored before the command exits non-zero. `.env` is never overwritten.
 
 Server activation takes a non-blocking kernel lock on `.deploy.lock`. A concurrent run fails before
@@ -98,14 +125,18 @@ bash deploy/rollback.sh
 
 The script takes the same `.deploy.lock` as `deploy.sh`, rejects dirty or incomplete server state
 before changing Git or containers, validates `.env` and the selected proxy compose branch without
-rendering secrets, snapshots `demeu-app:last-green`, and keeps a mode-`0600` temporary `.env` snapshot
+rendering secrets, and compares the live referral snapshot's `schemaVersion` with the rollback
+target capability declared in `deploy/referral-schema-version`. A newer live snapshot makes the
+rollback fail before Git, image, or container mutation; releases without the marker are treated as
+v1 readers. The script then snapshots `demeu-app:last-green` and keeps a mode-`0600` temporary `.env` snapshot
 outside the repository and Docker context. It then rebuilds the selected commit and
-requires `/api/healthz` to match that commit, its model version, and `llm_ok:true`. After success both
+requires `/api/healthz` to match that commit, its model version and processing mode and requires the
+workspace/auth surface to remain available; external mode also requires `llm_ok:true`. After success both
 deployment markers point at the active rollback target, so repeating the implicit rollback is safe.
 Any build, start, health-contract, marker-write, environment, or interruption failure restores the
 original `.env` atomically with its prior mode/ownership, then restores the last-green image, its Git
 SHA, and the original markers. Both candidate and recovered containers must independently prove the
-exact health contract and exactly one `ANTHROPIC_API_KEY` environment entry before either path is
+exact health contract and, in external mode, exactly one `ANTHROPIC_API_KEY` environment entry before either path is
 called verified. The temporary secret snapshot is removed on every success or failure path.
 
 ## Bare-IP live evidence still required

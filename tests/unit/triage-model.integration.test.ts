@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { finalizeSession, type DoctorSummaryPort } from "../../lib/finalize";
 import { MemorySessionStore } from "../../lib/store";
 import {
+  ABSTAIN_HYPOTHESIS,
   analyze,
   shouldAbstain,
   type ModelPort,
@@ -99,6 +100,13 @@ describe("model integration in the analytical layer", () => {
       pathologies: [],
       top_contributions: [],
     });
+    expect(outcome.result.hypothesis).toMatchObject({
+      text: ABSTAIN_HYPOTHESIS,
+      confidence: 0,
+    });
+    expect(outcome.result.hypothesis.text).not.toContain(
+      BASE_LLM_ANALYSIS.anamnesis.chief_complaint,
+    );
     expect(jobs).toHaveLength(1);
     await jobs[0]();
     expect(sendDoctorSummary).toHaveBeenCalledOnce();

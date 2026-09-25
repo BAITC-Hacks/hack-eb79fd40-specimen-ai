@@ -31,6 +31,8 @@ const ANAMNESIS_SYSTEM_BASE = `Ты — ассистент первичного 
 - Ты НЕ ставишь диагноз и не назначаешь лечение.
 - Говоришь просто и спокойно.
 - Задаёшь ПО ОДНОМУ вопросу за реплику, коротко, без списков.
+- Не называй пациенту болезни, предполагаемые состояния или сравнения с ними. Не пиши «похоже на», «вероятно» или другие выводы о причине жалоб.
+- Пока опрос продолжается, ответ содержит только один короткий вопрос без пояснения возможных причин.
 - Финальное решение всегда за врачом.
 
 Собери по стадиям (только релевантные вопросы, лёгкие жалобы — сокращай путь):
@@ -93,6 +95,19 @@ const COMPLETE_REPLY: Record<SessionLanguage, string> = {
   kk: "Рақмет, жауаптарыңыз дәрігерге жіберілді.",
 };
 
+const EMERGENCY_REPLY: Record<SessionLanguage, string> = {
+  ru: "Сейчас лучше не ждать приёма. Позвоните 103 или обратитесь в приёмный покой. Ваши ответы переданы врачу.",
+  kk: "Қабылдауды күтпеген дұрыс. 103 нөміріне қоңырау шалыңыз немесе қабылдау бөліміне барыңыз. Жауаптарыңыз дәрігерге жіберілді.",
+};
+
+export function completionReplyForLanguage(language: SessionLanguage): string {
+  return COMPLETE_REPLY[language];
+}
+
+export function emergencyReplyForLanguage(language: SessionLanguage): string {
+  return EMERGENCY_REPLY[language];
+}
+
 export function stripDoneMarker(
   raw: string,
   language: SessionLanguage = "ru",
@@ -100,8 +115,7 @@ export function stripDoneMarker(
   const done = DONE_RE.test(raw);
   if (!done) return { reply: raw.trim(), done: false };
 
-  const reply = raw.replace(DONE_RE, " ").trim();
-  return { reply: reply || COMPLETE_REPLY[language], done: true };
+  return { reply: completionReplyForLanguage(language), done: true };
 }
 
 // Полный транскрипт начинается со статического приветствия ассистента, а

@@ -4,6 +4,7 @@ import {
   DEEP_HEALTH_PROOF_HEADER,
   computeDeepHealthProof,
   createCachedExtractionProbe,
+  createDeterministicReadinessProbe,
   createExtractionProbe,
   handleHealthRequest,
   type ExtractorLoader,
@@ -35,6 +36,7 @@ function expected(llm_ok: boolean) {
     commit: ENV.COMMIT_SHA,
     model_version: MODEL_VERSION,
     llm_ok,
+    processing_mode: "external_llm",
   };
 }
 
@@ -104,6 +106,7 @@ describe("authorized deep extraction health probe", () => {
       "llm_ok",
       "model_version",
       "ok",
+      "processing_mode",
     ]);
     expect(probe).toHaveBeenCalledOnce();
   });
@@ -131,6 +134,53 @@ describe("authorized deep extraction health probe", () => {
     expect(result.status).toBe(404);
     expect(result.body).toEqual(expected(false));
     expect(probe).not.toHaveBeenCalled();
+  });
+
+  it("runs the provider-free deterministic readiness probe without a key", async () => {
+    const probe = vi.fn(async () => true);
+    const deterministicProbe = vi.fn(async () => true);
+    const result = await handleHealthRequest(request(), {
+      env: {
+        COMMIT_SHA: ENV.COMMIT_SHA,
+        DEMEU_PROCESSING_MODE: "deterministic",
+      },
+      probeOnce: probe,
+      deterministicProbeOnce: deterministicProbe,
+    });
+
+    expect(result).toEqual({
+      status: 200,
+      body: {
+        ok: true,
+        commit: ENV.COMMIT_SHA,
+        model_version: MODEL_VERSION,
+        llm_ok: true,
+        processing_mode: "deterministic",
+      },
+    });
+    expect(probe).not.toHaveBeenCalled();
+    expect(deterministicProbe).toHaveBeenCalledOnce();
+  });
+
+  it("fails closed when deterministic readiness is red", async () => {
+    const result = await handleHealthRequest(request(), {
+      env: { COMMIT_SHA: ENV.COMMIT_SHA, DEMEU_PROCESSING_MODE: "deterministic" },
+      deterministicProbeOnce: async () => false,
+    });
+    expect(result).toEqual({
+      status: 404,
+      body: {
+        ok: true,
+        commit: ENV.COMMIT_SHA,
+        model_version: MODEL_VERSION,
+        llm_ok: false,
+        processing_mode: "deterministic",
+      },
+    });
+  });
+
+  it("passes the real pure deterministic three-scenario self-test", async () => {
+    await expect(createDeterministicReadinessProbe()()).resolves.toBe(true);
   });
 
   it("single-flights concurrent success and caches it for the process lifetime", async () => {

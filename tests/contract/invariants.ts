@@ -1,4 +1,11 @@
-import type { ChatMessage, TriageResult, Urgency } from "../../lib/types";
+import type {
+  ChatMessage,
+  TriageResult,
+  Urgency,
+} from "../../lib/types";
+
+const ABSTAIN_HYPOTHESIS =
+  "Модель воздержалась — гипотеза не сформирована, решение за врачом.";
 
 const URGENCIES: readonly Urgency[] = [
   "routine",
@@ -16,6 +23,9 @@ export function assertTriageInvariants(
       `[INVARIANT] ${message}\n${JSON.stringify(result, null, 2)}`,
     );
   };
+  const negativeFindings = "negative_findings" in result.anamnesis
+    ? result.anamnesis.negative_findings
+    : [];
 
   if (result.red_flags.some((flag) => flag.emergency)) {
     if (result.urgency !== "emergency") {
@@ -98,6 +108,9 @@ export function assertTriageInvariants(
   if (!Array.isArray(result.anamnesis.chronic)) fail("chronic не массив");
   if (!Array.isArray(result.anamnesis.allergies)) fail("allergies не массив");
   if (!Array.isArray(result.anamnesis.medications)) fail("medications не массив");
+  if (!Array.isArray(negativeFindings)) {
+    fail("negative_findings не массив");
+  }
   if (!Array.isArray(result.anamnesis.symptom.associated)) fail("associated не массив");
   if (!Array.isArray(result.anamnesis.context.risk_factors)) fail("risk_factors не массив");
   if (
@@ -154,6 +167,12 @@ export function assertTriageInvariants(
   }
   if (!["model", "llm_fallback", "rules_only"].includes(result.source)) {
     fail("source вне enum");
+  }
+  if (
+    result.processing_mode !== undefined &&
+    !["external_llm", "deterministic"].includes(result.processing_mode)
+  ) {
+    fail("processing_mode вне enum");
   }
 
   if (result.model) {
@@ -229,6 +248,12 @@ export function assertTriageInvariants(
         result.model.top_contributions.length !== 0
       ) {
         fail("abstained model раскрывает недоверенные числа");
+      }
+      if (result.hypothesis.text !== ABSTAIN_HYPOTHESIS) {
+        fail("abstained model подменяет отсутствие гипотезы текстом жалобы");
+      }
+      if (result.hypothesis.confidence !== 0) {
+        fail("abstained model публикует ненулевую уверенность");
       }
     }
   }

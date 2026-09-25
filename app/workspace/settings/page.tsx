@@ -18,7 +18,7 @@ export default function SettingsPage() {
     <div className={styles.columns}>
       <section className={styles.card}>
         <div className={styles.profile}><span className={styles.avatar}><Icon name="users" size={28} /></span><div><h2>{actor.displayName}</h2><p className={styles.muted}>{ROLE_LABELS[actor.role]}</p></div></div>
-        <dl className={styles.facts}><div><dt>Учётная запись</dt><dd>{actor.id}</dd></div><div><dt>Организация</dt><dd>{actor.organizationId}</dd></div><div><dt>Роль</dt><dd>{ROLE_LABELS[actor.role]}</dd></div><div><dt>Область данных</dt><dd>{actor.role === "doctor" ? "Только ваши записи" : actor.role === "analyst" ? "Агрегаты вашей организации" : "Записи вашей организации"}</dd></div></dl>
+        <dl className={styles.facts}><div><dt>Учётная запись</dt><dd>{actor.id}</dd></div><div><dt>Организация</dt><dd>{actor.organizationDisplayName}</dd></div><div><dt>Роль</dt><dd>{ROLE_LABELS[actor.role]}</dd></div><div><dt>Область данных</dt><dd>{actor.role === "doctor" ? "Только ваши записи" : actor.role === "analyst" ? "Агрегаты вашей организации" : "Записи вашей организации"}</dd></div></dl>
       </section>
       <section className={styles.card}><h2>Что доступно вашей роли</h2><p className={styles.muted}>Разрешения проверяются сервером при каждом запросе.</p><ul className={styles.permissions}>{ACCESS[actor.role].map((item) => <li key={item}><Icon name="lock" size={18} /><span>{item}</span></li>)}</ul></section>
     </div>

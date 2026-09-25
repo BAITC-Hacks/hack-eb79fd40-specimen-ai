@@ -7,6 +7,7 @@ HEALTH_ATTEMPTS="${HEALTH_ATTEMPTS:-30}"
 HEALTH_INTERVAL_SECONDS="${HEALTH_INTERVAL_SECONDS:-3}"
 LAST_GREEN_IMAGE="demeu-app:last-green"
 RECOVERY_IMAGE="demeu-app:rollback-recovery"
+CURRENT_PRODUCTION_DOMAIN="84.247.161.211"
 LOCK_FD=""
 LOCK_HELD=0
 ACTIVATION_STARTED=0
@@ -28,6 +29,8 @@ ENV_FINGERPRINT=""
 ENV_ORIGINAL_MODE=""
 ENV_ORIGINAL_UID=""
 ENV_ORIGINAL_GID=""
+PROCESSING_MODE="external_llm"
+RECOVERY_PROCESSING_MODE=""
 
 log() {
   printf '[rollback] %s\n' "$*"
@@ -108,12 +111,23 @@ env_value() {
   ' .env
 }
 
+load_processing_mode() {
+  PROCESSING_MODE="$(env_value DEMEU_PROCESSING_MODE)" \
+    || die "DEMEU_PROCESSING_MODE is duplicated in .env"
+  [ -n "$PROCESSING_MODE" ] || PROCESSING_MODE="external_llm"
+  case "$PROCESSING_MODE" in
+    external_llm|deterministic) ;;
+    *) die "DEMEU_PROCESSING_MODE must be external_llm or deterministic" ;;
+  esac
+}
+
 validate_secret_file() {
   [ -f .env ] || die ".env is missing in APP_DIR"
   [ ! -L .env ] || die ".env must not be a symlink"
   if git ls-files --error-unmatch .env >/dev/null 2>&1; then
     die ".env must not be tracked by git"
   fi
+  [ "$PROCESSING_MODE" = "external_llm" ] || return 0
   awk '
     index($0, "ANTHROPIC_API_KEY=") == 1 {
       count++
@@ -170,8 +184,13 @@ validate_server_config() {
   export DEMEU_DOMAIN APP_PORT TLS_BRANCH APP_BASE_URL
 
   [ -x deploy/tls.sh ] || die "deploy/tls.sh is missing or not executable"
-  DEMEU_DOMAIN="$DEMEU_DOMAIN" APP_PORT="$APP_PORT" TLS_BRANCH="$TLS_BRANCH" \
-    ./deploy/tls.sh preflight >/dev/null
+  if [ "$DEMEU_DOMAIN" = "$CURRENT_PRODUCTION_DOMAIN" ]; then
+    [ "$TLS_BRANCH" = "branch-b-caddy" ] \
+      || die "current production requires TLS_BRANCH=branch-b-caddy"
+  else
+    DEMEU_DOMAIN="$DEMEU_DOMAIN" APP_PORT="$APP_PORT" TLS_BRANCH="$TLS_BRANCH" \
+      ./deploy/tls.sh preflight >/dev/null
+  fi
 }
 
 configure_compose() {
@@ -179,14 +198,23 @@ configure_compose() {
   case "$TLS_BRANCH" in
     branch-b-caddy)
       COMPOSE_ARGS+=(-f deploy/compose.caddy.yml)
-      DEMEU_DOMAIN="$DEMEU_DOMAIN" APP_PORT="$APP_PORT" TLS_BRANCH="$TLS_BRANCH" \
-        ./deploy/tls.sh branch-b-config
+      if [ "$DEMEU_DOMAIN" != "$CURRENT_PRODUCTION_DOMAIN" ]; then
+        DEMEU_DOMAIN="$DEMEU_DOMAIN" APP_PORT="$APP_PORT" TLS_BRANCH="$TLS_BRANCH" \
+          ./deploy/tls.sh branch-b-config
+      fi
       ;;
     branch-a-nginx|branch-a-caddy)
       COMPOSE_ARGS+=(-f deploy/compose.host-proxy.yml)
-      docker compose "${COMPOSE_ARGS[@]}" config --quiet
       ;;
   esac
+
+  COMPOSE_ARGS+=(-f deploy/compose.workspace.yml)
+  if [ "$DEMEU_DOMAIN" = "$CURRENT_PRODUCTION_DOMAIN" ]; then
+    [ "$TLS_BRANCH" = "branch-b-caddy" ] \
+      || die "current production requires TLS_BRANCH=branch-b-caddy"
+    COMPOSE_ARGS+=(-f deploy/compose.new-server-ip.yml)
+  fi
+  docker compose "${COMPOSE_ARGS[@]}" config --quiet
 }
 
 compose() {
@@ -224,24 +252,134 @@ model_version_at() {
   printf '%s' "$version"
 }
 
+referral_schema_at() {
+  local commit="$1" version
+  if version="$(git show "${commit}:deploy/referral-schema-version" 2>/dev/null)"; then
+    version="$(printf '%s' "$version" | tr -d '\n\r')"
+    [[ "$version" =~ ^[1-9][0-9]{0,2}$ ]] || return 1
+    printf '%s' "$version"
+    return 0
+  fi
+  # Releases before the schema marker used the original v1 snapshot.
+  printf '1'
+}
+
+assert_referral_snapshot_compatible() {
+  local target_commit="$1" data_dir snapshot current_version target_version compact size
+  data_dir="$(env_value DEMEU_HOST_DATA_DIR)" \
+    || die "DEMEU_HOST_DATA_DIR is duplicated in .env"
+  [ -n "$data_dir" ] || return 0
+  case "$data_dir" in
+    /*) ;;
+    *) die "DEMEU_HOST_DATA_DIR must be an absolute path" ;;
+  esac
+  case "$data_dir" in
+    /|*/|*[!A-Za-z0-9_./-]*|*..*|*//*) die "DEMEU_HOST_DATA_DIR contains unsafe characters" ;;
+  esac
+  snapshot="${data_dir}/referrals.json"
+  [ -e "$snapshot" ] || return 0
+  [ -f "$snapshot" ] && [ ! -L "$snapshot" ] \
+    || die "referral snapshot must be a regular non-symlink file"
+  size="$(stat -c '%s' "$snapshot")" || die "referral snapshot size could not be read"
+  [[ "$size" =~ ^[0-9]+$ ]] && [ "$size" -le 33554432 ] \
+    || die "referral snapshot exceeds the validated size limit"
+  compact="$(tr -d '[:space:]' < "$snapshot")" \
+    || die "referral snapshot could not be read"
+  current_version="$(printf '%s' "$compact" \
+    | sed -n 's/^.*"schemaVersion":\([1-9][0-9]\{0,2\}\).*$/\1/p')"
+  [[ "$current_version" =~ ^[1-9][0-9]{0,2}$ ]] \
+    || die "referral snapshot schemaVersion could not be verified"
+  target_version="$(referral_schema_at "$target_commit")" \
+    || die "rollback target referral schema capability is invalid"
+  if [ "$current_version" -gt "$target_version" ]; then
+    die "referral snapshot schema v${current_version} is newer than rollback target capability v${target_version}"
+  fi
+}
+
 health_probe() {
   local expected_commit="$1" expected_model="$2"
   compose exec -T app node -e '
     const expectedCommit = process.argv[1];
     const expectedModel = process.argv[2];
-    fetch("http://127.0.0.1:3000/api/healthz")
+    const expectedMode = process.argv[3];
+    // demeu-workspace-health:v1 makes workspace/auth part of the rollback gate.
+    (async () => {
+        const response = await fetch("http://127.0.0.1:3000/api/healthz");
+        if (!response.ok) process.exit(1);
+        const body = await response.json();
+        const keys = Object.keys(body).sort().join(",");
+        const legacy = keys === "commit,llm_ok,model_version,ok";
+        const mode = legacy ? "external_llm" : body.processing_mode;
+        const exact = legacy || keys === "commit,llm_ok,model_version,ok,processing_mode";
+        if (!(body.ok === true && exact && body.commit === expectedCommit &&
+          body.model_version === expectedModel && mode === expectedMode &&
+          (mode === "deterministic" || body.llm_ok === true))) process.exit(1);
+        const page = await fetch("http://127.0.0.1:3000/workspace", { redirect: "manual" });
+        if (page.status !== 200 || !(page.headers.get("content-type") || "").includes("text/html")) process.exit(1);
+        const authResponse = await fetch("http://127.0.0.1:3000/api/workspace/auth");
+        if (authResponse.status !== 200) process.exit(1);
+        const auth = await authResponse.json();
+        const authExact = Object.keys(auth).sort().join(",") === "actor,enabled";
+        process.exit(authExact && auth.enabled === true && auth.actor === null ? 0 : 1);
+      })().catch(() => process.exit(1));
+  ' "$expected_commit" "$expected_model" "$PROCESSING_MODE" >/dev/null 2>&1
+}
+
+health_probe_existing() {
+  local expected_commit="$1" expected_model="$2" expected_mode="${3-}"
+  compose exec -T app node -e '
+    // demeu-existing-health:v1 accepts legacy health only as external_llm.
+    // demeu-workspace-health:v1 also verifies the workspace/auth surface.
+    const expectedCommit = process.argv[1];
+    const expectedModel = process.argv[2];
+    const expectedMode = process.argv[3];
+    (async () => {
+        const response = await fetch("http://127.0.0.1:3000/api/healthz");
+        if (!response.ok) process.exit(1);
+        const body = await response.json();
+        const keys = Object.keys(body).sort().join(",");
+        const legacy = keys === "commit,llm_ok,model_version,ok";
+        const mode = legacy ? "external_llm" : body.processing_mode;
+        const exact = legacy || keys === "commit,llm_ok,model_version,ok,processing_mode";
+        if (!(body.ok === true && exact && body.commit === expectedCommit &&
+          body.model_version === expectedModel && (!expectedMode || mode === expectedMode) &&
+          (mode === "deterministic" || body.llm_ok === true))) process.exit(1);
+        const page = await fetch("http://127.0.0.1:3000/workspace", { redirect: "manual" });
+        if (page.status !== 200 || !(page.headers.get("content-type") || "").includes("text/html")) process.exit(1);
+        const authResponse = await fetch("http://127.0.0.1:3000/api/workspace/auth");
+        if (authResponse.status !== 200) process.exit(1);
+        const auth = await authResponse.json();
+        if (Object.keys(auth).sort().join(",") !== "actor,enabled" || auth.enabled !== true || auth.actor !== null) process.exit(1);
+        process.stdout.write(mode);
+      })().catch(() => process.exit(1));
+  ' "$expected_commit" "$expected_model" "$expected_mode" 2>/dev/null
+}
+
+wait_for_existing_health() {
+  local expected_commit="$1" expected_model="$2" expected_mode="$3" attempt
+  for ((attempt = 1; attempt <= HEALTH_ATTEMPTS; attempt++)); do
+    if health_probe_existing "$expected_commit" "$expected_model" "$expected_mode" >/dev/null; then
+      return 0
+    fi
+    sleep "$HEALTH_INTERVAL_SECONDS"
+  done
+  return 1
+}
+
+deterministic_readiness_probe() {
+  local expected_commit="$1"
+  compose exec -T app node -e '
+    // demeu-deterministic-readiness:v1 is provider-free.
+    const expectedCommit = process.argv[1];
+    fetch("http://127.0.0.1:3000/api/healthz?probe=extract")
       .then(async (response) => {
         if (!response.ok) process.exit(1);
         const body = await response.json();
-        process.exit(
-          body.ok === true &&
-          body.commit === expectedCommit &&
-          body.model_version === expectedModel &&
-          body.llm_ok === true ? 0 : 1
-        );
+        const exact = Object.keys(body).sort().join(",") === "commit,llm_ok,model_version,ok,processing_mode";
+        process.exit(exact && body.ok === true && body.commit === expectedCommit && body.processing_mode === "deterministic" && body.llm_ok === true ? 0 : 1);
       })
       .catch(() => process.exit(1));
-  ' "$expected_commit" "$expected_model" >/dev/null 2>&1
+  ' "$expected_commit" >/dev/null 2>&1
 }
 
 wait_for_health() {
@@ -408,10 +546,12 @@ recover_rollback() {
       compose up -d --no-build --force-recreate app >/dev/null || failed=1
     fi
     if [ "$failed" = "0" ]; then
-      wait_for_health "$OLD_GREEN_SHA" "$OLD_GREEN_MODEL" || failed=1
+      wait_for_existing_health "$OLD_GREEN_SHA" "$OLD_GREEN_MODEL" "$RECOVERY_PROCESSING_MODE" || failed=1
     fi
     if [ "$failed" = "0" ]; then
-      verify_anthropic_env_cardinality || failed=1
+      if [ "$RECOVERY_PROCESSING_MODE" = "external_llm" ]; then
+        verify_anthropic_env_cardinality || failed=1
+      fi
     fi
     if [ "$failed" = "0" ]; then
       env_matches_snapshot || failed=1
@@ -468,6 +608,7 @@ run_rollback() {
   done
   cd "$APP_DIR" || die "APP_DIR does not exist"
   acquire_deploy_lock
+  load_processing_mode
   validate_secret_file
   assert_clean_worktree
   validate_server_config
@@ -482,6 +623,9 @@ run_rollback() {
     || die ".deploy_green_sha does not resolve to a reachable commit"
   OLD_GREEN_MODEL="$(model_version_at "$OLD_GREEN_FULL")" \
     || die "last-green model version cannot be read from the repository"
+  RECOVERY_PROCESSING_MODE="$(health_probe_existing "$OLD_GREEN_SHA" "$OLD_GREEN_MODEL" || true)"
+  [ -n "$RECOVERY_PROCESSING_MODE" ] \
+    || die "current running release health could not be verified"
   if [ -n "$explicit_target" ]; then
     raw_target="$explicit_target"
   else
@@ -493,6 +637,7 @@ run_rollback() {
     || die "rollback target short SHA cannot be resolved"
   TARGET_MODEL="$(model_version_at "$TARGET_FULL")" \
     || die "rollback target model version cannot be read from the repository"
+  assert_referral_snapshot_compatible "$TARGET_FULL"
 
   snapshot_env || die "secure .env snapshot could not be created"
   docker image inspect "$LAST_GREEN_IMAGE" >/dev/null 2>&1 \
@@ -511,8 +656,12 @@ run_rollback() {
   if ! wait_for_health "$TARGET_SHORT" "$TARGET_MODEL"; then
     die "rollback target health contract failed"
   fi
-  verify_anthropic_env_cardinality \
-    || die "container environment cardinality contract failed"
+  if [ "$PROCESSING_MODE" = "external_llm" ]; then
+    verify_anthropic_env_cardinality \
+      || die "container environment cardinality contract failed"
+  elif ! deterministic_readiness_probe "$TARGET_SHORT"; then
+    die "rollback target deterministic readiness gate failed"
+  fi
   env_matches_snapshot \
     || die ".env changed during rollback"
 
@@ -520,7 +669,7 @@ run_rollback() {
   write_marker .deploy_green_sha "$TARGET_SHORT"
   write_marker .deploy_prev_sha "$TARGET_SHORT"
   ROLLBACK_SUCCEEDED=1
-  log "rollback is healthy: commit=${TARGET_SHORT}, model=${TARGET_MODEL}, llm_ok=true"
+  log "rollback is healthy: commit=${TARGET_SHORT}, model=${TARGET_MODEL}, processing_mode=${PROCESSING_MODE}"
 }
 
 validate_inputs "$@"

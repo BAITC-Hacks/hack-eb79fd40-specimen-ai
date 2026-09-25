@@ -198,6 +198,30 @@ export function handleWorkspaceIntakes(req: Request, deps: WorkspaceApiDeps = {}
   });
 }
 
+export function handleWorkspaceIntake(req: Request, id: string, deps: WorkspaceApiDeps = {}): Promise<Response> {
+  return boundary(async () => {
+    const actor = await authorized(req, deps);
+    method(req, "GET");
+    // Keep every authenticated principal outside the intake scope on the same
+    // response contract. In particular, analysts cannot probe session IDs.
+    if (actor.role === "analyst") failure(404, "NOT_FOUND");
+    const referrals = service(deps);
+    const intake = await sessions(deps).getSession(id);
+    if (!intake || !visibleOwner(await referrals.ownerForToken(intake.doctorToken), actor)) failure(404, "NOT_FOUND");
+    const referral = (await referrals.list(actor)).find((entry) => entry.sourceSessionId === intake.id);
+    return json({
+      intake: {
+        sessionId: intake.id,
+        createdAt: intake.createdAt,
+        status: intake.status,
+        deliveryStatus: intake.deliveryStatus,
+        referralId: referral?.id ?? null,
+        ...(intake.result ? { result: intake.result } : {}),
+      },
+    });
+  });
+}
+
 export function handleWorkspaceLink(req: Request, deps: WorkspaceApiDeps = {}): Promise<Response> {
   return boundary(async () => {
     const actor = await authorized(req, deps);

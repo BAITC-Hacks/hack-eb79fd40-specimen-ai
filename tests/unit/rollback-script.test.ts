@@ -80,6 +80,7 @@ async function waitForFile(path: string): Promise<void> {
 function validEnv(branch = "branch-a-nginx", domain = "109-123-248-16.sslip.io"): string {
   return [
     `ANTHROPIC_API_KEY=${SYNTHETIC_KEY}`,
+    "DEMEU_PROCESSING_MODE=external_llm",
     `DEMEU_DOMAIN=${domain}`,
     `APP_BASE_URL=https://${domain}`,
     "APP_PORT=3100",
@@ -106,6 +107,11 @@ async function makeSandbox(): Promise<Sandbox> {
     copyFile("deploy/tls.sh", join(root, "deploy/tls.sh")),
     copyFile("docker-compose.yml", join(root, "docker-compose.yml")),
     copyFile("deploy/compose.caddy.yml", join(root, "deploy/compose.caddy.yml")),
+    copyFile("deploy/compose.workspace.yml", join(root, "deploy/compose.workspace.yml")),
+    copyFile(
+      "deploy/compose.new-server-ip.yml",
+      join(root, "deploy/compose.new-server-ip.yml"),
+    ),
     copyFile(
       "deploy/compose.host-proxy.yml",
       join(root, "deploy/compose.host-proxy.yml"),
@@ -155,8 +161,16 @@ case "\${1-}:\${2-}" in
     [ "\${3-}" != '${D}' ]
     ;;
   show:*)
-    [ "\${STUB_MODEL_MISSING-0}" = 0 ] || exit 1
-    printf '%s\\n' '{"schema_version":1,"model_version":"lr-v1"}'
+    case "\${2-}" in
+      *:deploy/referral-schema-version)
+        [ "\${STUB_REFERRAL_SCHEMA_MISSING-0}" = 0 ] || exit 1
+        printf '%s\\n' "\${STUB_TARGET_REFERRAL_SCHEMA-2}"
+        ;;
+      *)
+        [ "\${STUB_MODEL_MISSING-0}" = 0 ] || exit 1
+        printf '%s\\n' '{"schema_version":1,"model_version":"lr-v1"}'
+        ;;
+    esac
     ;;
   reset:*)
     for value in "$@"; do target="$value"; done
@@ -249,16 +263,38 @@ case "$command" in
       fi
       exit
     fi
+    is_existing=0
+    if printf '%s' "$*" | grep -q 'demeu-existing-health:v1'; then is_existing=1; fi
+    if printf '%s' "$*" | grep -q 'demeu-deterministic-readiness:v1'; then
+      [ "\${STUB_DETERMINISTIC_READY-1}" = 1 ]
+      exit
+    fi
+    if printf '%s' "$*" | grep -q 'demeu-workspace-health:v1' \
+      && [ -n "\${STUB_WORKSPACE_HEALTH_FAIL_COMMIT-}" ] \
+      && printf '%s' "$*" | grep -q "\${STUB_WORKSPACE_HEALTH_FAIL_COMMIT}"; then
+      exit 1
+    fi
+    before_previous=''
     previous=''
     last=''
-    for value in "$@"; do previous="$last"; last="$value"; done
-    expected_commit="$previous"
-    expected_model="$last"
+    for value in "$@"; do before_previous="$previous"; previous="$last"; last="$value"; done
+    expected_commit="$before_previous"
+    expected_model="$previous"
+    expected_mode="$last"
     if [ "$expected_commit" = aaaaaaa ]; then mutate_env health; fi
     if [ "\${STUB_HEALTH_FAIL_COMMIT-}" = "$expected_commit" ]; then exit 1; fi
     [ "$(cat "$STUB_STATE/runtime_commit")" = "$expected_commit" ] || exit 1
     [ "$(cat "$STUB_STATE/runtime_model")" = "$expected_model" ] || exit 1
-    [ "\${STUB_LLM_OK-1}" = 1 ] || exit 1
+    case "$expected_mode" in ''|external_llm|deterministic) ;; *) exit 1 ;; esac
+    if [ "$is_existing" = 1 ]; then
+      actual_mode="\${STUB_CURRENT_PROCESSING_MODE:-external_llm}"
+    else
+      actual_mode="$expected_mode"
+    fi
+    if [ "\${STUB_LEGACY_HEALTH-0}" = 1 ]; then actual_mode=external_llm; fi
+    if [ -n "$expected_mode" ] && [ "$expected_mode" != "$actual_mode" ]; then exit 1; fi
+    if [ "$expected_mode" = external_llm ]; then [ "\${STUB_LLM_OK-1}" = 1 ] || exit 1; fi
+    if [ "$is_existing" = 1 ]; then printf '%s' "$actual_mode"; fi
     ;;
   *) exit 2 ;;
 esac
@@ -394,6 +430,64 @@ afterEach(async () => {
 });
 
 describe("deploy/rollback.sh", () => {
+  it("fails closed before activation when the live referral snapshot is newer than the rollback reader", async () => {
+    const sandbox = await makeSandbox();
+    const dataDir = join(sandbox.root, "workspace-data");
+    await mkdir(dataDir);
+    await writeFile(join(dataDir, "referrals.json"), JSON.stringify({
+      schemaVersion: 2,
+      referrals: [],
+      links: [],
+      commands: [],
+    }));
+    await writeFile(
+      join(sandbox.root, ".env"),
+      `${validEnv()}DEMEU_HOST_DATA_DIR=${dataDir}\n`,
+    );
+
+    const result = await runRollback(sandbox, [], {
+      STUB_REFERRAL_SCHEMA_MISSING: "1",
+    });
+    const commands = await readFile(sandbox.log, "utf8");
+
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("snapshot schema v2 is newer than rollback target capability v1");
+    expect(commands).not.toContain("git reset");
+    expect(commands).not.toMatch(/docker image tag/u);
+    expect(commands).not.toMatch(/docker .* build/u);
+    expect(commands).not.toMatch(/docker .* up/u);
+  });
+
+  it("keeps workspace and ingress overlays on the current production profile", async () => {
+    const sandbox = await makeSandbox();
+    await writeFile(
+      join(sandbox.root, ".env"),
+      validEnv("branch-b-caddy", "84.247.161.211"),
+    );
+
+    const result = await runRollback(sandbox);
+    const commands = await readFile(sandbox.log, "utf8");
+    const prefix = "docker compose -f docker-compose.yml -f deploy/compose.caddy.yml -f deploy/compose.workspace.yml -f deploy/compose.new-server-ip.yml";
+
+    expect(result.code).toBe(0);
+    expect(commands).toContain(`${prefix} config --quiet`);
+    expect(commands).toContain(`${prefix} build app`);
+    expect(commands).toContain(`${prefix} up -d --remove-orphans`);
+  });
+
+  it("rejects a rollback target when the workspace/auth health surface is unavailable", async () => {
+    const sandbox = await makeSandbox();
+
+    const result = await runRollback(sandbox, [], {
+      STUB_WORKSPACE_HEALTH_FAIL_COMMIT: "aaaaaaa",
+    });
+    const commands = await readFile(sandbox.log, "utf8");
+
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("rollback target health contract failed");
+    expect(commands).toContain("demeu-workspace-health:v1");
+  });
+
   it("accepts a custom FQDN only with the exact matching HTTPS APP_BASE_URL", async () => {
     const accepted = await makeSandbox();
     await writeFile(
@@ -446,7 +540,7 @@ describe("deploy/rollback.sh", () => {
     const commands = await readFile(sandbox.log, "utf8");
 
     expect(result.code).toBe(0);
-    expect(result.stdout).toContain("commit=aaaaaaa, model=lr-v1, llm_ok=true");
+    expect(result.stdout).toContain("commit=aaaaaaa, model=lr-v1, processing_mode=external_llm");
     expect(result.stdout).not.toContain(SYNTHETIC_KEY);
     expect(await readFile(join(sandbox.state, "commit"), "utf8")).toBe(`${A}\n`);
     expect(await readFile(join(sandbox.state, "runtime_commit"), "utf8")).toBe(
@@ -806,6 +900,48 @@ describe("deploy/rollback.sh", () => {
       "recovery complete; last green release is active and verified",
     );
     expect(recovery.stderr).toContain("rollback target was not activated");
+  });
+
+  it("rolls back deterministic mode without an Anthropic key check", async () => {
+    const sandbox = await makeSandbox();
+    const env = validEnv()
+      .replace(/^ANTHROPIC_API_KEY=.*\n/mu, "")
+      .replace("DEMEU_PROCESSING_MODE=external_llm", "DEMEU_PROCESSING_MODE=deterministic");
+    await writeFile(join(sandbox.root, ".env"), env);
+
+    const result = await runRollback(sandbox, [], { STUB_ANTHROPIC_COUNT: "0" });
+    const commands = await readFile(sandbox.log, "utf8");
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("processing_mode=deterministic");
+    expect(commands).not.toMatch(/grep -c.*ANTHROPIC_API_KEY/gu);
+    expect(commands).toContain("demeu-deterministic-readiness:v1");
+  });
+
+  it("accepts an exact legacy four-field target only as external_llm", async () => {
+    const external = await makeSandbox();
+    const accepted = await runRollback(external, [], { STUB_LEGACY_HEALTH: "1" });
+    expect(accepted.code).toBe(0);
+
+    const deterministic = await makeSandbox();
+    await writeFile(
+      join(deterministic.root, ".env"),
+      validEnv().replace(/^ANTHROPIC_API_KEY=.*\n/mu, "").replace("external_llm", "deterministic"),
+    );
+    const rejected = await runRollback(deterministic, [], { STUB_LEGACY_HEALTH: "1" });
+    expect(rejected.code).toBe(1);
+    expect(rejected.stderr).toContain("health contract failed");
+  });
+
+  it("fails closed when deterministic rollback readiness is red", async () => {
+    const sandbox = await makeSandbox();
+    await writeFile(
+      join(sandbox.root, ".env"),
+      validEnv().replace(/^ANTHROPIC_API_KEY=.*\n/mu, "").replace("external_llm", "deterministic"),
+    );
+    const result = await runRollback(sandbox, [], { STUB_DETERMINISTIC_READY: "0" });
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("deterministic readiness gate failed");
   });
 
   it("fails before activation and leaves no plaintext residue when snapshot creation fails", async () => {

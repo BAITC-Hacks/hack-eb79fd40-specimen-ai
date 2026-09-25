@@ -57,7 +57,7 @@ Doctor token и session UUID фактически являются bearer-иде
 | POST | /api/chat/start | Создать сессию и получить статическое приветствие | 200 { sessionId, reply, turnsLeft } |
 | POST | /api/chat | Выполнить один ход; при завершении сразу сформировать результат | 200 { reply, done, turnsLeft, result? } |
 | POST | /api/chat/finalize | Завершить сессию вручную или получить сохранённый результат | 200 { result, source, replayed } |
-| GET | /api/healthz | Проверить процесс, артефакт и наличие LLM-конфигурации | 200 { ok, commit, model_version, llm_ok } |
+| GET | /api/healthz | Проверить процесс, артефакт и режим обработки | 200 { ok, commit, model_version, llm_ok, processing_mode } |
 
 ## Общий формат ошибки
 
@@ -77,7 +77,7 @@ Frontend не показывает server error text пользователю: �
 
 - POST /api/link при 500 не добавляет request_id.
 - Некорректный JSON в POST /api/chat/start сейчас становится 500 INTERNAL, а не 400.
-- Unauthorized deep health возвращает обычное четырёхпольное health-тело со статусом 404, а не error envelope.
+- Unauthorized deep health возвращает обычное пятипольное health-тело со статусом 404, а не error envelope.
 
 Кодовые якоря: app/api/chat/handler.ts:apiError, app/api/chat/finalize/handler.ts:apiError, lib/http.ts:requestJson.
 
@@ -323,7 +323,8 @@ curl -sS "$BASE_URL/api/healthz"
   "ok": true,
   "commit": "<build-commit-or-unknown>",
   "model_version": "lr-v1",
-  "llm_ok": true
+  "llm_ok": true,
+  "processing_mode": "external_llm"
 }
 ~~~
 
@@ -333,6 +334,7 @@ curl -sS "$BASE_URL/api/healthz"
 | commit | COMMIT_SHA из image build или unknown |
 | model_version | Версия реально загруженного JSON-артефакта |
 | llm_ok | Только наличие ANTHROPIC_API_KEY; сетевой вызов не выполняется |
+| processing_mode | Статический режим процесса: external_llm или deterministic |
 
 Shallow health всегда 200, пока handler может сформировать ответ.
 
@@ -348,7 +350,7 @@ x-demeu-health-proof: <commit-bound-hmac>
 Без корректного proof или без ключа:
 
 - HTTP 404;
-- то же четырёхпольное health-тело;
+- то же пятипольное health-тело;
 - llm_ok: false;
 - provider call не выполняется.
 
@@ -358,6 +360,10 @@ x-demeu-health-proof: <commit-bound-hmac>
 - application retries равны нулю;
 - результат single-flight-ится и кешируется на всё время жизни процесса;
 - HTTP 200 возвращается и при корректно авторизованной, но неуспешной extraction; тогда llm_ok: false.
+
+В `deterministic` deep query без provider call и без требования ключа выполняет чистый self-test
+фиксированного опросника и трёх safety-сценариев. Успех возвращает HTTP 200 и `llm_ok: true` как
+сигнал deep-readiness; обычный shallow health по-прежнему показывает наличие ключа, а не результат self-test.
 
 Не публикуйте proof или ключ. Операционный вызов описан в [деплое](./deployment.md).
 

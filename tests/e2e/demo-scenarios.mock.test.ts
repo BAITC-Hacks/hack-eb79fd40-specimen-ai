@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { assertTriageInvariants } from "../contract/invariants";
-import type { ChatMessage, TriageResult } from "../../lib/types";
+import { normalizeAnamnesis, type ChatMessage, type TriageResult } from "../../lib/types";
+import { ABSTAIN_HYPOTHESIS } from "../../lib/triage";
 
 interface MockFixture {
   schema_version: number;
@@ -61,9 +62,20 @@ describe("offline HTTP demo scenarios", () => {
 
   it("completes the back-pain scenario without an emergency", () => {
     const { result } = fixture("scenario-2-back-pain");
+    const anamnesis = normalizeAnamnesis(result.anamnesis);
 
     expect(result.urgency).not.toBe("emergency");
     expect(result.red_flags.every((flag) => !flag.emergency)).toBe(true);
+    expect(anamnesis.history_status).toMatchObject({
+      chronic: "denied",
+      allergies: "denied",
+      medications: "denied",
+    });
+    expect(anamnesis.negative_findings).toEqual([
+      "температуры нет",
+      "ноги не немеют",
+      "мочеиспускание не нарушено",
+    ]);
   });
 
   it("keeps the one-day rhinitis scenario low-priority and flag-free", () => {
@@ -71,5 +83,26 @@ describe("offline HTTP demo scenarios", () => {
 
     expect(["routine", "planned"]).toContain(result.urgency);
     expect(result.red_flags).toEqual([]);
+  });
+
+  it.each(CASES)("does not turn an abstain into a complaint paraphrase: %s", (id) => {
+    const { result } = fixture(id);
+
+    expect(result.model?.abstained).toBe(true);
+    expect(result.hypothesis).toMatchObject({
+      text: ABSTAIN_HYPOTHESIS,
+      confidence: 0,
+    });
+    expect(result.hypothesis.text).not.toContain(result.anamnesis.chief_complaint);
+  });
+
+  it.each(CASES)("keeps patient-facing replies neutral in scenario %s", (id) => {
+    const { messages } = fixture(id);
+    const assistantReplies = messages
+      .filter(({ role }) => role === "assistant")
+      .map(({ content }) => content)
+      .join(" ");
+
+    expect(assistantReplies).not.toMatch(/похоже\s+на|обычн\p{L}*\s+простуд/iu);
   });
 });

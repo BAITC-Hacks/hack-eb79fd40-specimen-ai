@@ -45,6 +45,20 @@ const RESULT = {
   source: "rules_only",
 } as TriageResult;
 
+const EMERGENCY_RESULT = {
+  ...RESULT,
+  red_flags: [
+    {
+      code: "chest_pain",
+      label: "Боль в груди с признаками риска",
+      evidence: "Давит в груди",
+      evidence_kind: "quote",
+      emergency: true,
+      source_message_index: 1,
+    },
+  ],
+} as TriageResult;
+
 function request(sessionId: string, message = "Продолжаю отвечать") {
   return new NextRequest("http://localhost/api/chat", {
     method: "POST",
@@ -78,7 +92,7 @@ async function collectingKazakhSession() {
 describe("POST /api/chat", () => {
   it("finalizes the safety reply through the shared finalizer", async () => {
     const { sessionStore, sessionId } = await collectingSession();
-    const analyze = vi.fn(async () => Promise.resolve(RESULT));
+    const analyze = vi.fn(async () => Promise.resolve(EMERGENCY_RESULT));
 
     const response = await handleChat(request(sessionId, "Давит в груди"), {
       sessionStore,
@@ -91,7 +105,12 @@ describe("POST /api/chat", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body).toMatchObject({ done: true, turnsLeft: 0, result: RESULT });
+    expect(body).toMatchObject({
+      done: true,
+      turnsLeft: 0,
+      closing: { emergency: true },
+    });
+    expect(body).not.toHaveProperty("result");
     expect(body.reply).not.toMatch(/ANAMNESIS/iu);
     expect(analyze).toHaveBeenCalledOnce();
     expect((await sessionStore.getSession(sessionId))?.status).toBe(
@@ -101,7 +120,7 @@ describe("POST /api/chat", () => {
 
   it("finalizes on an emergency rule even when the model omits the marker", async () => {
     const { sessionStore, sessionId } = await collectingSession();
-    const analyze = vi.fn(async () => Promise.resolve(RESULT));
+    const analyze = vi.fn(async () => Promise.resolve(EMERGENCY_RESULT));
 
     const response = await handleChat(
       request(sessionId, "Мне сильно давит в груди"),
@@ -118,9 +137,48 @@ describe("POST /api/chat", () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
       done: true,
-      result: RESULT,
+      reply:
+        "Сейчас лучше не ждать приёма. Позвоните 103 или обратитесь в приёмный покой. Ваши ответы переданы врачу.",
+      closing: { emergency: true },
     });
     expect(analyze).toHaveBeenCalledOnce();
+  });
+
+  it("persists and delivers an emergency without calling the dialogue model", async () => {
+    const { sessionStore, sessionId } = await collectingSession();
+    const runTurn = vi.fn(async () => {
+      throw new Error("dialogue model unavailable");
+    });
+    const sendDoctorSummary = vi.fn(async () => Promise.resolve());
+    let delivery: Promise<void> | undefined;
+
+    const response = await handleChat(
+      request(sessionId, "Боль в груди и не могу дышать"),
+      {
+        sessionStore,
+        runTurn,
+        analyze: async () => EMERGENCY_RESULT,
+        doctorSummary: { sendDoctorSummary },
+        schedule: (work) => { delivery = work(); },
+      },
+    );
+    await delivery;
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      done: true,
+      closing: { emergency: true },
+    });
+    expect(runTurn).not.toHaveBeenCalled();
+    expect(sendDoctorSummary).toHaveBeenCalledOnce();
+    expect(await sessionStore.getSession(sessionId)).toMatchObject({
+      status: "completed",
+      turnCount: 1,
+      deliveryStatus: "sent",
+      messages: expect.arrayContaining([
+        { role: "user", content: "Боль в груди и не могу дышать" },
+      ]),
+    });
   });
 
   it("auto-finalizes exactly at HARD_TURN_CAP with a non-empty result", async () => {
@@ -149,8 +207,9 @@ describe("POST /api/chat", () => {
     expect(lastBody).toMatchObject({
       done: true,
       turnsLeft: 0,
-      result: RESULT,
+      closing: { emergency: false },
     });
+    expect(lastBody).not.toHaveProperty("result");
     expect(analyze).toHaveBeenCalledOnce();
     expect(await sessionStore.getSession(sessionId)).toMatchObject({
       status: "completed",
@@ -192,20 +251,20 @@ describe("POST /api/chat", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.reply).toBe(
-      "Түсіндім.\n\nЖеткілікті мәлімет жиналды. Рақмет!",
-    );
+    expect(body.reply).toBe("Жеткілікті мәлімет жиналды. Рақмет!");
     expect(body.reply).not.toMatch(/Спасибо|передаю|врачу/iu);
   });
 
-  it("does not persist a patient message when the dialogue call fails", async () => {
+  it("persists a patient message before the dialogue call fails", async () => {
     const { sessionStore, sessionId } = await collectingSession();
+    const runTurn = vi
+      .fn<() => Promise<{ reply: string; done: boolean }>>()
+      .mockRejectedValueOnce(new Error("temporary outage"))
+      .mockResolvedValue({ reply: "Продолжим опрос", done: false });
 
     const response = await handleChat(request(sessionId, "Повторяемая реплика"), {
       sessionStore,
-      runTurn: async () => {
-        throw new Error("temporary outage");
-      },
+      runTurn,
     });
 
     expect(response.status).toBe(500);
@@ -213,8 +272,29 @@ describe("POST /api/chat", () => {
       code: "LLM_UNAVAILABLE",
     });
     expect(await sessionStore.getSession(sessionId)).toMatchObject({
-      turnCount: 0,
-      messages: [{ role: "assistant", content: GREETING_RU }],
+      turnCount: 1,
+      messages: [
+        { role: "assistant", content: GREETING_RU },
+        { role: "user", content: "Повторяемая реплика" },
+      ],
+    });
+
+    const retried = await handleChat(
+      request(sessionId, "Повторяемая реплика"),
+      { sessionStore, runTurn },
+    );
+    expect(retried.status).toBe(200);
+    await expect(retried.json()).resolves.toMatchObject({
+      done: false,
+      reply: "Продолжим опрос",
+    });
+    expect(await sessionStore.getSession(sessionId)).toMatchObject({
+      turnCount: 1,
+      messages: [
+        { role: "assistant", content: GREETING_RU },
+        { role: "user", content: "Повторяемая реплика" },
+        { role: "assistant", content: "Продолжим опрос" },
+      ],
     });
   });
 
@@ -263,7 +343,7 @@ describe("POST /api/chat", () => {
     await expect(retried.json()).resolves.toMatchObject({
       done: true,
       turnsLeft: 0,
-      result: RESULT,
+      closing: { emergency: false },
     });
     expect(runTurn).toHaveBeenCalledOnce();
     expect(analyze).toHaveBeenCalledTimes(2);

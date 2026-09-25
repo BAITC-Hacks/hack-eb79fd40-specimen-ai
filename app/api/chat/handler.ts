@@ -1,10 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import {
+  completionReplyForLanguage,
+  emergencyReplyForLanguage,
   runAnamnesisTurn,
   type TurnResult,
 } from "@/lib/anamnesis";
 import { HARD_TURN_CAP, MAX_MESSAGE_LEN } from "@/lib/config";
+import { runDeterministicAnamnesisTurn } from "@/lib/deterministic";
 import {
   finalizeSession,
   type AnalyzePort,
@@ -17,6 +20,11 @@ import {
   type SessionStore,
 } from "@/lib/store";
 import { detectRedFlags } from "@/lib/redflags";
+import {
+  PROCESSING_MODE,
+  type ProcessingMode,
+} from "@/lib/processing-mode";
+import { patientClosing } from "@/lib/patient-response";
 import type { ChatMessage, Session } from "@/lib/types";
 
 type RunTurnPort = (
@@ -30,6 +38,7 @@ export interface ChatRouteDeps {
   analyze?: AnalyzePort;
   doctorSummary?: DoctorSummaryPort;
   schedule?: BackgroundScheduler;
+  processingMode?: ProcessingMode;
 }
 
 function apiError(
@@ -44,25 +53,10 @@ function apiError(
   );
 }
 
-const COMPLETION_REPLY: Record<Session["language"], string> = {
-  ru: "Спасибо, я передаю данные врачу.",
-  kk: "Рақмет, жауаптарыңыз дәрігерге жіберілді.",
-};
-
 const HARD_CAP_REPLY: Record<Session["language"], string> = {
   ru: "Спасибо, этого достаточно — передаю данные врачу.",
   kk: "Жеткілікті мәлімет жиналды. Рақмет!",
 };
-
-function lastAssistantReply(
-  messages: readonly ChatMessage[],
-  language: Session["language"],
-): string {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    if (messages[index].role === "assistant") return messages[index].content;
-  }
-  return COMPLETION_REPLY[language];
-}
 
 async function finalizedChatResponse(
   sessionId: string,
@@ -76,8 +70,18 @@ async function finalizedChatResponse(
       analyze: deps.analyze,
       doctorSummary: deps.doctorSummary,
       schedule: deps.schedule,
+      processingMode: deps.processingMode,
     });
-    return NextResponse.json({ reply, done: true, turnsLeft: 0, result });
+    const completed = await deps.sessionStore.getSession(sessionId);
+    if (!completed) {
+      return apiError(500, "INTERNAL", "Внутренняя ошибка", requestId);
+    }
+    return NextResponse.json({
+      reply,
+      done: true,
+      turnsLeft: 0,
+      closing: patientClosing(result, completed.language),
+    });
   } catch (error) {
     if (error instanceof SessionNotFoundError) {
       return apiError(500, "INTERNAL", "Внутренняя ошибка", requestId);
@@ -155,7 +159,7 @@ export async function handleChat(req: NextRequest, deps: ChatRouteDeps) {
   if (session.turnCount >= HARD_TURN_CAP) {
     return finalizedChatResponse(
       session.id,
-      lastAssistantReply(session.messages, session.language),
+      completionReplyForLanguage(session.language),
       requestId,
       deps,
     );
@@ -165,43 +169,76 @@ export async function handleChat(req: NextRequest, deps: ChatRouteDeps) {
     role: "user",
     content: message.trim(),
   };
-  const candidate = [...session.messages, userMessage];
-  let turn: TurnResult;
-  try {
-    turn = deps.runTurn
-      ? await deps.runTurn(candidate, session.language)
-      : await runAnamnesisTurn(candidate, {}, session.language);
-  } catch {
+
+  const pendingUser = session.messages.at(-1)?.role === "user"
+    ? session.messages.at(-1)
+    : undefined;
+  if (pendingUser && pendingUser.content !== userMessage.content) {
     return apiError(
-      500,
-      "LLM_UNAVAILABLE",
-      "Сервис временно недоступен, попробуйте ещё раз",
+      409,
+      "TURN_PENDING",
+      "Предыдущая реплика ещё обрабатывается",
       requestId,
     );
   }
 
-  const forcedByCap = session.turnCount + 1 >= HARD_TURN_CAP;
+  let afterUser = session;
+  if (!pendingUser) {
+    // Persist the patient's words before any external call. Emergency rules
+    // and doctor delivery must survive an unavailable dialogue model.
+    try {
+      await deps.sessionStore.appendMessage(session.id, userMessage);
+      const persisted = await deps.sessionStore.getSession(session.id);
+      if (!persisted) {
+        return apiError(500, "INTERNAL", "Внутренняя ошибка", requestId);
+      }
+      afterUser = persisted;
+    } catch (error) {
+      if (error instanceof SessionNotCollectingError) {
+        return apiError(
+          409,
+          "SESSION_COMPLETED",
+          "Сессия уже завершена",
+          requestId,
+        );
+      }
+      return apiError(500, "INTERNAL", "Внутренняя ошибка", requestId);
+    }
+  }
+
+  const candidate = [...afterUser.messages];
+  const processingMode = deps.processingMode ?? PROCESSING_MODE;
   const forcedByRule = detectRedFlags(candidate).some(
     (flag) => flag.emergency,
   );
-  const reply =
-    forcedByCap && !turn.done
-      ? `${turn.reply}\n\n${HARD_CAP_REPLY[session.language]}`.trim()
-      : turn.reply;
-
-  try {
-    await deps.sessionStore.appendMessage(session.id, userMessage);
-  } catch (error) {
-    if (error instanceof SessionNotCollectingError) {
+  let turn: TurnResult;
+  if (forcedByRule) {
+    turn = { reply: emergencyReplyForLanguage(session.language), done: true };
+  } else {
+    try {
+      turn = processingMode === "deterministic"
+        ? runDeterministicAnamnesisTurn(candidate, session.language)
+        : deps.runTurn
+          ? await deps.runTurn(candidate, session.language)
+          : await runAnamnesisTurn(candidate, {}, session.language);
+    } catch {
       return apiError(
-        409,
-        "SESSION_COMPLETED",
-        "Сессия уже завершена",
+        500,
+        processingMode === "deterministic" ? "INTERNAL" : "LLM_UNAVAILABLE",
+        "Сервис временно недоступен, попробуйте ещё раз",
         requestId,
       );
     }
-    return apiError(500, "INTERNAL", "Внутренняя ошибка", requestId);
   }
+
+  const forcedByCap = afterUser.turnCount >= HARD_TURN_CAP;
+  const reply = forcedByRule
+    ? emergencyReplyForLanguage(session.language)
+    : forcedByCap && !turn.done
+      ? HARD_CAP_REPLY[session.language]
+      : turn.done
+        ? completionReplyForLanguage(session.language)
+        : turn.reply;
 
   try {
     await deps.sessionStore.appendMessage(session.id, {

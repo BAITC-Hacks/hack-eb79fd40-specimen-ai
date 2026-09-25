@@ -86,17 +86,17 @@ function safeJson(text, context) {
 }
 
 function createHttpClient(baseUrl, history) {
+  let cookie = "";
   return async (path, body) => {
     let response;
     try {
       response = await fetch(`${baseUrl}${path}`, {
         method: body === undefined ? "GET" : "POST",
-        ...(body === undefined
-          ? {}
-          : {
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify(body),
-            }),
+        headers: {
+          ...(body === undefined ? {} : { "content-type": "application/json", origin: baseUrl }),
+          ...(cookie ? { cookie } : {}),
+        },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
     } catch (error) {
       throw new Error(`${path} network failure`, { cause: error });
@@ -106,6 +106,8 @@ function createHttpClient(baseUrl, history) {
     if (!response.ok) {
       throw new Error(`${path} -> HTTP ${response.status}: ${text.slice(0, 1_000)}`);
     }
+    const nextCookie = response.headers.get("set-cookie")?.split(";", 1)[0];
+    if (nextCookie) cookie = nextCookie;
     return safeJson(text, path);
   };
 }
@@ -121,49 +123,59 @@ export async function runDemoScenarios({
   baseUrl,
   fixtureDir = resolve(ROOT, "tests/fixtures/transcripts"),
   provenance,
+  workspaceCredentials,
 }) {
   must(provenance === "mock" || provenance === "live", "provenance must be mock or live");
+  must(workspaceCredentials?.id && workspaceCredentials?.password,
+    "workspace credentials are required to verify the doctor-only result");
   const output = [];
 
   for (const scenario of SCENARIOS) {
     const http = [];
-    const request = createHttpClient(baseUrl, http);
-    const health = await request("/api/healthz");
+    const doctorRequest = createHttpClient(baseUrl, http);
+    const patientRequest = createHttpClient(baseUrl, http);
+    const health = await doctorRequest("/api/healthz");
     must(health.ok === true, `healthz not ok: ${JSON.stringify(health)}`);
+    await doctorRequest("/api/workspace/auth", workspaceCredentials);
 
-    const link = await request("/api/link", {});
+    const link = await doctorRequest("/api/link", {});
     must(typeof link.token === "string" && link.token.length > 0, "link token missing");
-    const start = await request("/api/chat/start", { token: link.token });
+    const start = await patientRequest("/api/chat/start", { token: link.token });
     must(typeof start.sessionId === "string", "sessionId missing");
     must(typeof start.reply === "string" && start.reply.length > 0, "greeting missing");
 
     const messages = [{ role: "assistant", content: start.reply }];
-    let result;
+    let closing;
     let completedVia = "none";
-    for (let index = 0; index < HARD_TURN_CAP && !result; index += 1) {
+    for (let index = 0; index < HARD_TURN_CAP && !closing; index += 1) {
       const line = scenario.lines[Math.min(index, scenario.lines.length - 1)];
       messages.push({ role: "user", content: line });
-      const turn = await request("/api/chat", {
+      const turn = await patientRequest("/api/chat", {
         sessionId: start.sessionId,
         message: line,
       });
       must(typeof turn.reply === "string", "chat reply missing");
       messages.push({ role: "assistant", content: turn.reply });
       if (turn.done === true) {
-        must(turn.result, "done response has no result");
-        result = turn.result;
+        must(turn.closing && typeof turn.closing.text === "string", "done response has no patient closing");
+        must(turn.result === undefined, "patient API leaked TriageResult");
+        closing = turn.closing;
         completedVia = "chat";
       }
     }
 
-    if (!result) {
-      const finalized = await request("/api/chat/finalize", {
+    if (!closing) {
+      const finalized = await patientRequest("/api/chat/finalize", {
         sessionId: start.sessionId,
       });
-      result = finalized.result;
+      must(finalized.result === undefined, "patient finalize leaked TriageResult");
+      closing = finalized.closing;
       completedVia = "finalize";
     }
-    must(result, "TriageResult missing after finalize");
+    must(closing, "patient closing missing after finalize");
+    const intake = await doctorRequest(`/api/workspace/intakes/${encodeURIComponent(start.sessionId)}`);
+    const result = intake.intake?.result;
+    must(result, "doctor intake has no TriageResult after finalize");
     must(completedVia === "chat", `${scenario.id} did not reach done=true`);
     must(http.every(({ status }) => status === 200), `non-200 status: ${JSON.stringify(http)}`);
     assertTriageInvariants(result, messages);
@@ -184,6 +196,7 @@ export async function runDemoScenarios({
       },
       http,
       messages,
+      closing,
       result,
     };
     const path = await writeFixture(fixtureDir, scenario, provenance, fixture);
@@ -204,5 +217,9 @@ if (invokedPath === import.meta.url) {
   await runDemoScenarios({
     baseUrl: process.env.BASE_URL ?? "http://127.0.0.1:3000",
     provenance: "live",
+    workspaceCredentials: {
+      id: process.env.E2E_WORKSPACE_ID,
+      password: process.env.E2E_WORKSPACE_PASSWORD,
+    },
   });
 }

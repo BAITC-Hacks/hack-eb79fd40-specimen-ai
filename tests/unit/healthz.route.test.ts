@@ -25,6 +25,7 @@ describe("GET /api/healthz", () => {
       commit: "abc1234",
       model_version: MODEL_VERSION,
       llm_ok: true,
+      processing_mode: "external_llm",
     });
   });
 
@@ -40,6 +41,7 @@ describe("GET /api/healthz", () => {
       commit: "unknown",
       model_version: MODEL_VERSION,
       llm_ok: false,
+      processing_mode: "external_llm",
     });
   });
 
@@ -54,6 +56,7 @@ describe("GET /api/healthz", () => {
       commit: "unknown",
       model_version: MODEL_VERSION,
       llm_ok: true,
+      processing_mode: "external_llm",
     });
     expect((await GET(shallowRequest())).status).toBe(200);
     expect(fetchTrap).not.toHaveBeenCalled();
@@ -72,10 +75,22 @@ describe("GET /api/healthz", () => {
       commit: "abc1234",
       model_version: MODEL_VERSION,
       llm_ok: false,
+      processing_mode: "external_llm",
     });
   });
 
   it("is explicitly dynamic so health data is not cached", () => {
     expect(dynamic).toBe("force-dynamic");
+  });
+
+  it("reports deterministic mode as healthy without an Anthropic key", async () => {
+    vi.stubEnv("DEMEU_PROCESSING_MODE", "deterministic");
+    vi.stubEnv("ANTHROPIC_API_KEY", undefined);
+
+    await expect((await GET(shallowRequest())).json()).resolves.toMatchObject({
+      ok: true,
+      llm_ok: false,
+      processing_mode: "deterministic",
+    });
   });
 });

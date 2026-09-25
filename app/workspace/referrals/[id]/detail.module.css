@@ -39,6 +39,8 @@
 .fieldError { color: #944940; font-size: 12px; line-height: 1.4; }
 .notice { background: #edf7f6; border: 1px solid #d8eae7; padding: 15px 18px; border-radius: 9px; font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }
 .notice button { margin: 10px 0 0; display: block; }
+.notifyStatus{margin:10px 0 0;padding:10px 12px;border-radius:8px;background:#edf7f6;color:#2c6258;font-size:13px;line-height:1.5}
+.notifyError{background:#fff3f1;color:#943f36}
 .error { color: #944940; background: #fff5f3; border-color: #f2dbd5; }
 .emergency { display: flex; align-items: flex-start; gap: 12px; border: 1px solid #efccc5; border-left: 4px solid #b54d3e; border-radius: 9px; padding: 18px; color: #8c382e; background: #fff3ef; font-size: 14px; }
 .emergency > svg { flex-shrink: 0; margin-top: 2px; }

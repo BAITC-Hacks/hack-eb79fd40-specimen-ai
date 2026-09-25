@@ -3,7 +3,12 @@ import type {
   AbortedSessionNotice,
 } from "./store";
 import { renderSummaryPdf } from "./pdf";
-import type { ReadonlySession, TriageResult, Urgency } from "./types";
+import {
+  displayedHypothesis,
+  hypothesisHeading,
+  processingModeNotice,
+} from "./clinical-copy";
+import { normalizeAnamnesis, type ReadonlySession, type TriageResult, type Urgency } from "./types";
 
 export const TELEGRAM_MESSAGE_LIMIT = 4096;
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -17,6 +22,12 @@ export type PdfRenderer = (
   session: ReadonlySession,
   result: TriageResult,
 ) => Promise<Uint8Array>;
+
+export interface DoctorSummaryContext {
+  doctorDisplayName: string;
+  episodeLabel: string;
+  intakeUrl: string;
+}
 
 export class TelegramDeliveryError extends Error {
   constructor(
@@ -147,11 +158,23 @@ function list(values: readonly string[]): string {
   return values.length > 0 ? values.join(", ") : "нет данных";
 }
 
+function line(value: string): string {
+  return value.replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]+/gu, " ").replace(/\s+/gu, " ").trim();
+}
+
+function historyList(values: readonly string[], status: "reported" | "denied" | "not_stated"): string {
+  if (values.length > 0) return list(values);
+  return status === "denied" ? "отрицает" : "не уточнено";
+}
+
 function severity(value: number | null): string {
   return value === null ? "—" : `${value}/10`;
 }
 
 function sourceLine(result: TriageResult): string {
+  if (result.processing_mode === "deterministic") {
+    return "ИСТОЧНИК: детерминированный опросник и правила безопасности";
+  }
   if (result.source === "model") {
     return `ИСТОЧНИК: модель ${result.model?.model_version ?? "не указана"}`;
   }
@@ -161,8 +184,8 @@ function sourceLine(result: TriageResult): string {
     }
     const reason = result.model?.abstain_reason;
     return reason === "out_of_label_space"
-      ? "ИСТОЧНИК: случай вне обученного набора состояний → гипотеза сформулирована языковой моделью"
-      : "ИСТОЧНИК: модель не уверена → гипотеза сформулирована языковой моделью";
+      ? "ИСТОЧНИК: случай вне обученного набора состояний → гипотеза не сформирована"
+      : "ИСТОЧНИК: модель воздержалась от ранжирования → гипотеза не сформирована";
   }
   return "ИСТОЧНИК: признаки не извлечены → сводка построена только на правилах и репликах пациента";
 }
@@ -209,15 +232,20 @@ function renderFlags(
 }
 
 function renderHypothesis(result: TriageResult): string[] {
+  if (result.processing_mode === "deterministic" || result.model?.abstained) {
+    return [
+      hypothesisHeading(result).toUpperCase(),
+      displayedHypothesis(result),
+      `⚠️ ${result.hypothesis.disclaimer}`,
+    ];
+  }
   let confidence = "";
   if (result.source === "model") {
     confidence = ` · уверенность ${Math.round(result.hypothesis.confidence * 100)}%`;
-  } else if (result.source === "llm_fallback") {
-    confidence = " · уверенность низкая";
   }
   return [
     `ПРЕДВАРИТЕЛЬНАЯ ГИПОТЕЗА${confidence}`,
-    result.hypothesis.text,
+    displayedHypothesis(result),
     `⚠️ ${result.hypothesis.disclaimer}`,
   ];
 }
@@ -251,7 +279,7 @@ function renderAbstain(result: TriageResult): string[] {
   const reason =
     result.model.abstain_reason === "out_of_label_space"
       ? "случай вне обученного пространства модели"
-      : "ни один вариант не набрал достаточной уверенности";
+      : "порог надёжности модели не пройден";
   return [
     "МОДЕЛЬ ВОЗДЕРЖАЛАСЬ",
     `Причина: ${reason}. Вклад признаков не показан.`,
@@ -261,6 +289,7 @@ function renderAbstain(result: TriageResult): string[] {
 export function renderSummary(
   session: ReadonlySession,
   result: TriageResult,
+  context?: DoctorSummaryContext,
 ): string {
   const urgency = URGENCY[result.urgency];
   const finishedAt = session.completedAt ?? Date.now();
@@ -292,12 +321,16 @@ export function renderSummary(
     result.urgency_reasons.length > 0
       ? result.urgency_reasons.map((reason) => `• ${reason}`)
       : ["• Дополнительные причины не указаны"];
-  const anamnesis = result.anamnesis;
+  const anamnesis = normalizeAnamnesis(result.anamnesis);
+  const episode = line(context?.episodeLabel ?? "Новый завершённый опрос") || "Новый завершённый опрос";
+  const doctor = context ? line(context.doctorDisplayName) : "";
+  const intakeUrl = context ? line(context.intakeUrl) : "";
 
   const sections: string[][] = [
     [
       `${urgency.emoji} ${urgency.label} — Demeu, сводка первичного опроса`,
-      `Сессия ${session.id} · ${DATE_TIME.format(finishedAt)} · длительность ${duration} мин`,
+      `Эпизод: ${episode}${doctor ? ` · Врач: ${doctor}` : ""}`,
+      `${DATE_TIME.format(finishedAt)} · длительность ${duration} мин`,
       `ПАЦИЕНТ: ${sex}, ${age} лет`,
       `ЖАЛОБА: ${value(anamnesis.chief_complaint)}`,
     ],
@@ -318,9 +351,13 @@ export function renderSummary(
       `Начало: ${value(anamnesis.symptom.onset)} · локализация: ${value(anamnesis.symptom.location)}`,
       `Характер: ${value(anamnesis.symptom.quality)} · сила: ${severity(anamnesis.symptom.severity)}`,
       `Сопутствующее: ${list(anamnesis.symptom.associated)}`,
-      `Хронические: ${list(anamnesis.chronic)} · лекарства: ${list(anamnesis.medications)} · аллергии: ${list(anamnesis.allergies)}`,
+      `Перенесённое: ${historyList(anamnesis.past_history, anamnesis.history_status.past_history)}`,
+      `Хронические: ${historyList(anamnesis.chronic, anamnesis.history_status.chronic)} · лекарства: ${historyList(anamnesis.medications, anamnesis.history_status.medications)} · аллергии: ${historyList(anamnesis.allergies, anamnesis.history_status.allergies)}`,
+      ...(anamnesis.negative_findings.length > 0 ? [`Явно отрицает: ${anamnesis.negative_findings.join(", ")}`] : []),
     ],
     [sourceLine(result)],
+    [processingModeNotice(result.processing_mode)],
+    ...(intakeUrl ? [["Открыть сводку в Demeu:", intakeUrl]] : []),
   ];
 
   return sections.map((section) => section.join("\n")).join("\n\n");
@@ -358,6 +395,7 @@ export function splitForTelegramWithDisclaimer(
   text: string,
   disclaimer: string,
   limit = TELEGRAM_MESSAGE_LIMIT,
+  finalLink?: string,
 ): string[] {
   const normalizedDisclaimer = disclaimer.trim();
   if (!normalizedDisclaimer) {
@@ -365,17 +403,23 @@ export function splitForTelegramWithDisclaimer(
   }
   const disclaimerLine = `⚠️ ${normalizedDisclaimer}`;
   const footer = `\n\n${disclaimerLine}`;
-  if (footer.length >= limit) {
+  const normalizedLink = finalLink?.trim() ?? "";
+  const finalFooter = `${footer}${normalizedLink ? `\n\nОткрыть сводку в Demeu:\n${normalizedLink}` : ""}`;
+  if (finalFooter.length >= limit) {
     throw new Error("Telegram summary disclaimer leaves no room for content");
   }
 
-  const body = text
-    .split("\n")
+  const lines = text.split("\n");
+  if (normalizedLink && lines.at(-1)?.trim() === normalizedLink) {
+    lines.pop();
+    if (lines.at(-1)?.trim() === "Открыть сводку в Demeu:") lines.pop();
+  }
+  const body = lines
     .filter((line) => line.trim() !== disclaimerLine)
     .join("\n")
     .trimEnd();
-  const chunks = splitForTelegram(body, limit - footer.length);
-  return chunks.map((chunk) => `${chunk.trimEnd()}${footer}`);
+  const chunks = splitForTelegram(body, limit - finalFooter.length);
+  return chunks.map((chunk, index) => `${chunk.trimEnd()}${index === chunks.length - 1 ? finalFooter : footer}`);
 }
 
 export async function sendDoctorSummary(
@@ -384,10 +428,14 @@ export async function sendDoctorSummary(
   session: ReadonlySession,
   result: TriageResult,
   pdf?: Uint8Array,
+  context?: DoctorSummaryContext,
 ): Promise<void> {
+  const intakeUrl = context ? line(context.intakeUrl) : undefined;
   for (const chunk of splitForTelegramWithDisclaimer(
-    renderSummary(session, result),
+    renderSummary(session, result, context),
     result.hypothesis.disclaimer,
+    TELEGRAM_MESSAGE_LIMIT,
+    intakeUrl,
   )) {
     await client.sendMessage(chatId, chunk);
   }
@@ -472,10 +520,14 @@ export class TelegramNotifier implements AbortedNoticePort {
     session: ReadonlySession,
     result: TriageResult,
     pdf?: Uint8Array,
+    context?: DoctorSummaryContext,
   ): Promise<void> {
+    const intakeUrl = context ? line(context.intakeUrl) : undefined;
     const chunks = splitForTelegramWithDisclaimer(
-      renderSummary(session, result),
+      renderSummary(session, result, context),
       result.hypothesis.disclaimer,
+      TELEGRAM_MESSAGE_LIMIT,
+      intakeUrl,
     );
     let document = pdf;
     if (!document) {

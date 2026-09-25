@@ -80,7 +80,18 @@
         "sex": "m",
         "pregnancy": "na",
         "risk_factors": []
-      }
+      },
+      "history_status": {
+        "past_history": "not_stated",
+        "chronic": "not_stated",
+        "allergies": "not_stated",
+        "medications": "not_stated"
+      },
+      "negative_findings": [
+        "температуры нет",
+        "горло не болит",
+        "других жалоб нет"
+      ]
     },
     "red_flags": [],
     "urgency": "planned",
@@ -95,7 +106,7 @@
       }
     ],
     "hypothesis": {
-      "text": "Требуется оценка жалобы: насморк и чихание один день",
+      "text": "Модель воздержалась — гипотеза не сформирована, решение за врачом.",
       "confidence": 0,
       "disclaimer": "Это предварительная гипотеза, это не диагноз, решает врач."
     },

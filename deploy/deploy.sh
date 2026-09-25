@@ -12,6 +12,7 @@ DEEP_PROBE_AUTHORIZATION="I_AUTHORIZE_ONE_STRUCTURED_EXTRACTION"
 DEEP_PROBE_TIMEOUT_MS=210000
 LAST_GREEN_IMAGE="demeu-app:last-green"
 RECOVERY_IMAGE="demeu-app:deploy-recovery"
+CURRENT_PRODUCTION_DOMAIN="84.247.161.211"
 LOCK_FD=""
 LOCK_HELD=0
 ACTIVATION_STARTED=0
@@ -29,6 +30,8 @@ OLD_GREEN_SHA=""
 OLD_GREEN_SHA_PRESENT=0
 OLD_PREV_SHA=""
 OLD_PREV_SHA_PRESENT=0
+PROCESSING_MODE="external_llm"
+CURRENT_PROCESSING_MODE=""
 
 log() {
   printf '[deploy] %s\n' "$*"
@@ -129,12 +132,23 @@ env_value() {
   ' .env
 }
 
+load_processing_mode() {
+  PROCESSING_MODE="$(env_value DEMEU_PROCESSING_MODE)" \
+    || die "DEMEU_PROCESSING_MODE is duplicated in .env"
+  [ -n "$PROCESSING_MODE" ] || PROCESSING_MODE="external_llm"
+  case "$PROCESSING_MODE" in
+    external_llm|deterministic) ;;
+    *) die "DEMEU_PROCESSING_MODE must be external_llm or deterministic" ;;
+  esac
+}
+
 validate_secret_file() {
   [ -f .env ] || die ".env is missing in APP_DIR"
   [ ! -L .env ] || die ".env must not be a symlink"
   if git ls-files --error-unmatch .env >/dev/null 2>&1; then
     die ".env must not be tracked by git"
   fi
+  [ "$PROCESSING_MODE" = "external_llm" ] || return 0
 
   awk '
     index($0, "ANTHROPIC_API_KEY=") == 1 {
@@ -192,8 +206,13 @@ validate_server_config() {
     || die "APP_BASE_URL must exactly match the selected HTTPS domain"
   export DEMEU_DOMAIN APP_PORT TLS_BRANCH APP_BASE_URL
 
-  DEMEU_DOMAIN="$DEMEU_DOMAIN" APP_PORT="$APP_PORT" TLS_BRANCH="$TLS_BRANCH" \
-    ./deploy/tls.sh preflight >/dev/null
+  if [ "$DEMEU_DOMAIN" = "$CURRENT_PRODUCTION_DOMAIN" ]; then
+    [ "$TLS_BRANCH" = "branch-b-caddy" ] \
+      || die "current production requires TLS_BRANCH=branch-b-caddy"
+  else
+    DEMEU_DOMAIN="$DEMEU_DOMAIN" APP_PORT="$APP_PORT" TLS_BRANCH="$TLS_BRANCH" \
+      ./deploy/tls.sh preflight >/dev/null
+  fi
 }
 
 configure_compose() {
@@ -201,14 +220,26 @@ configure_compose() {
   case "$TLS_BRANCH" in
     branch-b-caddy)
       COMPOSE_ARGS+=(-f deploy/compose.caddy.yml)
-      DEMEU_DOMAIN="$DEMEU_DOMAIN" APP_PORT="$APP_PORT" TLS_BRANCH="$TLS_BRANCH" \
-        ./deploy/tls.sh branch-b-config
+      if [ "$DEMEU_DOMAIN" != "$CURRENT_PRODUCTION_DOMAIN" ]; then
+        DEMEU_DOMAIN="$DEMEU_DOMAIN" APP_PORT="$APP_PORT" TLS_BRANCH="$TLS_BRANCH" \
+          ./deploy/tls.sh branch-b-config
+      fi
       ;;
     branch-a-nginx|branch-a-caddy)
       COMPOSE_ARGS+=(-f deploy/compose.host-proxy.yml)
-      docker compose "${COMPOSE_ARGS[@]}" config --quiet
       ;;
   esac
+
+  # The workspace mounts are part of the application runtime, not an optional
+  # operator convenience. Omitting this overlay silently starts a fresh
+  # in-container workspace and drops the account file from the auth surface.
+  COMPOSE_ARGS+=(-f deploy/compose.workspace.yml)
+  if [ "$DEMEU_DOMAIN" = "$CURRENT_PRODUCTION_DOMAIN" ]; then
+    [ "$TLS_BRANCH" = "branch-b-caddy" ] \
+      || die "current production requires TLS_BRANCH=branch-b-caddy"
+    COMPOSE_ARGS+=(-f deploy/compose.new-server-ip.yml)
+  fi
+  docker compose "${COMPOSE_ARGS[@]}" config --quiet
 }
 
 compose() {
@@ -219,26 +250,53 @@ health_probe() {
   local expected_commit="$1"
   compose exec -T app node -e '
     const expected = process.argv[1];
-    fetch("http://127.0.0.1:3000/api/healthz")
-      .then(async (response) => {
+    const expectedMode = process.argv[2];
+    // demeu-workspace-health:v1 makes workspace/auth part of the release gate.
+    (async () => {
+        const response = await fetch("http://127.0.0.1:3000/api/healthz");
         if (!response.ok) process.exit(1);
         const body = await response.json();
-        process.exit(body.ok === true && body.commit === expected && body.llm_ok === true ? 0 : 1);
-      })
-      .catch(() => process.exit(1));
-  ' "$expected_commit" >/dev/null 2>&1
+        const llmReady = expectedMode === "deterministic" || body.llm_ok === true;
+        const exact = Object.keys(body).sort().join(",") === "commit,llm_ok,model_version,ok,processing_mode";
+        if (!(body.ok === true && exact && body.commit === expected && body.processing_mode === expectedMode && llmReady)) process.exit(1);
+        const page = await fetch("http://127.0.0.1:3000/workspace", { redirect: "manual" });
+        if (page.status !== 200 || !(page.headers.get("content-type") || "").includes("text/html")) process.exit(1);
+        const authResponse = await fetch("http://127.0.0.1:3000/api/workspace/auth");
+        if (authResponse.status !== 200) process.exit(1);
+        const auth = await authResponse.json();
+        const authExact = Object.keys(auth).sort().join(",") === "actor,enabled";
+        process.exit(authExact && auth.enabled === true && auth.actor === null ? 0 : 1);
+      })().catch(() => process.exit(1));
+  ' "$expected_commit" "$PROCESSING_MODE" >/dev/null 2>&1
 }
 
-health_probe_any_commit() {
+health_probe_existing() {
+  local expected_commit="${1-}" expected_mode="${2-}"
   compose exec -T app node -e '
-    fetch("http://127.0.0.1:3000/api/healthz")
-      .then(async (response) => {
+    // demeu-existing-health:v1 validates the running release independently of the desired mode.
+    // demeu-workspace-health:v1 also proves that workspace mounts and anonymous auth bootstrap work.
+    (async () => {
+        const response = await fetch("http://127.0.0.1:3000/api/healthz");
         if (!response.ok) process.exit(1);
         const body = await response.json();
-        process.exit(body.ok === true && body.llm_ok === true ? 0 : 1);
-      })
-      .catch(() => process.exit(1));
-  ' >/dev/null 2>&1
+        const expectedCommit = process.argv[1];
+        const expectedMode = process.argv[2];
+        const keys = Object.keys(body).sort().join(",");
+        const legacy = keys === "commit,llm_ok,model_version,ok";
+        const currentMode = legacy ? "external_llm" : body.processing_mode;
+        const exact = legacy || keys === "commit,llm_ok,model_version,ok,processing_mode";
+        const ready = currentMode === "deterministic" || body.llm_ok === true;
+        const matches = !expectedMode || currentMode === expectedMode;
+        if (!(body.ok === true && exact && ready && matches && (!expectedCommit || body.commit === expectedCommit))) process.exit(1);
+        const page = await fetch("http://127.0.0.1:3000/workspace", { redirect: "manual" });
+        if (page.status !== 200 || !(page.headers.get("content-type") || "").includes("text/html")) process.exit(1);
+        const authResponse = await fetch("http://127.0.0.1:3000/api/workspace/auth");
+        if (authResponse.status !== 200) process.exit(1);
+        const auth = await authResponse.json();
+        if (Object.keys(auth).sort().join(",") !== "actor,enabled" || auth.enabled !== true || auth.actor !== null) process.exit(1);
+        process.stdout.write(currentMode);
+      })().catch(() => process.exit(1));
+  ' "$expected_commit" "$expected_mode" 2>/dev/null
 }
 
 wait_for_health() {
@@ -252,15 +310,31 @@ wait_for_health() {
   return 1
 }
 
-wait_for_any_green_health() {
-  local attempt
+wait_for_existing_health() {
+  local expected_commit="${1-}" expected_mode="${2-}" attempt
   for ((attempt = 1; attempt <= HEALTH_ATTEMPTS; attempt++)); do
-    if health_probe_any_commit; then
+    if health_probe_existing "$expected_commit" "$expected_mode" >/dev/null; then
       return 0
     fi
     sleep "$HEALTH_INTERVAL_SECONDS"
   done
   return 1
+}
+
+deterministic_readiness_probe() {
+  local expected_commit="$1"
+  compose exec -T app node -e '
+    // demeu-deterministic-readiness:v1 is pure and makes no provider request.
+    const expectedCommit = process.argv[1];
+    fetch("http://127.0.0.1:3000/api/healthz?probe=extract")
+      .then(async (response) => {
+        if (!response.ok) process.exit(1);
+        const body = await response.json();
+        const exact = Object.keys(body).sort().join(",") === "commit,llm_ok,model_version,ok,processing_mode";
+        process.exit(exact && body.ok === true && body.commit === expectedCommit && body.processing_mode === "deterministic" && body.llm_ok === true ? 0 : 1);
+      })
+      .catch(() => process.exit(1));
+  ' "$expected_commit" >/dev/null 2>&1
 }
 
 anthropic_env_count() {
@@ -299,10 +373,11 @@ deep_extraction_probe() {
           fail("extraction_failed", response.status);
         }
         const keys = Object.keys(body).sort().join(",");
-        const exactKeys = keys === "commit,llm_ok,model_version,ok";
+        const exactKeys = keys === "commit,llm_ok,model_version,ok,processing_mode";
         if (
           response.status === 200 && exactKeys && body.ok === true &&
-          body.commit === expectedCommit && body.llm_ok === true
+          body.commit === expectedCommit && body.llm_ok === true &&
+          body.processing_mode === "external_llm"
         ) process.exit(0);
         fail(response.status === 404 ? "auth_rejected" : "extraction_failed", response.status);
       })
@@ -354,15 +429,19 @@ restore_deploy_markers() {
 }
 
 snapshot_recovery_image() {
-  local current_health_ok=0
+  local current_health_ok=0 detected_mode=""
   if docker image inspect "$LAST_GREEN_IMAGE" >/dev/null 2>&1; then
     LAST_GREEN_SAFE=1
   fi
   if docker image inspect demeu-app:latest >/dev/null 2>&1; then
     if [ "$OLD_GREEN_SHA_PRESENT" = "1" ]; then
-      health_probe "$OLD_GREEN_SHA" && current_health_ok=1
+      detected_mode="$(health_probe_existing "$OLD_GREEN_SHA" || true)"
     else
-      health_probe_any_commit && current_health_ok=1
+      detected_mode="$(health_probe_existing || true)"
+    fi
+    if [ -n "$detected_mode" ]; then
+      CURRENT_PROCESSING_MODE="$detected_mode"
+      current_health_ok=1
     fi
     if [ "$current_health_ok" = "1" ]; then
       PREEXISTING_APP_PRESENT=1
@@ -398,9 +477,9 @@ recover_deployment() {
     if [ "$PREEXISTING_APP_PRESENT" = "1" ] \
       && [ "$RUNTIME_MUTATION_STARTED" != "1" ]; then
       if [ "$OLD_GREEN_SHA_PRESENT" = "1" ]; then
-        wait_for_health "$OLD_GREEN_SHA" || recovery_failed=1
+        wait_for_existing_health "$OLD_GREEN_SHA" "$CURRENT_PROCESSING_MODE" || recovery_failed=1
       else
-        wait_for_any_green_health || recovery_failed=1
+        wait_for_existing_health "" "$CURRENT_PROCESSING_MODE" || recovery_failed=1
       fi
       if [ "$recovery_failed" = "0" ]; then
         last_green_restored=1
@@ -411,9 +490,9 @@ recover_deployment() {
       compose up -d --no-build --force-recreate app >/dev/null \
         || recovery_failed=1
       if [ "$recovery_failed" = "0" ] && [ "$OLD_GREEN_SHA_PRESENT" = "1" ]; then
-        wait_for_health "$OLD_GREEN_SHA" || recovery_failed=1
+        wait_for_existing_health "$OLD_GREEN_SHA" "$CURRENT_PROCESSING_MODE" || recovery_failed=1
       elif [ "$recovery_failed" = "0" ]; then
-        wait_for_any_green_health || recovery_failed=1
+        wait_for_existing_health "" "$CURRENT_PROCESSING_MODE" || recovery_failed=1
       fi
       if [ "$recovery_failed" = "0" ]; then
         last_green_restored=1
@@ -423,7 +502,7 @@ recover_deployment() {
       compose up -d --no-build --force-recreate app >/dev/null \
         || recovery_failed=1
       if [ "$recovery_failed" = "0" ]; then
-        wait_for_any_green_health || recovery_failed=1
+        wait_for_existing_health "" "$CURRENT_PROCESSING_MODE" || recovery_failed=1
       fi
       if [ "$recovery_failed" = "0" ]; then
         last_green_restored=1
@@ -479,6 +558,10 @@ activate_server_release() {
 
   cd "$APP_DIR" || die "APP_DIR does not exist"
   acquire_deploy_lock
+  load_processing_mode
+  if [ "$PROCESSING_MODE" = "external_llm" ]; then
+    require_deep_probe_authorization
+  fi
   validate_secret_file
   snapshot_deploy_markers
   env_fingerprint="$(cksum .env | awk '{ print $1 ":" $2 }')"
@@ -520,21 +603,27 @@ activate_server_release() {
     die "candidate health check failed"
   fi
 
-  env_count="$(anthropic_env_count || true)"
-  if [ "$env_count" != "1" ]; then
-    die "container must contain exactly one ANTHROPIC_API_KEY variable"
+  if [ "$PROCESSING_MODE" = "external_llm" ]; then
+    env_count="$(anthropic_env_count || true)"
+    if [ "$env_count" != "1" ]; then
+      die "container must contain exactly one ANTHROPIC_API_KEY variable"
+    fi
   fi
 
   [ "$env_fingerprint" = "$(cksum .env | awk '{ print $1 ":" $2 }')" ] || {
     die ".env changed during deployment"
   }
 
-  local deep_probe_diagnostic
-  if ! deep_probe_diagnostic="$(deep_extraction_probe "$COMMIT_SHA")"; then
-    if [[ ! "$deep_probe_diagnostic" =~ ^(auth_rejected|extraction_failed|timeout)\ status=[0-9]{1,3}\ elapsed_ms=[0-9]+$ ]]; then
-      deep_probe_diagnostic="extraction_failed status=0 elapsed_ms=0"
+  if [ "$PROCESSING_MODE" = "external_llm" ]; then
+    local deep_probe_diagnostic
+    if ! deep_probe_diagnostic="$(deep_extraction_probe "$COMMIT_SHA")"; then
+      if [[ ! "$deep_probe_diagnostic" =~ ^(auth_rejected|extraction_failed|timeout)\ status=[0-9]{1,3}\ elapsed_ms=[0-9]+$ ]]; then
+        deep_probe_diagnostic="extraction_failed status=0 elapsed_ms=0"
+      fi
+      die "candidate deep extraction gate failed: ${deep_probe_diagnostic}"
     fi
-    die "candidate deep extraction gate failed: ${deep_probe_diagnostic}"
+  elif ! deterministic_readiness_probe "$COMMIT_SHA"; then
+    die "candidate deterministic readiness gate failed"
   fi
 
   docker image tag demeu-app:latest "$LAST_GREEN_IMAGE"
@@ -545,7 +634,7 @@ activate_server_release() {
   fi
   DEPLOY_SUCCEEDED=1
   docker image rm "$RECOVERY_IMAGE" >/dev/null 2>&1 || true
-  log "release is healthy: commit verified, llm_ok=true"
+  log "release is healthy: commit verified, processing_mode=${PROCESSING_MODE}"
 }
 
 run_rsync_mode() {
@@ -585,7 +674,6 @@ run_rsync_mode() {
 }
 
 validate_common_inputs
-require_deep_probe_authorization
 trap 'handle_exit' EXIT
 trap 'handle_signal INT 130' INT
 trap 'handle_signal TERM 143' TERM

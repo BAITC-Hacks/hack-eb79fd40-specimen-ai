@@ -86,15 +86,19 @@ describe("finalizeSession", () => {
     });
 
     expect(first.status).toBe(200);
-    await expect(first.json()).resolves.toMatchObject({
-      result: RESULT,
-      source: "rules_only",
+    await expect(first.json()).resolves.toEqual({
+      closing: {
+        emergency: false,
+        text: "Спасибо. Ваши ответы переданы врачу. Дальнейшие шаги врач обсудит с вами отдельно.",
+      },
       replayed: false,
     });
     expect(repeated.status).toBe(200);
-    await expect(repeated.json()).resolves.toMatchObject({
-      result: RESULT,
-      source: "rules_only",
+    await expect(repeated.json()).resolves.toEqual({
+      closing: {
+        emergency: false,
+        text: "Спасибо. Ваши ответы переданы врачу. Дальнейшие шаги врач обсудит с вами отдельно.",
+      },
       replayed: true,
     });
     expect(analyze).toHaveBeenCalledOnce();

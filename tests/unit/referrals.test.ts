@@ -370,6 +370,12 @@ describe("агрегаты и устойчивость", () => {
     state.referrals[0].queue = true;
     expect(() => validateReferralDatabase(state)).toThrow("Invalid referral snapshot");
   });
+  it("при чтении мигрирует исходный v1 snapshot в текущий v2 и отвергает будущую схему", () => {
+    expect(validateReferralDatabase({ schemaVersion: 1, referrals: [], links: [], commands: [] }))
+      .toEqual({ schemaVersion: 2, referrals: [], links: [], commands: [] });
+    expect(() => validateReferralDatabase({ schemaVersion: 3, referrals: [], links: [], commands: [] }))
+      .toThrow("Invalid referral snapshot");
+  });
   it("валидатор обнаруживает повреждение вложенного снимка, цепочки и команд", async () => {
     const { service, repository } = setup();
     await service.bindLink("token", doctor);

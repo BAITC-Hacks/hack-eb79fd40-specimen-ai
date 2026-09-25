@@ -8,7 +8,7 @@ export interface ReferralActor {
   telegramChatId?: string;
 }
 export type TriageSnapshot = Pick<TriageResult,
-  "anamnesis" | "red_flags" | "urgency" | "urgency_reasons" | "routing" | "hypothesis" | "source">;
+  "anamnesis" | "red_flags" | "urgency" | "urgency_reasons" | "routing" | "hypothesis" | "source" | "processing_mode">;
 export interface ReferralFacts {
   profile: string;
   icd10Code?: string | null;
@@ -143,7 +143,7 @@ export interface ReferralAggregates {
   timelineUnavailableReason: "not_available_for_analyst" | null;
 }
 export interface ReferralDatabase {
-  schemaVersion: 1;
+  schemaVersion: 2;
   referrals: Referral[];
   links: { token: string; owner: ReferralActor }[];
   commands: { actorId: string; organizationId: string; key: string; payload: string; referralId: string }[];

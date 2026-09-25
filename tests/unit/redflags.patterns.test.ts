@@ -33,33 +33,41 @@ function anamnesis(chiefComplaint: string): Anamnesis {
 describe("red flag pattern contract", () => {
   it("covers every live emergency and context regex exactly once", () => {
     const expected = PATTERN_RULES.flatMap((rule) =>
-      rule.patterns.map((_, index) => `${rule.code}#${index}`)
+      rule.patterns.map(({ id }) => id)
     ).sort();
     const covered = RED_FLAG_PATTERN_FIXTURES.map(({ patternId }) => patternId).sort();
 
+    expect(new Set(expected).size).toBe(expected.length);
+    expect(new Set(covered).size).toBe(covered.length);
     expect(covered).toEqual(expected);
-    expect(covered).toHaveLength(28);
   });
 
   it("forbids ASCII-only word classes and requires Unicode mode", () => {
     for (const rule of PATTERN_RULES) {
-      for (const pattern of rule.patterns) {
-        expect(pattern.source).not.toMatch(/\\[wWbB]/);
-        expect(pattern.flags).toContain("u");
+      for (const { id, regex } of rule.patterns) {
+        expect(id).toMatch(new RegExp(`^${rule.code}\\.(?:ru|kk)_`));
+        expect(regex.source).not.toMatch(/\\[wWbB]/);
+        expect(regex.flags).toContain("u");
       }
     }
   });
 
+  it("covers every emergency trigger in both Russian and Kazakh", () => {
+    for (const rule of RULES) {
+      expect(rule.patterns.some(({ id }) => id.startsWith(`${rule.code}.ru_`)), `${rule.code}: ru`).toBe(true);
+      expect(rule.patterns.some(({ id }) => id.startsWith(`${rule.code}.kk_`)), `${rule.code}: kk`).toBe(true);
+    }
+  });
+
   it.each(RED_FLAG_PATTERN_FIXTURES)(
-    "$patternId matches a live Russian phrase without truncating evidence",
+    "$patternId matches its live RU/KK phrase without truncating evidence",
     ({ patternId, code, utterance, evidence }) => {
-      const [ruleCode, patternIndexText] = patternId.split("#");
-      const rule = PATTERN_RULES.find(({ code: candidate }) => candidate === ruleCode);
-      const pattern = rule?.patterns[Number(patternIndexText)];
+      const rule = PATTERN_RULES.find(({ code: candidate }) => candidate === code);
+      const pattern = rule?.patterns.find(({ id }) => id === patternId);
 
       expect(rule?.code).toBe(code);
       expect(pattern).toBeDefined();
-      expect(pattern!.exec(utterance)?.[0]).toBe(evidence);
+      expect(pattern!.regex.exec(utterance)?.[0]).toBe(evidence);
 
       const messages: ChatMessage[] = [{ role: "user", content: utterance }];
       const flags =
