@@ -267,7 +267,7 @@ referral_schema_at() {
 }
 
 assert_referral_snapshot_compatible() {
-  local target_commit="$1" data_dir snapshot current_version target_version compact size
+  local target_commit="$1" data_dir snapshot current_version target_version size
   data_dir="$(env_value DEMEU_HOST_DATA_DIR)" \
     || die "DEMEU_HOST_DATA_DIR is duplicated in .env"
   [ -n "$data_dir" ] || return 0
@@ -285,10 +285,11 @@ assert_referral_snapshot_compatible() {
   size="$(stat -c '%s' "$snapshot")" || die "referral snapshot size could not be read"
   [[ "$size" =~ ^[0-9]+$ ]] && [ "$size" -le 33554432 ] \
     || die "referral snapshot exceeds the validated size limit"
-  compact="$(tr -d '[:space:]' < "$snapshot")" \
-    || die "referral snapshot could not be read"
-  current_version="$(printf '%s' "$compact" \
-    | sed -n 's/^.*"schemaVersion":\([1-9][0-9]\{0,2\}\).*$/\1/p')"
+  # FileState writes compact JSON with the root schemaVersion first. Anchor to
+  # that root field so nested catalogue schema versions cannot weaken the gate.
+  current_version="$(sed -n \
+    '1s/^[[:space:]]*{"schemaVersion":\([1-9][0-9]\{0,2\}\),.*$/\1/p' \
+    "$snapshot")" || die "referral snapshot could not be read"
   [[ "$current_version" =~ ^[1-9][0-9]{0,2}$ ]] \
     || die "referral snapshot schemaVersion could not be verified"
   target_version="$(referral_schema_at "$target_commit")" \

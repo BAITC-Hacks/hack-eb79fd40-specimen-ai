@@ -457,6 +457,7 @@ describe("deploy/rollback.sh", () => {
       referrals: [],
       links: [],
       commands: [],
+      nestedCatalogueFixture: { schemaVersion: 1 },
     }));
     await writeFile(
       join(sandbox.root, ".env"),
