@@ -36,6 +36,25 @@ def main() -> None:
             fail(f"required candidate {candidate_id} lacks model/version")
         if not isinstance(candidate.get("metrics"), dict):
             fail(f"required candidate {candidate_id} lacks metrics")
+        if candidate_id == "jev":
+            if candidate.get("provider") != "Convex":
+                fail("jev: wrong provider")
+            if candidate.get("endpoint") != "/alpha/decisions":
+                fail("jev: wrong endpoint")
+            if not candidate.get("provenance") or not candidate.get("predictions_artifact"):
+                fail("jev: provenance or predictions artifact missing")
+            threshold = candidate.get("threshold")
+            if not isinstance(threshold, (int, float)) or not 0 <= float(threshold) <= 1:
+                fail("jev: invalid threshold")
+            latency = candidate.get("latency_ms")
+            cost = candidate.get("cost")
+            structured = candidate.get("structured_output")
+            if not isinstance(latency, dict) or not isinstance(cost, dict):
+                fail("jev: latency or cost missing")
+            if cost.get("coverage") != 1:
+                fail("jev: incomplete cost coverage")
+            if not isinstance(structured, dict) or not structured.get("accepted_request_count"):
+                fail("jev: request provenance missing")
     for candidate_id in args.conditional:
         candidate = candidates.get(candidate_id)
         if not candidate:

@@ -1,5 +1,5 @@
 export type ApiMethod = "GET" | "POST" | "DELETE";
-export type ApiGroupId = "system" | "patient" | "auth" | "intakes" | "referrals" | "analytics";
+export type ApiGroupId = "system" | "patient" | "auth" | "intakes" | "referrals" | "analytics" | "models" | "reference";
 export type CodeLanguage = "curl" | "fetch";
 
 export interface ApiField {
@@ -84,6 +84,18 @@ const referralErrors = [
   error(409, "IDEMPOTENCY_CONFLICT", "Ключ уже применён к другому изменению."),
 ] as const;
 
+const modelEvidenceErrors = [
+  error(401, "UNAUTHORIZED", "Сессия рабочего пространства отсутствует или истекла."),
+  error(503, "WORKSPACE_UNAVAILABLE", "Рабочее пространство не настроено или недоступно."),
+  error(503, "MODEL_EVIDENCE_UNAVAILABLE", "Проверенный агрегированный отчёт отсутствует или не прошёл fail-closed проверку."),
+] as const;
+
+const referenceErrors = [
+  error(401, "UNAUTHORIZED", "Сессия рабочего пространства отсутствует или истекла."),
+  error(405, "METHOD_NOT_ALLOWED", "Справочник доступен только для чтения методом GET."),
+  error(503, "WORKSPACE_UNAVAILABLE", "Рабочее пространство или справочник обследований недоступны."),
+] as const;
+
 const doctorAccess = {
   personalRecords: "own",
   aggregateRecords: "own",
@@ -126,6 +138,18 @@ export const apiGroups: readonly ApiGroup[] = [
     eyebrow: "05 · Oversight",
     title: "Агрегаты",
     description: "Обезличенный срез потока с серверным ограничением малых групп.",
+  },
+  {
+    id: "models",
+    eyebrow: "06 · Research",
+    title: "Модели и доказательства",
+    description: "Версионированные карточки runtime и research-only контуров с метриками, ограничениями и честными пустыми значениями.",
+  },
+  {
+    id: "reference",
+    eyebrow: "07 · Reference",
+    title: "Справочник обследований",
+    description: "Read-only контракт B1: профили госпитализации, требования приложения 5, сроки актуальности и статус врачебной проверки.",
   },
 ] as const;
 
@@ -398,6 +422,182 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     errors: [error(400, "BAD_REQUEST", "Query-параметры запрещены."), error(401, "UNAUTHORIZED", "Нет сессии рабочего пространства."), error(503, "WORKSPACE_UNAVAILABLE", "Агрегаты недоступны.")],
     notes: ["forecast: null означает, что проверенный прогноз ещё не подключён.", "При малой группе числовые значения подавляются сервером."],
   },
+  {
+    id: "models-list",
+    groupId: "models",
+    method: "GET",
+    path: "/api/models",
+    summary: "Каталог моделей",
+    description: "Возвращает компактные карточки runtime LR, safety-правил, Qwen/Jev и задач D1, B3, D2 без весов, строк датасета и персональных данных.",
+    auth: workspace,
+    request: { contentType: "none", fields: [], example: null, note: "Параметров и тела нет. Owner, doctor и analyst получают один агрегированный исследовательский контракт." },
+    success: {
+      status: 200,
+      description: "Версионированный список карточек с основной метрикой, baseline и ограничениями.",
+      example: {
+        schemaVersion: 1,
+        models: [{
+          id: "triage-lr-v1",
+          taskId: "A",
+          title: "Модель предварительной гипотезы и маршрутизации",
+          kind: "runtime_classifier",
+          availability: "runtime",
+          runtimeActivation: "active",
+          researchOnly: false,
+          metricStatus: "measured",
+          primaryMetric: { name: "pathology_top1", value: 1, unit: "fraction", state: "measured", reason: null, period: null, rows: 40, numerator: 40, denominator: 40 },
+          baseline: null,
+          limitations: ["top-1 измерен в режиме no-llm; языковой адаптер не участвовал."],
+          detailPath: "/api/models/triage-lr-v1",
+        }],
+      },
+    },
+    errors: modelEvidenceErrors,
+    notes: [
+      "Карточка описывает измеренное состояние артефакта, а не запускает inference.",
+      "researchOnly=true запрещает трактовать контур как подключённый к решениям по пациенту.",
+      "primaryMetric или baseline равны null, когда честного измерения нет; нулём отсутствие данных не подменяется.",
+    ],
+  },
+  {
+    id: "models-benchmarks",
+    groupId: "models",
+    method: "GET",
+    path: "/api/models/benchmarks",
+    summary: "Сравнение safety-кандидатов",
+    description: "Отдаёт единый агрегированный RU/KK benchmark правил, Qwen и Jev с одинаковой выборкой, статусом доступности и оговорками методологии.",
+    auth: workspace,
+    request: { contentType: "none", fields: [], example: null, note: "Параметров и тела нет. Endpoint возвращает только замороженный red-flag benchmark." },
+    success: {
+      status: 200,
+      description: "Сравнимые метрики кандидатов; отсутствующие измерения остаются null.",
+      example: {
+        schemaVersion: 1,
+        benchmark: {
+          id: "redflags-ru-kk-v1",
+          title: "Synthetic RU/KK emergency regression benchmark",
+          researchOnly: true,
+          runtimeIntegration: "deterministic_rules_only",
+          corpus: { itemCount: 160, languageCounts: { ru: 80, kk: 80 }, classCounts: { positive: 80, negative: 80 }, sha256: "bafae774a648ccde988b4804a02d0d0adce983d7d979e6fcefcf230902ac5625", frozenOn: "2026-09-26" },
+          evaluationDesign: { sameFrozenSplit: true, rulesDevelopedAgainstCorpus: true, unseenGeneralizationClaim: false },
+          candidates: [{
+            modelId: "redflags-jev-1.13",
+            implementation: { kind: "external_candidate", provider: "Convex", requestedModel: "typesafe/jev-1.13", observedModel: "typesafe/jev-1.13-20260917", threshold: 0.5, questionSpecId: "redflags-eight-trigger-v1" },
+            availability: "measured",
+            itemCount: 160,
+            metrics: { tp: 79, fp: 0, tn: 80, fn: 1, precision: 1, recall: 0.9875, f1: 0.9937106918238994, falsePositiveRate: 0 },
+            slices: { "language:ru": { tp: 39, fp: 0, tn: 40, fn: 1, precision: 1, recall: 0.975, f1: 0.9873417721518987, falsePositiveRate: 0 }, "language:kk": { tp: 40, fp: 0, tn: 40, fn: 0, precision: 1, recall: 1, f1: 1, falsePositiveRate: 0 }, "trigger:suicidal": { tp: 10, fp: 0, tn: 10, fn: 0, precision: 1, recall: 1, f1: 1, falsePositiveRate: 0 }, "trigger:consciousness": { tp: 9, fp: 0, tn: 10, fn: 1, precision: 1, recall: 0.9, f1: 0.9473684210526316, falsePositiveRate: 0 } },
+            latency: { measurementUnit: "wall_clock_per_batch_of_up_to_10", requestCount: 16, totalMs: 3042, meanMs: 190.125, p50Ms: 182, p95Ms: 260, scope: "Convex action wall-clock around accepted Decisions requests; deployment invocation overhead excluded." },
+            cost: { currency: "USD", amount: 0.001810746, basis: "usage.cost returned by Convex AI Gateway for all accepted requests; Convex action platform usage excluded.", coverage: 1, inputTokens: 43113, outputTokens: 3264 },
+            structuredOutput: { logicalBatchCount: 16, acceptedRequestCount: 16, rejectedResponseCount: 0, inputTokens: 43113, outputTokens: 3264 },
+            unavailableReason: null,
+          }],
+          limitations: ["Синтетическая выборка не является независимой клинической валидацией."],
+        },
+      },
+    },
+    errors: modelEvidenceErrors,
+    notes: [
+      "Jev измерен одним zero-shot research-only прогоном через alpha endpoint без seed; результат не активирован в runtime и не является независимой клинической валидацией.",
+      "Один пропуск Jev находится в slice trigger:consciousness (TP 9, FN 1, recall 0.9); исходная фраза пациента через API не публикуется.",
+      "Корпус, восемь групп признаков, labels и threshold 0.5 одинаковы, но правила дорабатывались на этом корпусе, поэтому их результат остаётся in-sample.",
+      "Latency Jev измерена на batch до 10 случаев и напрямую не сравнима с per-item/per-request latency других кандидатов.",
+      "Если кандидат недоступен, metrics, slices, latency и cost остаются null, а причина передаётся отдельно.",
+      "Результат усиленных правил — in-sample regression coverage, не unseen generalization.",
+      "Кандидаты Qwen и Jev являются research-only и не подключены к runtime.",
+    ],
+  },
+  {
+    id: "model-detail",
+    groupId: "models",
+    method: "GET",
+    path: "/api/models/{id}",
+    summary: "Карточка модели",
+    description: "Возвращает allowlisted provenance, схему оценки, метрики, baselines и ограничения одного контура без внутренних весов и сырых наблюдений.",
+    auth: workspace,
+    request: { contentType: "none", fields: [field("id", "stable model id · path", true, "Идентификатор из GET /api/models.")], example: null, note: "Параметров query и тела нет; используйте только detailPath из каталога." },
+    success: {
+      status: 200,
+      description: "Подробная карточка с тем же базовым контрактом, что в каталоге.",
+      example: {
+        schemaVersion: 1,
+        model: {
+          id: "d2-laboratory-load-v0",
+          taskId: "D2",
+          title: "D2: нагрузка лабораторий",
+          kind: "blocked_forecast",
+          availability: "unavailable",
+          runtimeActivation: "blocked",
+          researchOnly: true,
+          metricStatus: "unavailable",
+          primaryMetric: { name: "mae", value: null, unit: "units", state: "unavailable", reason: "no_observed_laboratory_target", period: null, rows: null, numerator: null, denominator: null },
+          baseline: null,
+          limitations: ["appendix_5_requirements_are_normative_not_observed_demand"],
+          detailPath: "/api/models/d2-laboratory-load-v0",
+          source: { artifacts: [{ path: "reports/lab-load-v1.json", sha256: null }], dataset: { name: "Ashyq Data referral flow only", period: { from: "2025-01", to: "2025-03" }, rows: 767130, licenseStatus: "not_verified" } },
+          evaluation: { design: "not_executed_missing_observed_laboratory_target", split: null, sampleSize: null, metrics: [{ name: "mae", value: null, unit: "units", state: "unavailable", reason: "no_observed_laboratory_target", period: null, rows: null, numerator: null, denominator: null }], baselines: [], slices: null, caveats: ["no_observed_laboratory_target"] },
+          configuration: { nextDataGate: { minimum_history: "at_least_26_contiguous_weeks_for_weekly_seasonality", preferred_history: "at_least_24_months_for_annual_seasonality" } },
+          unavailable: { code: "MISSING_LABORATORY_DEMAND_TARGET", reason: "no_observed_laboratory_target", requiredInputs: ["event_timestamp", "region_or_performing_organization", "examination_code", "observed_unit_count_or_one_row_per_event", "event_status_or_stage"] },
+        },
+      },
+    },
+    errors: [...modelEvidenceErrors, error(404, "NOT_FOUND", "Модель или исследовательский контур с таким id отсутствует.")],
+    notes: [
+      "Detail не содержит predictions, весов, feature/class order, сырых строк и абсолютных путей.",
+      "D1, B3 и D2 не являются patient-level runtime API: карточка публикует только агрегированное evidence.",
+      "Для blocked/unavailable контуров отсутствие метрики представлено null вместе с причиной и требуемыми входами.",
+    ],
+  },
+  {
+    id: "examination-requirements-reference",
+    groupId: "reference",
+    method: "GET",
+    path: "/api/reference/examination-requirements",
+    summary: "Прочитать требования к обследованиям",
+    description: "Возвращает версионированный справочник B1 по восьми профилям госпитализации вместе со статусом врачебной проверки и контрольными количествами.",
+    auth: workspace,
+    request: {
+      contentType: "none",
+      fields: [],
+      example: null,
+      note: "Параметров и тела нет. Любая query-строка отклоняется; owner, doctor и analyst читают один нормативный справочник.",
+    },
+    success: {
+      status: 200,
+      description: "Справочник приложения 5: 8 профилей, 148 развёрнутых позиций и 57 уникальных кодов.",
+      example: {
+        schemaVersion: 1,
+        catalogue: {
+          id: "b1-examination-requirements-v1",
+          version: "2025-02-17-order-9-appendix-5",
+          status: "available",
+          source: "Приложение 5 к Стандарту организации оказания медицинской помощи в стационарных условиях в РК (приказ МЗ РК от 24.03.2022 № ҚР-ДСМ-27, рег. № 27218), в редакции приказа МЗ РК от 17.02.2025 № 9. Пункт 33 Стандарта. Взрослые пациенты, оперативное лечение.",
+          scope: { population: "adult", careSetting: "inpatient", treatment: "operative" },
+          validated: false,
+          validationStatus: "unvalidated",
+        },
+        summary: { profileCount: 8, requirementOccurrenceCount: 148, uniqueRequirementCount: 57 },
+        profiles: [{
+          profile: "Кардиохирургический",
+          requirements: [
+            { id: "cbc", label: "Общий анализ крови (развернутый)", required: true, conditional: false, validForDays: 14 },
+            { id: "card_coronary_angio", label: "Коронарная ангиография (CD с результатами)", required: false, conditional: true, validForDays: null },
+          ],
+        }],
+      },
+    },
+    errors: [
+      error(400, "BAD_REQUEST", "Query-параметры запрещены."),
+      ...referenceErrors,
+      error(503, "REFERENCE_CATALOGUE_UNAVAILABLE", "Справочник повреждён, неполон или не прошёл fail-closed проверку."),
+    ],
+    notes: [
+      "Ответ имеет Cache-Control: no-store и не содержит данных пациентов, учётных записей или секретов.",
+      "validated=false и validationStatus=unvalidated означают, что справочник ещё не проверен врачом больницы.",
+      "validForDays=null означает, что источник не задаёт срок актуальности; это не ноль дней и не утверждение о бессрочности.",
+      "Полный ответ содержит все восемь профилей; success example показывает структуру и оба варианта validForDays.",
+    ],
+  },
 ] as const;
 
 export const flowStories: readonly FlowStory[] = [
@@ -439,8 +639,9 @@ export const flowStories: readonly FlowStory[] = [
 ] as const;
 
 function endpointUrl(endpoint: ApiEndpoint): string {
+  const exampleId = endpoint.id === "model-detail" ? "triage-lr-v1" : "ref-demo-01";
   const path = endpoint.path
-    .replace("{id}", "ref-demo-01")
+    .replace("{id}", exampleId)
     .replace("/api/workspace/intakes/ref-demo-01", "/api/workspace/intakes/a94648da-2d5e-4fe0-9010-72e972733850");
   return endpoint.id === "referrals-list"
     ? `${path}?state=preparing&profile=${encodeURIComponent("хирургический")}`

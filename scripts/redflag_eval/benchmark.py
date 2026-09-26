@@ -26,6 +26,7 @@ DEFAULT_REPORT = ROOT / "reports/redflags/redflags-benchmark-v1.json"
 PREDICTIONS_DIR = ROOT / "eval/redflags"
 OLLAMA_URL = "http://127.0.0.1:11434"
 LOCAL_MODELS = ("qwen2.5:7b", "qwen2.5:14b")
+JEV_ARTIFACT = PREDICTIONS_DIR / "jev-1.13-v1.json"
 
 PROMPT_TEMPLATE = """You are evaluating a research safety classifier for a patient intake chat.
 Return emergency=true only when the PATIENT currently reports one of these eight trigger groups:
@@ -331,6 +332,121 @@ def run_ollama(
     )
 
 
+def load_jev_candidate(items: list[dict[str, Any]], corpus_path: Path) -> dict[str, Any]:
+    """Load the separately measured Convex Decisions result without another paid call."""
+    if not JEV_ARTIFACT.is_file():
+        return {
+            "id": "jev",
+            "kind": "external_candidate",
+            "provider": "Convex",
+            "model": "typesafe/jev-1.13",
+            "version": "1.13",
+            "endpoint": "/alpha/decisions",
+            "availability": "unavailable",
+            "unavailable_reason": (
+                "No verified Jev predictions artifact is available. Convex documents "
+                "AI Gateway as paid-plan only and /alpha/decisions as alpha."
+            ),
+            "provenance": "user-specified research candidate",
+            "research_only": True,
+            "item_count": len(items),
+            "metrics": None,
+            "slices": None,
+            "latency_ms": None,
+            "cost": None,
+            "predictions_artifact": None,
+        }
+
+    artifact = load_json(JEV_ARTIFACT)
+    if artifact.get("schema_version") != "jev-predictions-v1":
+        raise ValueError("Jev artifact has an unsupported schema")
+    if artifact.get("corpus_sha256") != sha256_file(corpus_path):
+        raise ValueError("Jev artifact corpus hash mismatch")
+    if artifact.get("research_only") is not True:
+        raise ValueError("Jev artifact must remain research-only")
+    if artifact.get("question_spec_id") != "redflags-eight-trigger-v1":
+        raise ValueError("Jev artifact question specification mismatch")
+    threshold = artifact.get("threshold")
+    rows = artifact.get("predictions")
+    latencies = artifact.get("wall_latency_ms_by_batch")
+    usage = artifact.get("usage")
+    if not isinstance(threshold, (int, float)) or not 0 <= float(threshold) <= 1:
+        raise ValueError("Jev artifact threshold is invalid")
+    if not isinstance(rows, list) or len(rows) != len(items):
+        raise ValueError("Jev artifact does not cover the frozen corpus")
+    if not isinstance(latencies, list) or not latencies:
+        raise ValueError("Jev artifact latency is missing")
+    if not isinstance(usage, dict) or usage.get("cost_coverage") != 1:
+        raise ValueError("Jev artifact cost coverage is incomplete")
+
+    predictions: dict[str, bool] = {}
+    for item, row in zip(items, rows, strict=True):
+        probability = row.get("noul_probability")
+        if row.get("id") != item["id"]:
+            raise ValueError("Jev artifact prediction order mismatch")
+        if not isinstance(probability, (int, float)) or not 0 <= float(probability) <= 1:
+            raise ValueError(f"Jev artifact probability is invalid for {item['id']}")
+        expected_decision = float(probability) >= float(threshold)
+        if row.get("emergency") is not expected_decision:
+            raise ValueError(f"Jev artifact threshold decision mismatch for {item['id']}")
+        predictions[item["id"]] = expected_decision
+
+    measured_latencies = [float(value) for value in latencies]
+    return {
+        "id": "jev",
+        "kind": "external_candidate",
+        "provider": "Convex",
+        "model": artifact.get("model_requested"),
+        "version": artifact.get("model_returned"),
+        "endpoint": "/alpha/decisions",
+        "availability": "measured",
+        "provenance": (
+            "Convex AI Gateway paid Starter run on the frozen synthetic corpus with the "
+            "same eight-trigger taxonomy as rules/Qwen; official Decisions alpha endpoint; "
+            "2026-09-26."
+        ),
+        "research_only": True,
+        "clinician_validated": artifact.get("clinician_validated") is True,
+        "item_count": len(items),
+        "threshold": float(threshold),
+        "question_spec_id": artifact.get("question_spec_id"),
+        "metrics": confusion(
+            [item["expected_emergency"] for item in items],
+            [predictions[item["id"]] for item in items],
+        ),
+        "slices": metric_slices(items, predictions),
+        "latency_ms": {
+            "measurement_unit": "wall_clock_per_batch_of_up_to_10",
+            "request_count": len(measured_latencies),
+            "total": sum(measured_latencies),
+            "mean": sum(measured_latencies) / len(measured_latencies),
+            "p50": percentile(measured_latencies, 0.50),
+            "p95": percentile(measured_latencies, 0.95),
+            "scope": (
+                "Convex action wall-clock around accepted Decisions requests; "
+                "deployment invocation overhead excluded."
+            ),
+        },
+        "cost": {
+            "currency": "USD",
+            "amount": float(usage["cost_usd"]),
+            "basis": (
+                "usage.cost returned by Convex AI Gateway for all accepted requests; "
+                "Convex action platform usage excluded."
+            ),
+            "coverage": usage["cost_coverage"],
+        },
+        "predictions_artifact": str(JEV_ARTIFACT.relative_to(ROOT)),
+        "structured_output": {
+            "logical_batch_count": len(measured_latencies),
+            "accepted_request_count": len(measured_latencies),
+            "rejected_response_count": 0,
+            "input_tokens": usage.get("input_tokens"),
+            "output_tokens": usage.get("output_tokens"),
+        },
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
@@ -358,30 +474,7 @@ def main() -> None:
                 sha256_file(args.corpus),
             )
         )
-    candidates.append(
-        {
-            "id": "jev",
-            "kind": "external_candidate",
-            "provider": "Convex",
-            "model": "typesafe/jev-1.13",
-            "version": "1.13",
-            "endpoint": "/alpha/decisions",
-            "availability": "unavailable",
-            "unavailable_reason": (
-                "No configured Convex deployment or short-lived gateway token was available. "
-                "Convex documents AI Gateway as paid-plan only and /alpha/decisions as alpha; "
-                "the endpoint was not called."
-            ),
-            "provenance": "user-specified candidate in ClickUp task z8udzk90v0",
-            "research_only": True,
-            "item_count": len(items),
-            "metrics": None,
-            "slices": None,
-            "latency_ms": None,
-            "cost": None,
-            "predictions_artifact": None,
-        }
-    )
+    candidates.append(load_jev_candidate(items, args.corpus))
 
     prompt_hash = hashlib.sha256(PROMPT_TEMPLATE.encode()).hexdigest()
     report = {
@@ -407,9 +500,23 @@ def main() -> None:
             "ollama_temperature": 0,
             "ollama_seed": 20260926,
             "prompt_template_sha256": prompt_hash,
-            "external_calls_made": 0,
+            "external_calls_made": sum(
+                int(candidate.get("structured_output", {}).get("accepted_request_count", 0))
+                for candidate in candidates
+                if candidate.get("kind") == "external_candidate"
+            ),
         },
-        "limitations": corpus.get("limitations", []),
+        "limitations": [
+            *corpus.get("limitations", []),
+            *(
+                [
+                    "Jev was measured once through Convex AI Gateway alpha; no repeated-run "
+                    "variance or deterministic seed is available."
+                ]
+                if any(candidate.get("id") == "jev" and candidate.get("availability") == "measured" for candidate in candidates)
+                else []
+            ),
+        ],
         "candidates": candidates,
     }
     write_json(args.report, report)

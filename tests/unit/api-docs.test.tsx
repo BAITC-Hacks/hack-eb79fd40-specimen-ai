@@ -54,6 +54,165 @@ describe("Demeu API portal", () => {
     }
   });
 
+  it("documents the models catalog, benchmark and detail as aggregate-only research evidence", () => {
+    const modelEndpoints = apiEndpoints.filter((endpoint) => endpoint.groupId === "models");
+    expect(apiGroups.find((group) => group.id === "models")).toEqual({
+      id: "models",
+      eyebrow: "06 · Research",
+      title: "Модели и доказательства",
+      description: expect.stringContaining("research-only"),
+    });
+    expect(modelEndpoints.map(endpointOperation)).toEqual([
+      "GET /api/models",
+      "GET /api/models/benchmarks",
+      "GET /api/models/{id}",
+    ]);
+
+    const expectedCommonErrors = [
+      "401 UNAUTHORIZED",
+      "503 MODEL_EVIDENCE_UNAVAILABLE",
+      "503 WORKSPACE_UNAVAILABLE",
+    ];
+    for (const endpoint of modelEndpoints) {
+      expect(endpoint.auth.kind).toBe("workspace");
+      expect(endpoint.request.contentType).toBe("none");
+      expect(endpoint.request.example).toBeNull();
+      expect(endpoint.method).toBe("GET");
+      expect(endpoint.notes?.join(" ")).toMatch(/research|runtime|null/iu);
+      expect(codeExample(endpoint, "curl", "https://84.247.161.211"))
+        .toContain('--cookie "./demeu-workspace.cookies"');
+      expect(codeExample(endpoint, "curl", "https://84.247.161.211")).not.toContain("Content-Type");
+      expect(codeExample(endpoint, "fetch")).toContain('credentials: "include"');
+      expect(codeExample(endpoint, "fetch")).not.toContain("body: JSON.stringify");
+      expect(endpoint.errors.map((item) => `${item.status} ${item.code}`).sort()).toEqual([
+        ...expectedCommonErrors,
+        ...(endpoint.id === "model-detail" ? ["404 NOT_FOUND"] : []),
+      ].sort());
+    }
+
+    const list = modelEndpoints.find((endpoint) => endpoint.id === "models-list")!;
+    const listExample = list.success.example as { schemaVersion: number; models: Record<string, unknown>[] };
+    expect(Object.keys(listExample).sort()).toEqual(["models", "schemaVersion"]);
+    expect(Object.keys(listExample.models[0]).sort()).toEqual([
+      "availability", "baseline", "detailPath", "id", "kind", "limitations", "metricStatus",
+      "primaryMetric", "researchOnly", "runtimeActivation", "taskId", "title",
+    ].sort());
+    expect(Object.keys(listExample.models[0].primaryMetric as object).sort()).toEqual([
+      "denominator", "name", "numerator", "period", "reason", "rows", "state", "unit", "value",
+    ].sort());
+
+    const benchmark = modelEndpoints.find((endpoint) => endpoint.id === "models-benchmarks")!;
+    const benchmarkExample = benchmark.success.example as { benchmark: Record<string, unknown> };
+    expect(Object.keys(benchmarkExample.benchmark).sort()).toEqual([
+      "candidates", "corpus", "evaluationDesign", "id", "limitations", "researchOnly",
+      "runtimeIntegration", "title",
+    ].sort());
+    const candidate = (benchmarkExample.benchmark.candidates as Record<string, unknown>[])[0];
+    expect(Object.keys(candidate).sort()).toEqual([
+      "availability", "cost", "implementation", "itemCount", "latency", "metrics", "modelId", "slices",
+      "structuredOutput", "unavailableReason",
+    ].sort());
+    expect(candidate).toMatchObject({
+      modelId: "redflags-jev-1.13",
+      implementation: { provider: "Convex", requestedModel: "typesafe/jev-1.13", observedModel: "typesafe/jev-1.13-20260917", threshold: 0.5, questionSpecId: "redflags-eight-trigger-v1" },
+      availability: "measured",
+      metrics: { tp: 79, fp: 0, tn: 80, fn: 1, precision: 1, recall: 0.9875, f1: 0.9937106918238994, falsePositiveRate: 0 },
+      latency: { requestCount: 16, totalMs: 3042, meanMs: 190.125, p50Ms: 182, p95Ms: 260 },
+      cost: { currency: "USD", amount: 0.001810746, coverage: 1, inputTokens: 43113, outputTokens: 3264 },
+      structuredOutput: { logicalBatchCount: 16, acceptedRequestCount: 16, rejectedResponseCount: 0 },
+      unavailableReason: null,
+    });
+    expect((candidate.slices as Record<string, unknown>)["language:ru"]).toEqual({ tp: 39, fp: 0, tn: 40, fn: 1, precision: 1, recall: 0.975, f1: 0.9873417721518987, falsePositiveRate: 0 });
+    expect((candidate.slices as Record<string, unknown>)["language:kk"]).toEqual({ tp: 40, fp: 0, tn: 40, fn: 0, precision: 1, recall: 1, f1: 1, falsePositiveRate: 0 });
+    expect((candidate.slices as Record<string, unknown>)["trigger:suicidal"]).toEqual({ tp: 10, fp: 0, tn: 10, fn: 0, precision: 1, recall: 1, f1: 1, falsePositiveRate: 0 });
+    expect((candidate.slices as Record<string, unknown>)["trigger:consciousness"]).toEqual({ tp: 9, fp: 0, tn: 10, fn: 1, precision: 1, recall: 0.9, f1: 0.9473684210526316, falsePositiveRate: 0 });
+    expect(benchmark.notes?.join(" ")).toMatch(/zero-shot|alpha|без seed|in-sample|batch/iu);
+    const detail = modelEndpoints.find((endpoint) => endpoint.id === "model-detail")!;
+    const detailExample = detail.success.example as { model: Record<string, unknown> };
+    expect(Object.keys(detailExample.model).sort()).toEqual([
+      "availability", "baseline", "configuration", "detailPath", "evaluation", "id", "kind",
+      "limitations", "metricStatus", "primaryMetric", "researchOnly", "runtimeActivation",
+      "source", "taskId", "title", "unavailable",
+    ].sort());
+    expect(detailExample.model).toMatchObject({
+      id: "d2-laboratory-load-v0",
+      availability: "unavailable",
+      primaryMetric: { name: "mae", value: null, state: "unavailable" },
+      baseline: null,
+      unavailable: { code: "MISSING_LABORATORY_DEMAND_TARGET" },
+    });
+    expect(codeExample(detail, "curl", "https://84.247.161.211"))
+      .toContain("https://84.247.161.211/api/models/triage-lr-v1");
+
+    const serialized = JSON.stringify(modelEndpoints);
+    for (const prohibited of ["weights", "feature_order", "class_order", "per_case", "internal_case_trace_do_not_show_before_judgment"])
+      expect(serialized).not.toContain(prohibited);
+  });
+
+  it("documents the B1 examination requirements reference without overstating validation or validity", () => {
+    const endpoint = apiEndpoints.find((candidate) => candidate.id === "examination-requirements-reference")!;
+    expect(apiGroups.find((group) => group.id === "reference")).toEqual({
+      id: "reference",
+      eyebrow: "07 · Reference",
+      title: "Справочник обследований",
+      description: expect.stringContaining("B1"),
+    });
+    expect(endpointOperation(endpoint)).toBe("GET /api/reference/examination-requirements");
+    expect(endpoint.groupId).toBe("reference");
+    expect(endpoint.auth.kind).toBe("workspace");
+    expect(endpoint.request).toMatchObject({ contentType: "none", fields: [], example: null });
+    expect(endpoint.request.note).toContain("query");
+    expect(endpoint.errors.map((item) => `${item.status} ${item.code}`).sort()).toEqual([
+      "400 BAD_REQUEST",
+      "401 UNAUTHORIZED",
+      "405 METHOD_NOT_ALLOWED",
+      "503 REFERENCE_CATALOGUE_UNAVAILABLE",
+      "503 WORKSPACE_UNAVAILABLE",
+    ].sort());
+
+    const example = endpoint.success.example as {
+      schemaVersion: number;
+      catalogue: Record<string, unknown>;
+      summary: Record<string, unknown>;
+      profiles: { profile: string; requirements: Record<string, unknown>[] }[];
+    };
+    expect(Object.keys(example).sort()).toEqual(["catalogue", "profiles", "schemaVersion", "summary"]);
+    expect(Object.keys(example.catalogue).sort()).toEqual([
+      "id", "scope", "source", "status", "validated", "validationStatus", "version",
+    ].sort());
+    expect(example.catalogue).toMatchObject({
+      id: "b1-examination-requirements-v1",
+      version: "2025-02-17-order-9-appendix-5",
+      status: "available",
+      validated: false,
+      validationStatus: "unvalidated",
+    });
+    expect(example.summary).toEqual({
+      profileCount: 8,
+      requirementOccurrenceCount: 148,
+      uniqueRequirementCount: 57,
+    });
+    expect(Object.keys(example.profiles[0]).sort()).toEqual(["profile", "requirements"]);
+    for (const requirement of example.profiles[0].requirements) {
+      expect(Object.keys(requirement).sort()).toEqual(["conditional", "id", "label", "required", "validForDays"]);
+    }
+    expect(example.profiles[0].requirements.some((requirement) => requirement.validForDays === null)).toBe(true);
+    expect(endpoint.notes?.join(" ")).toMatch(/no-store|validated=false|validForDays=null/iu);
+
+    const curl = codeExample(endpoint, "curl", "https://84.247.161.211");
+    expect(curl).toContain("GET");
+    expect(curl).toContain("https://84.247.161.211/api/reference/examination-requirements");
+    expect(curl).toContain('--cookie "./demeu-workspace.cookies"');
+    expect(curl).not.toContain("Content-Type");
+    const fetch = codeExample(endpoint, "fetch");
+    expect(fetch).toContain('credentials: "include"');
+    expect(fetch).not.toContain("body: JSON.stringify");
+
+    const serialized = JSON.stringify(endpoint);
+    expect(serialized).not.toMatch(/patientLabel|doctorToken|telegramChatId|passwordHash|organizationId/u);
+    expect(serialized).not.toContain("/home/");
+  });
+
   it("documents the complete live surface as a searchable, safe and keyboard-operable first-party reference", async () => {
     const documented = apiEndpoints.map(endpointOperation).sort();
     expect(documented).toEqual(implementedOperations());

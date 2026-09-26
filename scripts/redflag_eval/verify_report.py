@@ -7,7 +7,7 @@ import math
 from pathlib import Path
 from typing import Any
 
-from .common import confusion, load_json, sha256_file
+from .common import confusion, load_json, percentile, sha256_file
 from .verify_corpus import verify as verify_corpus
 
 
@@ -72,6 +72,68 @@ def verify_candidate(
         fail(f"{candidate_id}: incomplete cost")
     if not str(report_path):
         fail("unreachable report path guard")
+
+    if candidate_id == "jev":
+        if candidate.get("provider") != "Convex" or candidate.get("endpoint") != "/alpha/decisions":
+            fail("jev: provider or endpoint mismatch")
+        threshold = candidate.get("threshold")
+        if not isinstance(threshold, (int, float)) or not 0 <= float(threshold) <= 1:
+            fail("jev: invalid threshold")
+        artifact_payload = load_json(artifact_path)
+        if artifact_payload.get("schema_version") != "jev-predictions-v1":
+            fail("jev: wrong predictions schema")
+        if artifact_payload.get("model_requested") != candidate.get("model"):
+            fail("jev: requested model mismatch")
+        if artifact_payload.get("model_returned") != candidate.get("version"):
+            fail("jev: returned model mismatch")
+        if artifact_payload.get("corpus_sha256") != sha256_file(
+            ROOT / "tests/fixtures/redflags-eval.json"
+        ):
+            fail("jev: corpus hash mismatch")
+        if artifact_payload.get("question_spec_id") != "redflags-eight-trigger-v1":
+            fail("jev: wrong question specification")
+        if candidate.get("question_spec_id") != artifact_payload.get(
+            "question_spec_id"
+        ):
+            fail("jev: report question specification mismatch")
+        for row in rows:
+            probability = row.get("noul_probability")
+            if not isinstance(probability, (int, float)) or not math.isfinite(
+                float(probability)
+            ) or not 0 <= float(probability) <= 1:
+                fail(f"jev: invalid probability for {row.get('id')}")
+            if row.get("threshold") != threshold:
+                fail(f"jev: threshold mismatch for {row.get('id')}")
+            if row.get("emergency") is not (float(probability) >= float(threshold)):
+                fail(f"jev: decision mismatch for {row.get('id')}")
+        latencies = artifact_payload.get("wall_latency_ms_by_batch")
+        if not isinstance(latencies, list) or not latencies:
+            fail("jev: missing batch latencies")
+        measured_latencies = [float(value) for value in latencies]
+        expected_latency = {
+            "request_count": len(measured_latencies),
+            "total": sum(measured_latencies),
+            "mean": sum(measured_latencies) / len(measured_latencies),
+            "p50": percentile(measured_latencies, 0.50),
+            "p95": percentile(measured_latencies, 0.95),
+        }
+        for key, value in expected_latency.items():
+            if key not in latency or not close(float(latency[key]), float(value)):
+                fail(f"jev: incorrect latency {key}")
+        usage = artifact_payload.get("usage")
+        if not isinstance(usage, dict) or usage.get("cost_coverage") != 1:
+            fail("jev: incomplete cost coverage")
+        if not close(float(cost.get("amount", -1)), float(usage.get("cost_usd", -2))):
+            fail("jev: cost mismatch")
+        structured = candidate.get("structured_output")
+        if not isinstance(structured, dict):
+            fail("jev: structured output metadata missing")
+        if structured.get("accepted_request_count") != len(measured_latencies):
+            fail("jev: accepted request count mismatch")
+        if structured.get("input_tokens") != usage.get("input_tokens") or structured.get(
+            "output_tokens"
+        ) != usage.get("output_tokens"):
+            fail("jev: token usage mismatch")
 
 
 def verify(report_path: Path, corpus_path: Path) -> None:
