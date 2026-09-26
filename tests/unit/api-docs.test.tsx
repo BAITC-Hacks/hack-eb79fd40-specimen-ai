@@ -6,6 +6,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { dynamic as apiDocsRenderingMode } from "../../app/api-docs/page";
 import { ApiDocsPortal } from "../../app/api-docs/portal";
 import { apiEndpoints, apiGroups, codeExample, endpointOperation, flowStories } from "../../lib/api-catalog";
 
@@ -38,6 +39,10 @@ function implementedOperations(): string[] {
 }
 
 describe("Demeu API portal", () => {
+  it("renders at runtime so production examples use the deployed origin", () => {
+    expect(apiDocsRenderingMode).toBe("force-dynamic");
+  });
+
   it("documents the complete live surface as a searchable, safe and keyboard-operable first-party reference", async () => {
     const documented = apiEndpoints.map(endpointOperation).sort();
     expect(documented).toEqual(implementedOperations());
