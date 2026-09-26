@@ -109,7 +109,8 @@ DEMEU_DEEP_PROBE=I_AUTHORIZE_ONE_STRUCTURED_EXTRACTION \
   bash deploy/deploy.sh
 ```
 
-The rsync filter protects and excludes every `.env*` file, raw/processed datasets, offline Python,
+The rsync filter protects the server repository metadata whether the local source uses a `.git`
+directory or a worktree `.git` pointer file, and protects and excludes every `.env*` file, raw/processed datasets, offline Python,
 tests, per-case eval outputs, caches, binary weights, and archives. It allowlists only the aggregate
 runtime evidence consumed by the model API (`eval/report.json`, the red-flag benchmark, wait-time,
 referral-refusal, and laboratory-load reports); all other `eval/` and `reports/` files remain excluded.

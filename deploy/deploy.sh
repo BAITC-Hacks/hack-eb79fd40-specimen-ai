@@ -659,10 +659,11 @@ run_rsync_mode() {
     --filter='protect .env' --filter='protect .env.*' \
     --filter='protect .deploy.lock' \
     --filter='protect .deploy_prev_sha' --filter='protect .deploy_green_sha' \
+    --filter='protect .git' \
     --exclude='.env' --exclude='.env.*' \
     --exclude='.deploy.lock' \
     --exclude='.deploy_prev_sha' --exclude='.deploy_green_sha' \
-    --exclude='.git/' --exclude='.next/' --exclude='node_modules/' \
+    --exclude='.git' --exclude='.git/' --exclude='.next/' --exclude='node_modules/' \
     --exclude='.orchestrator/' --exclude='.worktrees/' --exclude='.venv/' \
     --exclude='scripts/' --exclude='tests/' \
     --include='/eval/' --include='/eval/report.json' --exclude='/eval/***' \
