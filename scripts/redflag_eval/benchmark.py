@@ -368,7 +368,8 @@ def main() -> None:
             "endpoint": "/alpha/decisions",
             "availability": "unavailable",
             "unavailable_reason": (
-                "No explicit authorization for an external or potentially paid call in this leaf; "
+                "No configured Convex deployment or short-lived gateway token was available. "
+                "Convex documents AI Gateway as paid-plan only and /alpha/decisions as alpha; "
                 "the endpoint was not called."
             ),
             "provenance": "user-specified candidate in ClickUp task z8udzk90v0",
