@@ -10,15 +10,17 @@ from typing import Any
 
 import joblib  # type: ignore[import-untyped]
 
+from .compare_reports import semantic_report_sha256
 from .io import sha256_file
 from .refusal_contracts import (
     AVAILABLE_EXCLUDED_COLUMNS,
     CATEGORICAL_FEATURES,
     EXPECTED_COLUMNS,
     EXPECTED_COHORT_ATTRITION,
+    EXPECTED_DUPLICATE_AUDIT,
     EXPECTED_MONTHLY_ATTRITION,
-    EXPECTED_REFUSED,
     EXPECTED_ROWS,
+    EXPECTED_SEMANTIC_REPORT_SHA256,
     EXCLUDED_FEATURES,
     INPUT_SHA256,
     LIMITATIONS,
@@ -26,7 +28,11 @@ from .refusal_contracts import (
     RANDOM_SEED,
     REPORT_STATUS,
 )
-from .train_refusal import FREQUENCY_SMOOTHING_CANDIDATES, LOGISTIC_C_VALUES
+from .train_refusal import (
+    FINAL_CANDIDATE_ORDER,
+    FREQUENCY_SMOOTHING_CANDIDATES,
+    LOGISTIC_C_VALUES,
+)
 
 
 class RefusalReportFailure(RuntimeError):
@@ -98,6 +104,7 @@ def _verify_metrics(value: Any, name: str, rows: int, positives: int) -> dict[st
             "positives",
             "prevalence",
             "pr_auc",
+            "roc_auc",
             "brier",
             "threshold",
             "predicted_positive",
@@ -114,6 +121,7 @@ def _verify_metrics(value: Any, name: str, rows: int, positives: int) -> dict[st
     for key in (
         "prevalence",
         "pr_auc",
+        "roc_auc",
         "brier",
         "threshold",
         "precision",
@@ -287,16 +295,35 @@ def _verify_cohort(value: Any) -> dict[str, int]:
         "censored_neither",
         "conflicting_both",
     }
-    _exact_keys(cohort, summary_keys | {"by_month", "policy"}, "cohort")
+    _exact_keys(
+        cohort,
+        summary_keys
+        | {
+            "source_rows_before_duplicate_policy",
+            "duplicate_audit",
+            "by_month",
+            "policy",
+        },
+        "cohort",
+    )
     overall = _verify_outcome_summary(
         {key: cohort[key] for key in summary_keys}, "cohort.overall"
     )
     if (
         overall != EXPECTED_COHORT_ATTRITION
-        or overall["refused_only"] + overall["conflicting_both"] != EXPECTED_REFUSED
-        or cohort.get("policy") != "exclude_censored_neither_and_conflicting_both"
+        or cohort.get("source_rows_before_duplicate_policy") != EXPECTED_ROWS
+        or cohort.get("duplicate_audit") != EXPECTED_DUPLICATE_AUDIT
+        or cohort.get("policy")
+        != "exclude_all_rows_for_repeated_hospitalization_code_before_temporal_split_then_exclude_censored_neither_and_conflicting_both"
     ):
         raise RefusalReportFailure("invalid_cohort_policy")
+    duplicate_audit = _object(cohort.get("duplicate_audit"), "cohort.duplicate_audit")
+    if (
+        duplicate_audit["rows_after_policy"]
+        + duplicate_audit["rows_with_repeated_hospitalization_code"]
+        != EXPECTED_ROWS
+    ):
+        raise RefusalReportFailure("invalid_duplicate_partition")
     by_month = _object(cohort.get("by_month"), "cohort.by_month")
     _exact_keys(by_month, {"2025-01", "2025-02", "2025-03"}, "cohort.by_month")
     monthly = {
@@ -360,7 +387,8 @@ def _verify_split(value: Any, cohort: dict[str, int]) -> dict[str, tuple[int, in
         elif key == "test":
             expected_keys |= {
                 "used_for_selection",
-                "evaluated_after_selection",
+                "evaluated_once_after_selection",
+                "evaluation_role",
                 "previously_examined_in_source_handoff",
             }
         _exact_keys(partition, expected_keys, f"split.{key}")
@@ -377,7 +405,8 @@ def _verify_split(value: Any, cohort: dict[str, int]) -> dict[str, tuple[int, in
         raise RefusalReportFailure("invalid_validation_usage")
     if (
         test.get("used_for_selection") is not False
-        or test.get("evaluated_after_selection") is not True
+        or test.get("evaluated_once_after_selection") is not True
+        or test.get("evaluation_role") != "descriptive_held_out_benchmark"
         or test.get("previously_examined_in_source_handoff") is not True
     ):
         raise RefusalReportFailure("test_selection_leakage")
@@ -390,7 +419,7 @@ def _verify_split(value: Any, cohort: dict[str, int]) -> dict[str, tuple[int, in
 
 def _verify_selection(
     value: Any, validation_rows: int, validation_positives: int
-) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], str]:
     selection = _object(value, "selection")
     _exact_keys(
         selection,
@@ -402,6 +431,7 @@ def _verify_selection(
             "smoothed_pair_baseline",
             "model_candidates",
             "selected_model",
+            "final_comparator_selection",
         },
         "selection",
     )
@@ -576,7 +606,46 @@ def _verify_selection(
         or model_by_c[chosen_c][1] is not True
     ):
         raise RefusalReportFailure("model_candidate_selection_mismatch")
-    return constant, selected_pair, selected_model
+
+    final = _object(
+        selection.get("final_comparator_selection"),
+        "selection.final_comparator_selection",
+    )
+    _exact_keys(
+        final,
+        {
+            "candidates",
+            "primary_metric",
+            "tie_breaker",
+            "fixed_method_order",
+            "selected",
+            "test_used",
+        },
+        "selection.final_comparator_selection",
+    )
+    validation_metrics = {
+        "constant_baseline": constant,
+        "smoothed_pair_baseline": pair_by_alpha[chosen_alpha],
+        "one_hot_logistic_regression": converged_candidates[chosen_c],
+    }
+    expected_selected = max(
+        FINAL_CANDIDATE_ORDER,
+        key=lambda candidate: (
+            validation_metrics[candidate]["pr_auc"],
+            -validation_metrics[candidate]["brier"],
+            -FINAL_CANDIDATE_ORDER.index(candidate),
+        ),
+    )
+    if final != {
+        "candidates": list(FINAL_CANDIDATE_ORDER),
+        "primary_metric": "validation_pr_auc",
+        "tie_breaker": "validation_brier_then_fixed_method_order",
+        "fixed_method_order": list(FINAL_CANDIDATE_ORDER),
+        "selected": expected_selected,
+        "test_used": False,
+    }:
+        raise RefusalReportFailure("final_candidate_selection_mismatch")
+    return constant, selected_pair, selected_model, expected_selected
 
 
 def _verify_test(
@@ -859,11 +928,11 @@ def verify_refusal_report(value: Any, model_path: Path | None = None) -> None:
     _verify_features(report.get("features"))
     populations = _verify_split(report.get("split"), cohort)
     validation_rows, validation_positives = populations["validation"]
-    constant, selected_pair, selected_model = _verify_selection(
+    constant, selected_pair, selected_model, selected_candidate = _verify_selection(
         report.get("selection"), validation_rows, validation_positives
     )
     test_rows, test_positives = populations["test"]
-    pair_metrics, model_metrics = _verify_test(
+    _verify_test(
         report.get("test"),
         test_rows,
         test_positives,
@@ -876,23 +945,22 @@ def verify_refusal_report(value: Any, model_path: Path | None = None) -> None:
         decision,
         {
             "rule",
-            "model_pr_auc_minus_pair",
-            "model_beats_pair_baseline",
-            "recommended_candidate_for_future_runtime",
+            "selected_candidate",
+            "selection_period",
+            "march_test_used_for_selection",
+            "march_evaluation_role",
             "runtime_changed_by_this_task",
         },
         "decision",
     )
-    beats = float(model_metrics["pr_auc"]) > float(pair_metrics["pr_auc"])
-    recommendation = (
-        "one_hot_logistic_regression" if beats else "smoothed_pair_baseline"
-    )
-    delta = round(float(model_metrics["pr_auc"]) - float(pair_metrics["pr_auc"]), 8)
     expected_decision = {
-        "rule": "model_test_pr_auc_must_strictly_exceed_pair_baseline",
-        "model_pr_auc_minus_pair": delta,
-        "model_beats_pair_baseline": beats,
-        "recommended_candidate_for_future_runtime": recommendation,
+        "rule": "select_family_on_february_validation_before_march_evaluation",
+        "selected_candidate": selected_candidate,
+        "selection_period": "2025-02",
+        "march_test_used_for_selection": False,
+        "march_evaluation_role": (
+            "descriptive_held_out_benchmark_previously_examined_in_handoff"
+        ),
         "runtime_changed_by_this_task": False,
     }
     if decision != expected_decision:
@@ -909,6 +977,8 @@ def verify_refusal_report(value: Any, model_path: Path | None = None) -> None:
         selected_pair,
         model_path,
     )
+    if semantic_report_sha256(report) != EXPECTED_SEMANTIC_REPORT_SHA256:
+        raise RefusalReportFailure("semantic_report_fingerprint_mismatch")
 
 
 def parse_args() -> argparse.Namespace:

@@ -348,8 +348,12 @@ describe("commands, memo and aggregate HTTP contracts", () => {
       send: async (_actor, _referral, memo) => { delivered = memo; return { sent: true }; },
     });
     expect(response.status).toBe(200);
-    expect(delivered).toMatchObject({ catalogueAvailable: false, items: [{ label: "Общий анализ крови", status: "expired", expiresOn: "2026-08-11" }] });
-    expect((delivered as { items: unknown[] }).items).toHaveLength(1);
+    const deliveredMemo = delivered as { catalogueAvailable: boolean; items: { label: string; status: string; expiresOn: string | null }[] };
+    expect(deliveredMemo.catalogueAvailable).toBe(false);
+    expect(deliveredMemo.items[0]).toEqual({ label: "Общий анализ крови (развернутый)", status: "expired", expiresOn: "2026-08-11" });
+    expect(deliveredMemo.items[1]).toEqual({ label: "Общий анализ мочи", status: "unknown", expiresOn: null });
+    expect(deliveredMemo.items).toHaveLength(13);
+    expect(deliveredMemo.items.slice(1).every((item) => item.status === "unknown")).toBe(true);
   });
 
   it("returns a separate suppressed aggregate DTO for analysts and rejects ad-hoc filters", async () => {

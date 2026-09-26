@@ -1,0 +1,146 @@
+{
+  "schema_version": "clinical-validation-packet-v1",
+  "status": "pending_clinician_feedback",
+  "purpose": "Validate flow realism, emergency trigger semantics, RU/KK patient wording, doctor-summary usefulness and privacy with 1-2 practicing clinicians.",
+  "source_snapshots": {
+    "corpus": {
+      "path": "tests/fixtures/redflags-eval.json",
+      "sha256": "bafae774a648ccde988b4804a02d0d0adce983d7d979e6fcefcf230902ac5625",
+      "item_count": 160,
+      "research_only": true,
+      "clinician_review_status": "pending"
+    },
+    "benchmark": {
+      "path": "reports/redflags/redflags-benchmark-v1.json",
+      "sha256": "ef5a87b1d2720ec38e0aa1f1c00a96feca658f2eafbae8870cf5227986bb1f5e",
+      "research_only": true,
+      "rules_candidate_version": "36c2bf1f899883d7274529d1c52729d4e38087fb25d4b9ae33fe102413d75409",
+      "interpretation": "The hardened-rules score is in-sample regression coverage on synthetic labels, not independent clinical validation; post-benchmark adversarial cases are regression-tested separately."
+    }
+  },
+  "interview": {
+    "target_reviewers": {
+      "minimum": 1,
+      "preferred": 2,
+      "eligibility": "practicing_physician",
+      "reviewer_name_required": false,
+      "role_specialty_and_review_date_required": true
+    },
+    "duration_minutes": 12,
+    "patient_data_policy": "Use only the synthetic cases below; do not paste real patient data.",
+    "sequence": [
+      "Record reviewer role, specialty, country of practice, language competence and date.",
+      "Judge all blind case cards before seeing internal labels or current system behavior.",
+      "Review the end-to-end flow.",
+      "Review the synthetic Telegram/PDF summary for usefulness and privacy.",
+      "Record concrete wording or logic changes and whether a second specialty review is needed."
+    ],
+    "case_response_options": {
+      "action": [
+        "immediate_emergency_alert",
+        "same_day_urgent_review",
+        "no_emergency_alert",
+        "unclear_needs_context",
+        "outside_reviewer_scope"
+      ],
+      "wording": [
+        "natural_and_clear",
+        "understandable_but_unnatural",
+        "ambiguous",
+        "incorrect_meaning",
+        "language_not_reviewed"
+      ]
+    }
+  },
+  "blind_case_cards": [
+    { "id": "rf-001", "language": "ru", "text": "давящая боль за грудиной, отдаёт в левую руку, холодный пот" },
+    { "id": "rf-018", "language": "kk", "text": "Бұрын кеудем ауырған, қазір бәрі өтті" },
+    { "id": "rf-028", "language": "kk", "text": "Сөзім түсініксіз болып қалды" },
+    { "id": "rf-035", "language": "ru", "text": "У мамы перекосило лицо, со мной всё нормально" },
+    { "id": "rf-045", "language": "ru", "text": "Кровь идёт и не останавливается" },
+    { "id": "rf-059", "language": "kk", "text": "Өткен жылы қан кеткен, қазір тоқтады" },
+    { "id": "rf-068", "language": "kk", "text": "Басыма соққы тигендей бірден ауырды" },
+    { "id": "rf-074", "language": "ru", "text": "Фраза как удар в голову была в книге, у меня ничего не болит" },
+    { "id": "rf-085", "language": "ru", "text": "Отключилась и ничего не помню" },
+    { "id": "rf-100", "language": "kk", "text": "Досым есінен танды, ал мен өзімді жақсы сезінемін" },
+    { "id": "rf-108", "language": "kk", "text": "Тыныш отырсам да ауа жетпейді" },
+    { "id": "rf-114", "language": "ru", "text": "Год назад не хватало воздуха, сейчас прошло" },
+    { "id": "rf-122", "language": "ru", "text": "Я не хочу жить" },
+    { "id": "rf-139", "language": "kk", "text": "Ондай ой бұрын болған, қазір жоқ" },
+    { "id": "rf-150", "language": "kk", "text": "Дене қызуым 39, мойным сіресіп қалды" },
+    { "id": "rf-155", "language": "ru", "text": "У ребёнка шея не сгибается, у меня жалоб нет" }
+  ],
+  "internal_case_trace_do_not_show_before_judgment": [
+    { "id": "rf-001", "trigger": "chest_pain", "corpus_label": "emergency", "trap": null },
+    { "id": "rf-018", "trigger": "chest_pain", "corpus_label": "no_emergency", "trap": "resolved_history" },
+    { "id": "rf-028", "trigger": "stroke", "corpus_label": "emergency", "trap": null },
+    { "id": "rf-035", "trigger": "stroke", "corpus_label": "no_emergency", "trap": "third_party" },
+    { "id": "rf-045", "trigger": "bleeding", "corpus_label": "emergency", "trap": null },
+    { "id": "rf-059", "trigger": "bleeding", "corpus_label": "no_emergency", "trap": "resolved_history" },
+    { "id": "rf-068", "trigger": "thunderclap_headache", "corpus_label": "emergency", "trap": null },
+    { "id": "rf-074", "trigger": "thunderclap_headache", "corpus_label": "no_emergency", "trap": "quoted_text" },
+    { "id": "rf-085", "trigger": "consciousness", "corpus_label": "emergency", "trap": null },
+    { "id": "rf-100", "trigger": "consciousness", "corpus_label": "no_emergency", "trap": "third_party" },
+    { "id": "rf-108", "trigger": "dyspnea_rest", "corpus_label": "emergency", "trap": null },
+    { "id": "rf-114", "trigger": "dyspnea_rest", "corpus_label": "no_emergency", "trap": "resolved_history" },
+    { "id": "rf-122", "trigger": "suicidal", "corpus_label": "emergency", "trap": null },
+    { "id": "rf-139", "trigger": "suicidal", "corpus_label": "no_emergency", "trap": "resolved_history" },
+    { "id": "rf-150", "trigger": "meningeal", "corpus_label": "emergency", "trap": null },
+    { "id": "rf-155", "trigger": "meningeal", "corpus_label": "no_emergency", "trap": "third_party" }
+  ],
+  "flow_review": {
+    "flow": [
+      "Doctor creates a one-time patient link.",
+      "Patient chooses RU/KK, sees consent and answers one question at a time.",
+      "Every patient reply is checked immediately by deterministic safety rules.",
+      "If an emergency trigger is found, the patient sees an emergency instruction and the intake is finalized.",
+      "Doctor receives a Telegram text summary and PDF; the doctor makes the final decision."
+    ],
+    "questions": [
+      "Насколько этот путь реалистичен для амбулаторной практики? Оцените 1-5 и назовите первый блокирующий шаг.",
+      "Может ли немедленное завершение после опасного признака скрыть нужную врачу информацию? Если да, какой минимальный дополнительный вопрос безопасен?",
+      "Достаточно ли срочно и при этом корректно сформулирована инструкция пациенту?",
+      "На каком шаге возможны задержка помощи или ложное успокоение пациента?",
+      "Какие решения обязательно должны оставаться под явным контролем врача?"
+    ]
+  },
+  "summary_review": {
+    "synthetic_only": true,
+    "sample_lines": [
+      "🔴 НЕОТЛОЖНО — Demeu, сводка первичного опроса",
+      "Эпизод: VAL-CASE-01 · Врач: тестовый врач",
+      "ПАЦИЕНТ: м, 58 лет",
+      "ЖАЛОБА: давящая боль за грудиной, холодный пот",
+      "КРАСНЫЕ ФЛАГИ",
+      "🚨 Боль в груди [chest_pain]",
+      "Цитата пациента: «давящая боль за грудиной, отдаёт в левую руку, холодный пот»",
+      "ПОЧЕМУ ТАКОЙ ПРИОРИТЕТ: правило безопасности требует немедленной оценки",
+      "МАРШРУТИЗАЦИЯ: решение принимает врач",
+      "ПРЕДВАРИТЕЛЬНАЯ ГИПОТЕЗА: требуется немедленная очная оценка",
+      "⚠️ Это не диагноз; окончательное решение принимает врач.",
+      "ИСТОЧНИК: детерминированный опросник и правила безопасности"
+    ],
+    "questions": [
+      "Можно ли за 10 секунд увидеть приоритет и подтверждающую цитату пациента?",
+      "Какого клинически значимого контекста не хватает?",
+      "Какая строка лишняя, непонятная или звучит слишком уверенно?",
+      "Полезны ли текст и PDF до контакта с пациентом? Оцените 1-5.",
+      "Какое точное изменение сделает сводку безопаснее или быстрее в работе?"
+    ]
+  },
+  "privacy_review": {
+    "questions": [
+      "Есть ли в примере поле, которое не нужно врачу для этой задачи?",
+      "Соразмерны ли задаче возраст, пол, метка эпизода и дословная цитата?",
+      "Нужен ли отдельный шаг доступа к ссылке на опрос или полному транскрипту?",
+      "Какой риск хранения или пересылки Telegram/PDF нужно явно обозначить?"
+    ],
+    "prohibited_inputs": [
+      "real patient name",
+      "IIN",
+      "phone number",
+      "real medical record",
+      "screenshots containing patient data"
+    ]
+  }
+}

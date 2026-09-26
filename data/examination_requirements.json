@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "2026-09-18-prilozhenie5",
+  "version": "2025-02-17-order-9-appendix-5",
   "status": "available",
   "source": "Приложение 5 к Стандарту организации оказания медицинской помощи в стационарных условиях в РК (приказ МЗ РК от 24.03.2022 № ҚР-ДСМ-27, рег. № 27218), в редакции приказа МЗ РК от 17.02.2025 № 9. Пункт 33 Стандарта. Взрослые пациенты, оперативное лечение.",
   "scope": {
@@ -635,6 +635,83 @@
           "conditional": false,
           "validForDays": 90
         }
+      ]
+    },
+    {
+      "profile": "Офтальмологический",
+      "requirements": [
+        { "id": "cbc", "label": "Общий анализ крови (развернутый)", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "urinalysis", "label": "Общий анализ мочи", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "biochem", "label": "Биохимия крови: креатинин, общий белок, АЛТ, АСТ", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "biochem_extra", "label": "Мочевина, глюкоза", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "coagulogram", "label": "Коагулограмма", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "ecg", "label": "Электрокардиограмма (ЭКГ)", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "hiv", "label": "Анализ крови на ВИЧ-инфекцию", "required": true, "conditional": false, "validForDays": 180 },
+        { "id": "hepatitis", "label": "Кровь на маркеры гепатитов В и С (ИФА)", "required": true, "conditional": false, "validForDays": 180 },
+        { "id": "fluorography", "label": "Флюорография (пациентам с 15 лет)", "required": true, "conditional": false, "validForDays": 365 },
+        { "id": "microreaction", "label": "Микрореакция", "required": true, "conditional": false, "validForDays": 30 },
+        { "id": "therapist", "label": "Консультация терапевта", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "specialists", "label": "Консультации профильных специалистов (по показаниям, при сопутствующих заболеваниях)", "required": false, "conditional": true, "validForDays": 30 },
+        { "id": "fgds", "label": "Фиброгастродуоденоскопия (ФГДС), по показаниям", "required": false, "conditional": true, "validForDays": 30 },
+        { "id": "oph_conjunctival_culture", "label": "Бактериальный посев из конъюнктивальной полости глаза", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "oph_ent", "label": "Консультация отоларинголога", "required": true, "conditional": false, "validForDays": 90 },
+        { "id": "oph_dentist", "label": "Консультация стоматолога с заключением о санации ротовой полости", "required": true, "conditional": false, "validForDays": 90 },
+        { "id": "oph_lacrimal_lavage", "label": "Промывание слезных путей", "required": true, "conditional": false, "validForDays": 90 },
+        { "id": "oph_eye_ultrasound", "label": "Эхография и УЗИ глаза, расчёт интраокулярной линзы (ИОЛ), по показаниям", "required": false, "conditional": true, "validForDays": 90 },
+        { "id": "oph_ubm", "label": "Ультрабиомикроскопия (УБМ), по показаниям", "required": false, "conditional": true, "validForDays": 90 },
+        { "id": "oph_endothelial_microscopy", "label": "Эндотелиальная микроскопия, по показаниям", "required": false, "conditional": true, "validForDays": 90 },
+        { "id": "oph_cycloscopy", "label": "Циклоскопия, по показаниям", "required": false, "conditional": true, "validForDays": 90 },
+        { "id": "oph_visometry", "label": "Визометрия", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "oph_tonometry", "label": "Тонометрия", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "oph_autorefractometry", "label": "Авторефрактометрия", "required": true, "conditional": false, "validForDays": 90 },
+        { "id": "oph_electrophysiology", "label": "Электрофизиологические исследования, по показаниям", "required": false, "conditional": true, "validForDays": 90 },
+        { "id": "oph_perimetry", "label": "Периметрия, по показаниям", "required": false, "conditional": true, "validForDays": 90 },
+        { "id": "oph_oct", "label": "Оптическая когерентная томография зрительного нерва и сетчатки, по показаниям", "required": false, "conditional": true, "validForDays": 90 },
+        { "id": "oph_exophthalmometry", "label": "Экзофтальмометрия, по показаниям", "required": false, "conditional": true, "validForDays": 90 }
+      ]
+    },
+    {
+      "profile": "Сосудистая хирургия",
+      "requirements": [
+        { "id": "cbc", "label": "Общий анализ крови (развернутый)", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "urinalysis", "label": "Общий анализ мочи", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "biochem", "label": "Биохимия крови: креатинин, общий белок, АЛТ, АСТ", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "biochem_extra", "label": "Мочевина, глюкоза", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "coagulogram", "label": "Коагулограмма", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "ecg", "label": "Электрокардиограмма (ЭКГ)", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "hiv", "label": "Анализ крови на ВИЧ-инфекцию", "required": true, "conditional": false, "validForDays": 180 },
+        { "id": "hepatitis", "label": "Кровь на маркеры гепатитов В и С (ИФА)", "required": true, "conditional": false, "validForDays": 180 },
+        { "id": "fluorography", "label": "Флюорография (пациентам с 15 лет)", "required": true, "conditional": false, "validForDays": 365 },
+        { "id": "microreaction", "label": "Микрореакция", "required": true, "conditional": false, "validForDays": 30 },
+        { "id": "therapist", "label": "Консультация терапевта", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "specialists", "label": "Консультации профильных специалистов (по показаниям, при сопутствующих заболеваниях)", "required": false, "conditional": true, "validForDays": 30 },
+        { "id": "fgds", "label": "Фиброгастродуоденоскопия (ФГДС), по показаниям", "required": false, "conditional": true, "validForDays": 30 },
+        { "id": "vascular_usdg", "label": "УЗДГ поражённых сосудов", "required": true, "conditional": false, "validForDays": 30 },
+        { "id": "vascular_cta", "label": "КТ-ангиография соответствующего сосудистого бассейна, по показаниям", "required": false, "conditional": true, "validForDays": 180 },
+        { "id": "vascular_crp", "label": "С-реактивный белок, по показаниям", "required": false, "conditional": true, "validForDays": 14 },
+        { "id": "vascular_monitoring", "label": "Холтер или суточное мониторирование артериального давления при высоком риске", "required": false, "conditional": true, "validForDays": 30 },
+        { "id": "vascular_surgeon", "label": "Консультация ангиохирурга", "required": true, "conditional": false, "validForDays": 30 }
+      ]
+    },
+    {
+      "profile": "Онкологический и радиологический",
+      "requirements": [
+        { "id": "cbc", "label": "Общий анализ крови (развернутый)", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "urinalysis", "label": "Общий анализ мочи", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "biochem", "label": "Биохимия крови: креатинин, общий белок, АЛТ, АСТ", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "biochem_extra", "label": "Мочевина, глюкоза", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "coagulogram", "label": "Коагулограмма", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "ecg", "label": "Электрокардиограмма (ЭКГ)", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "hiv", "label": "Анализ крови на ВИЧ-инфекцию", "required": true, "conditional": false, "validForDays": 180 },
+        { "id": "hepatitis", "label": "Кровь на маркеры гепатитов В и С (ИФА)", "required": true, "conditional": false, "validForDays": 180 },
+        { "id": "fluorography", "label": "Флюорография (пациентам с 15 лет)", "required": true, "conditional": false, "validForDays": 365 },
+        { "id": "microreaction", "label": "Микрореакция", "required": true, "conditional": false, "validForDays": 30 },
+        { "id": "therapist", "label": "Консультация терапевта", "required": true, "conditional": false, "validForDays": 14 },
+        { "id": "specialists", "label": "Консультации профильных специалистов (по показаниям, при сопутствующих заболеваниях)", "required": false, "conditional": true, "validForDays": 30 },
+        { "id": "fgds", "label": "Фиброгастродуоденоскопия (ФГДС), по показаниям", "required": false, "conditional": true, "validForDays": 30 },
+        { "id": "onco_chest_xray", "label": "Рентгенография органов грудной клетки в двух проекциях для химиотерапевтического профиля", "required": false, "conditional": true, "validForDays": 90 },
+        { "id": "onco_chest_imaging", "label": "КТ или рентгенография органов грудной клетки в двух проекциях для хирургического и радиологического профилей", "required": false, "conditional": true, "validForDays": 30 },
+        { "id": "onco_echocg", "label": "ЭхоКГ для пациентов старше 50 лет", "required": false, "conditional": true, "validForDays": 30 }
       ]
     }
   ]

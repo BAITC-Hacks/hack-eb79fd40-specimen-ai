@@ -14,6 +14,7 @@ from sklearn.metrics import (  # type: ignore[import-untyped]
     average_precision_score,
     brier_score_loss,
     precision_recall_curve,
+    roc_auc_score,
 )
 from sklearn.pipeline import Pipeline  # type: ignore[import-untyped]
 from sklearn.preprocessing import OneHotEncoder  # type: ignore[import-untyped]
@@ -25,6 +26,9 @@ TRAIN_END: Final = pd.Timestamp("2025-02-01")
 VALIDATION_END: Final = pd.Timestamp("2025-03-01")
 TEST_END: Final = pd.Timestamp("2025-04-01")
 MISSING_VALUE: Final = "__MISSING__"
+DUPLICATE_POLICY: Final = (
+    "exclude_all_rows_for_repeated_hospitalization_code_before_temporal_split"
+)
 
 
 @dataclass(frozen=True)
@@ -134,6 +138,7 @@ def _outcome_summary(
 
 def build_cohort(frame: pd.DataFrame) -> RefusalCohort:
     required = {
+        "hospitalization_code",
         "registration_dt",
         "is_refused",
         "hospitalized",
@@ -144,8 +149,17 @@ def build_cohort(frame: pd.DataFrame) -> RefusalCohort:
         raise ValueError(f"missing_required_columns:{','.join(missing)}")
 
     data = frame.loc[
-        :, ["registration_dt", "is_refused", "hospitalized", *CATEGORICAL_FEATURES]
+        :,
+        [
+            "hospitalization_code",
+            "registration_dt",
+            "is_refused",
+            "hospitalized",
+            *CATEGORICAL_FEATURES,
+        ],
     ].copy()
+    if data["hospitalization_code"].isna().any():
+        raise ValueError("missing_hospitalization_code")
     data["registration_dt"] = pd.to_datetime(
         data["registration_dt"], errors="coerce", format="mixed"
     )
@@ -158,10 +172,46 @@ def build_cohort(frame: pd.DataFrame) -> RefusalCohort:
     if numeric_hospitalized.isna().any() or not numeric_hospitalized.isin((0, 1)).all():
         raise ValueError("invalid_hospitalized_flag")
 
-    refused = numeric_target.eq(1)
-    hospitalized = numeric_hospitalized.eq(1)
-    mature = refused ^ hospitalized
     data["is_refused"] = numeric_target.astype(np.int8)
+    data["hospitalized"] = numeric_hospitalized.astype(np.int8)
+
+    repeated = data["hospitalization_code"].duplicated(keep=False)
+    repeated_rows = data.loc[repeated]
+    repeated_codes = repeated_rows.groupby("hospitalization_code", sort=False)
+    duplicate_audit = {
+        "policy": DUPLICATE_POLICY,
+        "unique_hospitalization_codes": int(data["hospitalization_code"].nunique()),
+        "repeated_hospitalization_codes": int(
+            repeated_rows["hospitalization_code"].nunique()
+        ),
+        "rows_with_repeated_hospitalization_code": int(repeated.sum()),
+        "is_refused_conflicting_codes": int(
+            repeated_codes["is_refused"].nunique().gt(1).sum()
+        ),
+        "hospitalized_conflicting_codes": int(
+            repeated_codes["hospitalized"].nunique().gt(1).sum()
+        ),
+        "cross_month_codes": int(
+            repeated_rows.assign(
+                registration_month=repeated_rows["registration_dt"]
+                .dt.to_period("M")
+                .astype(str)
+            )
+            .groupby("hospitalization_code")["registration_month"]
+            .nunique()
+            .gt(1)
+            .sum()
+        ),
+        "selection_uses_target_or_timestamp": False,
+    }
+    if duplicate_audit["cross_month_codes"] != 0:
+        raise ValueError("duplicate_identifier_crosses_temporal_partition")
+    data = data.loc[~repeated].copy()
+    duplicate_audit["rows_after_policy"] = int(len(data))
+
+    refused = data["is_refused"].eq(1)
+    hospitalized = data["hospitalized"].eq(1)
+    mature = refused ^ hospitalized
     months = data["registration_dt"].dt.to_period("M").astype(str)
     by_month: dict[str, dict[str, int]] = {}
     for month in sorted(months.unique().tolist()):
@@ -177,8 +227,12 @@ def build_cohort(frame: pd.DataFrame) -> RefusalCohort:
     cohort.reset_index(drop=True, inplace=True)
     attrition: dict[str, object] = {
         **_outcome_summary(refused, hospitalized),
+        "source_rows_before_duplicate_policy": int(len(frame)),
+        "duplicate_audit": duplicate_audit,
         "by_month": by_month,
-        "policy": "exclude_censored_neither_and_conflicting_both",
+        "policy": (
+            f"{DUPLICATE_POLICY}_then_exclude_censored_neither_and_conflicting_both"
+        ),
     }
     return RefusalCohort(frame=cohort, attrition=attrition)
 
@@ -346,6 +400,8 @@ def classification_metrics(
     scores = np.asarray(probabilities, dtype=np.float64)
     if labels.shape != scores.shape or labels.size == 0:
         raise ValueError("invalid_metric_inputs")
+    if not np.array_equal(np.unique(labels), np.array([0, 1], dtype=np.int8)):
+        raise ValueError("metrics_require_both_classes")
     if not np.isfinite(scores).all() or ((scores < 0) | (scores > 1)).any():
         raise ValueError("invalid_probabilities")
     predicted = scores >= threshold
@@ -361,6 +417,7 @@ def classification_metrics(
         "positives": actual_positive,
         "prevalence": round(float(labels.mean()), 8),
         "pr_auc": round(float(average_precision_score(labels, scores)), 8),
+        "roc_auc": round(float(roc_auc_score(labels, scores)), 8),
         "brier": round(float(brier_score_loss(labels, scores)), 8),
         "threshold": float(threshold),
         "predicted_positive": predicted_positive,

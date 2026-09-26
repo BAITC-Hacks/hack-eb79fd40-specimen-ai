@@ -34,3 +34,6 @@ tsconfig.tsbuildinfo
 # Sanitized runtime smoke artifacts
 reports/live-e2e/demeu-smoke-*.json
 reports/live-e2e/prod-s1-*-once.json
+
+# Resumable offline benchmark state; only versioned final results are committed
+eval/redflags/*-checkpoint.json

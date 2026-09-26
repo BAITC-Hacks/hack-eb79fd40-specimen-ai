@@ -41,6 +41,11 @@ from .refusal_pipeline import (
 
 LOGISTIC_C_VALUES = (0.1, 1.0, 10.0)
 FREQUENCY_SMOOTHING_CANDIDATES = (1.0, 5.0, 10.0, 20.0, 50.0, 100.0, 200.0)
+FINAL_CANDIDATE_ORDER = (
+    "constant_baseline",
+    "smoothed_pair_baseline",
+    "one_hot_logistic_regression",
+)
 
 
 def validate_model_output(path: Path) -> Path:
@@ -198,6 +203,47 @@ def _choose_frequency_baseline(
     return fitted[chosen_index], specification, candidates
 
 
+def _choose_final_candidate(
+    validation_constant: dict[str, Any],
+    selected_frequency: dict[str, float],
+    frequency_candidates: list[dict[str, Any]],
+    selected_model: dict[str, float],
+    model_candidates: list[dict[str, Any]],
+) -> dict[str, Any]:
+    pair_validation = next(
+        candidate["validation"]["metrics"]
+        for candidate in frequency_candidates
+        if candidate["smoothing_strength"]
+        == selected_frequency["smoothing_strength"]
+    )
+    model_validation = next(
+        candidate["validation"]["metrics"]
+        for candidate in model_candidates
+        if candidate["c"] == selected_model["c"]
+    )
+    validation_metrics = {
+        "constant_baseline": validation_constant["metrics"],
+        "smoothed_pair_baseline": pair_validation,
+        "one_hot_logistic_regression": model_validation,
+    }
+    selected = max(
+        FINAL_CANDIDATE_ORDER,
+        key=lambda candidate: (
+            validation_metrics[candidate]["pr_auc"],
+            -validation_metrics[candidate]["brier"],
+            -FINAL_CANDIDATE_ORDER.index(candidate),
+        ),
+    )
+    return {
+        "candidates": list(FINAL_CANDIDATE_ORDER),
+        "primary_metric": "validation_pr_auc",
+        "tie_breaker": "validation_brier_then_fixed_method_order",
+        "fixed_method_order": list(FINAL_CANDIDATE_ORDER),
+        "selected": selected,
+        "test_used": False,
+    }
+
+
 def train_and_report(input_path: Path, model_output: Path) -> dict[str, Any]:
     model_output = validate_model_output(model_output)
     audit = audit_parquet(input_path)
@@ -216,6 +262,13 @@ def train_and_report(input_path: Path, model_output: Path) -> dict[str, Any]:
     )
     selected_model, selected_specification, model_candidates = _choose_model(
         partitions
+    )
+    final_selection = _choose_final_candidate(
+        validation_constant,
+        selected_frequency,
+        frequency_candidates,
+        selected_specification,
+        model_candidates,
     )
 
     constant_test_probabilities = constant_predictions(partitions.train, partitions.test)
@@ -236,13 +289,6 @@ def train_and_report(input_path: Path, model_output: Path) -> dict[str, Any]:
         partitions.test,
         model_test_probabilities,
         float(selected_specification["threshold"]),
-    )
-
-    model_pr_auc = float(test_model["metrics"]["pr_auc"])
-    pair_pr_auc = float(test_pair["metrics"]["pr_auc"])
-    model_beats_pair = model_pr_auc > pair_pr_auc
-    recommended = (
-        "one_hot_logistic_regression" if model_beats_pair else "smoothed_pair_baseline"
     )
 
     package_versions = {
@@ -285,7 +331,8 @@ def train_and_report(input_path: Path, model_output: Path) -> dict[str, Any]:
             "test": {
                 **_split_summary(partitions.test, "2025-03"),
                 "used_for_selection": False,
-                "evaluated_after_selection": True,
+                "evaluated_once_after_selection": True,
+                "evaluation_role": "descriptive_held_out_benchmark",
                 "previously_examined_in_source_handoff": True,
             },
         },
@@ -309,6 +356,7 @@ def train_and_report(input_path: Path, model_output: Path) -> dict[str, Any]:
             },
             "model_candidates": model_candidates,
             "selected_model": selected_specification,
+            "final_comparator_selection": final_selection,
         },
         "test": {
             "constant_baseline": test_constant,
@@ -316,10 +364,13 @@ def train_and_report(input_path: Path, model_output: Path) -> dict[str, Any]:
             "one_hot_logistic_regression": test_model,
         },
         "decision": {
-            "rule": "model_test_pr_auc_must_strictly_exceed_pair_baseline",
-            "model_pr_auc_minus_pair": round(model_pr_auc - pair_pr_auc, 8),
-            "model_beats_pair_baseline": model_beats_pair,
-            "recommended_candidate_for_future_runtime": recommended,
+            "rule": "select_family_on_february_validation_before_march_evaluation",
+            "selected_candidate": final_selection["selected"],
+            "selection_period": "2025-02",
+            "march_test_used_for_selection": False,
+            "march_evaluation_role": (
+                "descriptive_held_out_benchmark_previously_examined_in_handoff"
+            ),
             "runtime_changed_by_this_task": False,
         },
         "presentation_contract": {

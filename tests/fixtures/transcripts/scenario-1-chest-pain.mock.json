@@ -7,7 +7,7 @@
     "title": "Мужчина 58 лет, боль в груди и одышка"
   },
   "completed_via": "chat",
-  "session_id": "55dc8614-9503-4b33-9a50-c2c70f2ea461",
+  "session_id": "1b882a03-9f3c-463a-b3e5-43f80b6355e1",
   "health": {
     "ok": true,
     "commit": "unknown",
@@ -20,6 +20,10 @@
       "status": 200
     },
     {
+      "path": "/api/workspace/auth",
+      "status": 200
+    },
+    {
       "path": "/api/link",
       "status": 200
     },
@@ -29,6 +33,10 @@
     },
     {
       "path": "/api/chat",
+      "status": 200
+    },
+    {
+      "path": "/api/workspace/intakes/1b882a03-9f3c-463a-b3e5-43f80b6355e1",
       "status": 200
     }
   ],
@@ -43,9 +51,13 @@
     },
     {
       "role": "assistant",
-      "content": "Пожалуйста, немедленно позвоните 103 или обратитесь в приёмный покой.\nСохраняйте спокойствие: данные уже переданы врачу."
+      "content": "Сейчас лучше не ждать приёма. Позвоните 103 или обратитесь в приёмный покой. Ваши ответы переданы врачу."
     }
   ],
+  "closing": {
+    "emergency": true,
+    "text": "Спасибо. Ваши ответы переданы врачу. Дальнейшие шаги врач обсудит с вами отдельно."
+  },
   "result": {
     "anamnesis": {
       "chief_complaint": "давящая боль в груди и одышка в покое",
@@ -63,19 +75,19 @@
       "chronic": [],
       "allergies": [],
       "medications": [],
-      "context": {
-        "age": 58,
-        "sex": "m",
-        "pregnancy": "na",
-        "risk_factors": []
-      },
       "history_status": {
         "past_history": "not_stated",
         "chronic": "not_stated",
         "allergies": "not_stated",
         "medications": "not_stated"
       },
-      "negative_findings": []
+      "negative_findings": [],
+      "context": {
+        "age": 58,
+        "sex": "m",
+        "pregnancy": "na",
+        "risk_factors": []
+      }
     },
     "red_flags": [
       {
@@ -99,8 +111,8 @@
     "urgency_reasons": [
       "красный флаг: Боль в груди с одышкой — цитата пациента: «боль в груди»",
       "красный флаг: Одышка в покое — цитата пациента: «одышка в покое»",
-      "Модель воздержалась от ранжирования.",
-      "Срочность уточняется моделью и правилами."
+      "Неотложный приоритет установлен правилами безопасности.",
+      "Модель воздержалась от ранжирования."
     ],
     "routing": [
       {
@@ -120,6 +132,7 @@
       "model_version": "lr-v1",
       "abstain_reason": "low_confidence"
     },
-    "source": "llm_fallback"
+    "source": "llm_fallback",
+    "processing_mode": "external_llm"
   }
 }

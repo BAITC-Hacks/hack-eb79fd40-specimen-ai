@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 import { handleFinalize } from "../../app/api/chat/finalize/handler";
-import { finalizeSession } from "../../lib/finalize";
+import { finalizeSession, NothingToAnalyzeError } from "../../lib/finalize";
 import { MemorySessionStore } from "../../lib/store";
 import type { TriageResult } from "../../lib/types";
 
@@ -48,6 +48,33 @@ function request(sessionId: string) {
 }
 
 describe("finalizeSession", () => {
+  it("does not analyze or notify for an empty session", async () => {
+    const sessionStore = new MemorySessionStore();
+    const token = await sessionStore.createDoctorToken();
+    const session = await sessionStore.createSession(token);
+    const analyze = vi.fn(async () => Promise.resolve(RESULT));
+    const sendDoctorSummary = vi.fn(async () => undefined);
+    const schedule = vi.fn((work: () => Promise<void>) => void work());
+
+    await expect(
+      finalizeSession(session.id, {
+        sessionStore,
+        analyze,
+        doctorSummary: { sendDoctorSummary },
+        schedule,
+      }),
+    ).rejects.toBeInstanceOf(NothingToAnalyzeError);
+
+    expect(analyze).not.toHaveBeenCalled();
+    expect(schedule).not.toHaveBeenCalled();
+    expect(sendDoctorSummary).not.toHaveBeenCalled();
+    await expect(sessionStore.getSession(session.id)).resolves.toMatchObject({
+      status: "collecting",
+      turnCount: 0,
+      deliveryStatus: "pending",
+    });
+  });
+
   it("returns the stored result on repeat without invoking analysis again", async () => {
     const sessionStore = new MemorySessionStore();
     const token = await sessionStore.createDoctorToken();

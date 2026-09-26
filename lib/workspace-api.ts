@@ -1,5 +1,5 @@
 import { isReferralError, type ReferralService } from "./referrals/service";
-import type { CreateReferralInput, RecordExaminationInput, ReferralSourceSession, UpdateReferralInput } from "./referrals/types";
+import type { CreateReferralInput, RecordExaminationInput, ReferralJourneyFlow, ReferralSourceSession, UpdateReferralInput } from "./referrals/types";
 import { linkClientKey, linkRateLimiter, type LinkRateLimiter } from "./rate-limit";
 import { store, type SessionStore } from "./store";
 import type { ReadonlySession } from "./types";
@@ -66,6 +66,7 @@ const messages: Record<string, string> = {
   REVISION_CONFLICT: "Запись изменилась, обновите карточку",
   IDEMPOTENCY_CONFLICT: "Запрос уже использован для другого изменения",
   SOURCE_SESSION_NOT_COMPLETED: "Опрос ещё не завершён",
+  REFERRAL_CANCELLED: "Сначала явно возобновите отменённое направление и укажите причину",
   DELIVERY_UNCONFIRMED: "Доставка не подтверждена. Проверьте сообщения у врача перед повторной отправкой",
   DELIVERY_RECIPIENT_UNAVAILABLE: "Получатель не настроен или больше не имеет доступа",
   BODY_TOO_LARGE: "Запрос слишком большой",
@@ -102,7 +103,14 @@ export function handleReferrals(req: Request, deps: WorkspaceApiDeps = {}): Prom
     const actor = await authorized(req, deps);
     writer(actor);
     const referrals = service(deps);
-    if (req.method === "GET") return json({ referrals: await referrals.list(actor) });
+    if (req.method === "GET") {
+      const parameters = new URL(req.url).searchParams;
+      if ([...parameters.keys()].some((key) => key !== "state" && key !== "profile")
+        || parameters.getAll("state").length > 1 || parameters.getAll("profile").length > 1) failure(400, "BAD_REQUEST");
+      const state = parameters.get("state")?.trim() || undefined;
+      const profile = parameters.get("profile")?.trim() || undefined;
+      return json({ referrals: await referrals.list(actor, { state: state as ReferralJourneyFlow | undefined, profile }) });
+    }
     method(req, "POST");
     const input = await body(req, ["patientLabel", "profile", "icd10Code", "destinationOrganization", "sourceSessionId", "idempotencyKey"]);
     // A completed create command remains replayable after its source intake TTL.
@@ -125,7 +133,16 @@ export function handleReferral(req: Request, id: string, deps: WorkspaceApiDeps 
     const actor = await authorized(req, deps);
     writer(actor);
     method(req, "GET");
-    return json({ referral: await service(deps).detail(actor, id) });
+    const referrals = service(deps);
+    const referral = await referrals.detail(actor, id);
+    let intake = null;
+    if (referral.sourceSessionId) {
+      const source = await sessions(deps).getSession(referral.sourceSessionId);
+      if (source && visibleOwner(await referrals.ownerForToken(source.doctorToken), actor)) {
+        intake = { sessionId: source.id, createdAt: source.createdAt, status: source.status, deliveryStatus: source.deliveryStatus };
+      }
+    }
+    return json({ referral: { ...referral, intake } });
   });
 }
 

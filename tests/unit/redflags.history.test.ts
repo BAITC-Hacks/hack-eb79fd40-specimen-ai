@@ -61,8 +61,8 @@ describe("явно завершённая давняя боль в груди", 
 
   it("не гасит другой симптом в том же сообщении", () => {
     const flags = detectRedFlags([{ role: "user", content: `${history}. Сейчас одышка в покое.` }]);
-    expect(flags.map((flag) => flag.code)).toEqual(["chest_pain", "dyspnea_rest"]);
-    expect(flags[1].evidence).toBe("одышка в покое");
+    expect(flags.map((flag) => flag.code)).toEqual(["dyspnea_rest"]);
+    expect(flags[0].evidence).toBe("одышка в покое");
   });
 
   it("новое сообщение сохраняет прежний флаг при неоднозначной истории", () => {
@@ -121,7 +121,7 @@ describe("явно завершённая давняя боль в груди", 
       model: fakeModel(modelCalls, "success"),
     });
     expect(result.source).toBe("rules_only");
-    expect(result.red_flags.map((flag) => flag.code)).toEqual(current ? ["chest_pain", "dyspnea_rest"] : []);
+    expect(result.red_flags.map((flag) => flag.code)).toEqual(current ? ["dyspnea_rest"] : []);
     expect(result.urgency === "emergency").toBe(current);
     expect(modelCalls.calls).toBe(0);
     expect(result.model).toBeUndefined();

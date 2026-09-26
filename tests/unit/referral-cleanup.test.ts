@@ -21,14 +21,15 @@ const facts: ReferralFacts = {
   queue: null, scheduledDate: null, attendance: null, cancelled: false,
 };
 
-function referral(id: string): Referral {
+function referral(id: string, profile = "Хирургический"): Referral {
+  const referralFacts = { ...facts, profile };
   return {
     id, organizationId: "demeu-team", doctorId: "doctor", patientLabel: `Эпизод ${id}`,
-    sourceSessionId: null, triageSnapshot: null, ...facts,
+    sourceSessionId: null, triageSnapshot: null, ...referralFacts,
     createdAt: 1, updatedAt: 1, revision: 1, examinations: [],
     events: [{ id: `event-${id}`, type: "created", actorId: "doctor", actorName: "Врач",
       source: "doctor_confirmation", occurredAt: null, recordedAt: 1, reason: null,
-      before: null, after: facts, revision: 1 }],
+      before: null, after: referralFacts, revision: 1 }],
   };
 }
 
@@ -57,6 +58,122 @@ describe("referral installation-check cleanup", () => {
     const second = cleanupInstallationCheck(first.snapshot);
     expect(second).toMatchObject({ changed: false, removedReferrals: 0, removedCommands: 0 });
     expect(second.snapshot).toEqual(first.snapshot);
+  });
+
+  it("normalizes only known case-only legacy profiles across the record audit chain", () => {
+    const legacy = referral("legacy", "хирургический");
+    legacy.requirementSnapshot = {
+      schemaVersion: 1,
+      version: "legacy-snapshot",
+      status: "unavailable",
+      source: null,
+      scope: null,
+      validated: false,
+      profiles: [{ profile: "хирургический", requirements: [] }],
+    };
+    const originalFacts = structuredClone(legacy.events[0].after as ReferralFacts);
+    const updatedFacts = { ...originalFacts, destinationOrganization: "Клиника" };
+    legacy.destinationOrganization = "Клиника";
+    legacy.revision = 2;
+    legacy.updatedAt = 2;
+    legacy.events.push({
+      id: "event-legacy-update",
+      type: "facts_changed",
+      actorId: "doctor",
+      actorName: "Врач",
+      source: "doctor_confirmation",
+      occurredAt: null,
+      recordedAt: 2,
+      reason: null,
+      before: originalFacts,
+      after: updatedFacts,
+      revision: 2,
+    });
+    const ambiguous = referral("ambiguous", "терапия");
+    const unknown = referral("unknown", "  Особый профиль  ");
+    const untouched = referral("untouched", "Урологический");
+    const input: ReferralDatabase = {
+      schemaVersion: 2,
+      referrals: [legacy, ambiguous, unknown, untouched],
+      links: [],
+      commands: [
+        { actorId: "doctor", organizationId: "demeu-team", key: "keep", payload: "{\"profile\":\"хирургический\"}", referralId: legacy.id },
+      ],
+    };
+
+    const result = cleanupInstallationCheck(input);
+
+    expect(result).toMatchObject({
+      changed: true,
+      removedReferrals: 0,
+      removedCommands: 0,
+      normalizedProfiles: 2,
+    });
+    expect(result.snapshot.referrals.find((entry) => entry.id === legacy.id)).toMatchObject({
+      profile: "Хирургический",
+      requirementSnapshot: { profiles: [{ profile: "Хирургический" }] },
+      events: [
+        { after: { profile: "Хирургический" } },
+        {
+          before: { profile: "Хирургический" },
+          after: { profile: "Хирургический" },
+        },
+      ],
+    });
+    expect(result.snapshot.referrals.find((entry) => entry.id === ambiguous.id)).toMatchObject({
+      profile: "Терапия",
+      events: [{ after: { profile: "Терапия" } }],
+    });
+    expect(result.snapshot.referrals.find((entry) => entry.id === unknown.id)).toEqual(unknown);
+    expect(result.snapshot.referrals.find((entry) => entry.id === untouched.id)).toEqual(untouched);
+    expect(result.snapshot.commands).toEqual(input.commands);
+
+    const replay = cleanupInstallationCheck(result.snapshot);
+    expect(replay).toMatchObject({ changed: false, normalizedProfiles: 0 });
+    expect(replay.snapshot).toEqual(result.snapshot);
+  });
+
+  it("normalizes historical facts even when the current profile is already canonical", () => {
+    const record = referral("history", "Хирургический");
+    const historical = { ...(record.events[0].after as ReferralFacts), profile: "хирургический" };
+    const current = { ...(record.events[0].after as ReferralFacts), profile: "Хирургический" };
+    record.events[0].after = historical;
+    record.events.push({
+      id: "event-history-update",
+      type: "facts_changed",
+      actorId: "doctor",
+      actorName: "Врач",
+      source: "doctor_confirmation",
+      occurredAt: null,
+      recordedAt: 2,
+      reason: "Исправление регистра",
+      before: historical,
+      after: current,
+      revision: 2,
+    });
+    record.revision = 2;
+    record.updatedAt = 2;
+    const input: ReferralDatabase = {
+      schemaVersion: 2,
+      referrals: [record],
+      links: [],
+      commands: [],
+    };
+
+    const result = cleanupInstallationCheck(input);
+
+    expect(result).toMatchObject({ changed: true, normalizedProfiles: 1 });
+    expect(result.snapshot.referrals[0].events).toMatchObject([
+      { after: { profile: "Хирургический" } },
+      {
+        before: { profile: "Хирургический" },
+        after: { profile: "Хирургический" },
+      },
+    ]);
+    expect(cleanupInstallationCheck(result.snapshot)).toMatchObject({
+      changed: false,
+      normalizedProfiles: 0,
+    });
   });
 
   it("fails closed before cleanup when the input snapshot is invalid", () => {
@@ -107,7 +224,7 @@ describe("referral installation-check cleanup", () => {
     const output = join(directory, "candidate.json");
     const interrupted: AtomicFileOperations = {
       lstat: (path) => filesystem.lstat(path),
-      rename: (from, to) => filesystem.rename(from, to),
+      link: (from, to) => filesystem.link(from, to),
       unlink: (path) => filesystem.unlink(path),
       open: async (path, flags, mode) => {
         const handle = await filesystem.open(path, flags, mode);
@@ -127,12 +244,12 @@ describe("referral installation-check cleanup", () => {
     expect(await readdir(directory)).toEqual([]);
   });
 
-  it("removes the renamed candidate when the directory durability step fails", async () => {
+  it("removes the published candidate when the directory durability step fails", async () => {
     const directory = await mkdtemp(join(tmpdir(), "demeu-referral-cleanup-sync-"));
     const output = join(directory, "candidate.json");
     const failedDirectorySync: AtomicFileOperations = {
       lstat: (path) => filesystem.lstat(path),
-      rename: (from, to) => filesystem.rename(from, to),
+      link: (from, to) => filesystem.link(from, to),
       unlink: (path) => filesystem.unlink(path),
       open: async (path, flags, mode) => {
         const handle = await filesystem.open(path, flags, mode);
@@ -147,5 +264,24 @@ describe("referral installation-check cleanup", () => {
 
     await expect(writeProtected(output, Buffer.from("complete candidate"), failedDirectorySync)).rejects.toThrow("directory sync");
     expect(await readdir(directory)).toEqual([]);
+  });
+
+  it("never replaces a candidate created after the existence preflight", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "demeu-referral-cleanup-race-"));
+    const output = join(directory, "candidate.json");
+    const raced: AtomicFileOperations = {
+      lstat: async () => { throw Object.assign(new Error("missing"), { code: "ENOENT" }); },
+      link: async (from, to) => {
+        await writeFile(to, "created concurrently", { flag: "wx", mode: 0o600 });
+        await filesystem.link(from, to);
+      },
+      unlink: (path) => filesystem.unlink(path),
+      open: (path, flags, mode) => filesystem.open(path, flags, mode),
+    };
+
+    await expect(writeProtected(output, Buffer.from("replacement"), raced))
+      .rejects.toMatchObject({ code: "EEXIST" });
+    expect(await readFile(output, "utf8")).toBe("created concurrently");
+    expect((await readdir(directory)).filter((name) => name.endsWith(".tmp"))).toEqual([]);
   });
 });

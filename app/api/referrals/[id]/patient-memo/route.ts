@@ -1,13 +1,17 @@
-import { handlePatientMemo } from "@/lib/workspace-api";
-import { renderPatientMemoPdf } from "@/lib/patient-memo";
-import type { PatientMemo } from "@/lib/referrals/types";
+import { handleReferral } from "@/lib/workspace-api";
+import { patientMemoFromReferral, renderPatientMemoPdf } from "@/lib/patient-memo";
+import type { ReferralDetail } from "@/lib/referrals/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
-  const response = await handlePatientMemo(req, (await context.params).id);
-  if (!response.ok || new URL(req.url).searchParams.get("format") !== "pdf") return response;
+  const response = await handleReferral(req, (await context.params).id);
+  if (!response.ok) return response;
   try {
-    const { memo } = await response.json() as { memo: PatientMemo };
+    const { referral } = await response.json() as { referral: ReferralDetail };
+    const memo = patientMemoFromReferral(referral);
+    if (new URL(req.url).searchParams.get("format") !== "pdf") {
+      return Response.json({ memo }, { headers: { "Cache-Control": "no-store" } });
+    }
     const pdf = await renderPatientMemoPdf(memo);
     return new Response(Uint8Array.from(pdf).buffer, { headers: {
       "Content-Type": "application/pdf", "Content-Disposition": 'attachment; filename="demeu-patient-memo.pdf"',

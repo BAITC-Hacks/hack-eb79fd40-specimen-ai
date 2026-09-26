@@ -1,0 +1,679 @@
+{
+  "candidate": "qwen2.5:7b",
+  "batch_size": 10,
+  "predictions": [
+    {
+      "id": "rf-001",
+      "emergency": true
+    },
+    {
+      "id": "rf-002",
+      "emergency": false
+    },
+    {
+      "id": "rf-003",
+      "emergency": false
+    },
+    {
+      "id": "rf-004",
+      "emergency": false
+    },
+    {
+      "id": "rf-005",
+      "emergency": false
+    },
+    {
+      "id": "rf-006",
+      "emergency": true
+    },
+    {
+      "id": "rf-007",
+      "emergency": false
+    },
+    {
+      "id": "rf-008",
+      "emergency": false
+    },
+    {
+      "id": "rf-009",
+      "emergency": false
+    },
+    {
+      "id": "rf-010",
+      "emergency": false
+    },
+    {
+      "id": "rf-011",
+      "emergency": false
+    },
+    {
+      "id": "rf-012",
+      "emergency": false
+    },
+    {
+      "id": "rf-013",
+      "emergency": false
+    },
+    {
+      "id": "rf-014",
+      "emergency": false
+    },
+    {
+      "id": "rf-015",
+      "emergency": false
+    },
+    {
+      "id": "rf-016",
+      "emergency": false
+    },
+    {
+      "id": "rf-017",
+      "emergency": false
+    },
+    {
+      "id": "rf-018",
+      "emergency": false
+    },
+    {
+      "id": "rf-019",
+      "emergency": false
+    },
+    {
+      "id": "rf-020",
+      "emergency": false
+    },
+    {
+      "id": "rf-021",
+      "emergency": false
+    },
+    {
+      "id": "rf-022",
+      "emergency": false
+    },
+    {
+      "id": "rf-023",
+      "emergency": true
+    },
+    {
+      "id": "rf-024",
+      "emergency": true
+    },
+    {
+      "id": "rf-025",
+      "emergency": true
+    },
+    {
+      "id": "rf-026",
+      "emergency": false
+    },
+    {
+      "id": "rf-027",
+      "emergency": false
+    },
+    {
+      "id": "rf-028",
+      "emergency": true
+    },
+    {
+      "id": "rf-029",
+      "emergency": false
+    },
+    {
+      "id": "rf-030",
+      "emergency": false
+    },
+    {
+      "id": "rf-031",
+      "emergency": false
+    },
+    {
+      "id": "rf-032",
+      "emergency": false
+    },
+    {
+      "id": "rf-033",
+      "emergency": false
+    },
+    {
+      "id": "rf-034",
+      "emergency": false
+    },
+    {
+      "id": "rf-035",
+      "emergency": false
+    },
+    {
+      "id": "rf-036",
+      "emergency": false
+    },
+    {
+      "id": "rf-037",
+      "emergency": false
+    },
+    {
+      "id": "rf-038",
+      "emergency": false
+    },
+    {
+      "id": "rf-039",
+      "emergency": false
+    },
+    {
+      "id": "rf-040",
+      "emergency": false
+    },
+    {
+      "id": "rf-041",
+      "emergency": true
+    },
+    {
+      "id": "rf-042",
+      "emergency": false
+    },
+    {
+      "id": "rf-043",
+      "emergency": false
+    },
+    {
+      "id": "rf-044",
+      "emergency": false
+    },
+    {
+      "id": "rf-045",
+      "emergency": false
+    },
+    {
+      "id": "rf-046",
+      "emergency": true
+    },
+    {
+      "id": "rf-047",
+      "emergency": false
+    },
+    {
+      "id": "rf-048",
+      "emergency": false
+    },
+    {
+      "id": "rf-049",
+      "emergency": false
+    },
+    {
+      "id": "rf-050",
+      "emergency": false
+    },
+    {
+      "id": "rf-051",
+      "emergency": false
+    },
+    {
+      "id": "rf-052",
+      "emergency": false
+    },
+    {
+      "id": "rf-053",
+      "emergency": false
+    },
+    {
+      "id": "rf-054",
+      "emergency": false
+    },
+    {
+      "id": "rf-055",
+      "emergency": false
+    },
+    {
+      "id": "rf-056",
+      "emergency": false
+    },
+    {
+      "id": "rf-057",
+      "emergency": false
+    },
+    {
+      "id": "rf-058",
+      "emergency": false
+    },
+    {
+      "id": "rf-059",
+      "emergency": false
+    },
+    {
+      "id": "rf-060",
+      "emergency": false
+    },
+    {
+      "id": "rf-061",
+      "emergency": true
+    },
+    {
+      "id": "rf-062",
+      "emergency": true
+    },
+    {
+      "id": "rf-063",
+      "emergency": true
+    },
+    {
+      "id": "rf-064",
+      "emergency": false
+    },
+    {
+      "id": "rf-065",
+      "emergency": false
+    },
+    {
+      "id": "rf-066",
+      "emergency": true
+    },
+    {
+      "id": "rf-067",
+      "emergency": false
+    },
+    {
+      "id": "rf-068",
+      "emergency": false
+    },
+    {
+      "id": "rf-069",
+      "emergency": true
+    },
+    {
+      "id": "rf-070",
+      "emergency": true
+    },
+    {
+      "id": "rf-071",
+      "emergency": false
+    },
+    {
+      "id": "rf-072",
+      "emergency": false
+    },
+    {
+      "id": "rf-073",
+      "emergency": false
+    },
+    {
+      "id": "rf-074",
+      "emergency": false
+    },
+    {
+      "id": "rf-075",
+      "emergency": false
+    },
+    {
+      "id": "rf-076",
+      "emergency": false
+    },
+    {
+      "id": "rf-077",
+      "emergency": false
+    },
+    {
+      "id": "rf-078",
+      "emergency": false
+    },
+    {
+      "id": "rf-079",
+      "emergency": false
+    },
+    {
+      "id": "rf-080",
+      "emergency": false
+    },
+    {
+      "id": "rf-081",
+      "emergency": true
+    },
+    {
+      "id": "rf-082",
+      "emergency": true
+    },
+    {
+      "id": "rf-083",
+      "emergency": false
+    },
+    {
+      "id": "rf-084",
+      "emergency": false
+    },
+    {
+      "id": "rf-085",
+      "emergency": false
+    },
+    {
+      "id": "rf-086",
+      "emergency": false
+    },
+    {
+      "id": "rf-087",
+      "emergency": false
+    },
+    {
+      "id": "rf-088",
+      "emergency": true
+    },
+    {
+      "id": "rf-089",
+      "emergency": false
+    },
+    {
+      "id": "rf-090",
+      "emergency": false
+    },
+    {
+      "id": "rf-091",
+      "emergency": false
+    },
+    {
+      "id": "rf-092",
+      "emergency": false
+    },
+    {
+      "id": "rf-093",
+      "emergency": false
+    },
+    {
+      "id": "rf-094",
+      "emergency": true
+    },
+    {
+      "id": "rf-095",
+      "emergency": false
+    },
+    {
+      "id": "rf-096",
+      "emergency": false
+    },
+    {
+      "id": "rf-097",
+      "emergency": false
+    },
+    {
+      "id": "rf-098",
+      "emergency": false
+    },
+    {
+      "id": "rf-099",
+      "emergency": false
+    },
+    {
+      "id": "rf-100",
+      "emergency": false
+    },
+    {
+      "id": "rf-101",
+      "emergency": true
+    },
+    {
+      "id": "rf-102",
+      "emergency": true
+    },
+    {
+      "id": "rf-103",
+      "emergency": true
+    },
+    {
+      "id": "rf-104",
+      "emergency": true
+    },
+    {
+      "id": "rf-105",
+      "emergency": false
+    },
+    {
+      "id": "rf-106",
+      "emergency": false
+    },
+    {
+      "id": "rf-107",
+      "emergency": false
+    },
+    {
+      "id": "rf-108",
+      "emergency": false
+    },
+    {
+      "id": "rf-109",
+      "emergency": false
+    },
+    {
+      "id": "rf-110",
+      "emergency": false
+    },
+    {
+      "id": "rf-111",
+      "emergency": false
+    },
+    {
+      "id": "rf-112",
+      "emergency": false
+    },
+    {
+      "id": "rf-113",
+      "emergency": false
+    },
+    {
+      "id": "rf-114",
+      "emergency": false
+    },
+    {
+      "id": "rf-115",
+      "emergency": false
+    },
+    {
+      "id": "rf-116",
+      "emergency": false
+    },
+    {
+      "id": "rf-117",
+      "emergency": false
+    },
+    {
+      "id": "rf-118",
+      "emergency": false
+    },
+    {
+      "id": "rf-119",
+      "emergency": false
+    },
+    {
+      "id": "rf-120",
+      "emergency": false
+    },
+    {
+      "id": "rf-121",
+      "emergency": true
+    },
+    {
+      "id": "rf-122",
+      "emergency": true
+    },
+    {
+      "id": "rf-123",
+      "emergency": true
+    },
+    {
+      "id": "rf-124",
+      "emergency": true
+    },
+    {
+      "id": "rf-125",
+      "emergency": false
+    },
+    {
+      "id": "rf-126",
+      "emergency": true
+    },
+    {
+      "id": "rf-127",
+      "emergency": false
+    },
+    {
+      "id": "rf-128",
+      "emergency": true
+    },
+    {
+      "id": "rf-129",
+      "emergency": false
+    },
+    {
+      "id": "rf-130",
+      "emergency": false
+    },
+    {
+      "id": "rf-131",
+      "emergency": false
+    },
+    {
+      "id": "rf-132",
+      "emergency": false
+    },
+    {
+      "id": "rf-133",
+      "emergency": false
+    },
+    {
+      "id": "rf-134",
+      "emergency": false
+    },
+    {
+      "id": "rf-135",
+      "emergency": false
+    },
+    {
+      "id": "rf-136",
+      "emergency": false
+    },
+    {
+      "id": "rf-137",
+      "emergency": false
+    },
+    {
+      "id": "rf-138",
+      "emergency": false
+    },
+    {
+      "id": "rf-139",
+      "emergency": false
+    },
+    {
+      "id": "rf-140",
+      "emergency": false
+    },
+    {
+      "id": "rf-141",
+      "emergency": false
+    },
+    {
+      "id": "rf-142",
+      "emergency": true
+    },
+    {
+      "id": "rf-143",
+      "emergency": true
+    },
+    {
+      "id": "rf-144",
+      "emergency": false
+    },
+    {
+      "id": "rf-145",
+      "emergency": true
+    },
+    {
+      "id": "rf-146",
+      "emergency": false
+    },
+    {
+      "id": "rf-147",
+      "emergency": false
+    },
+    {
+      "id": "rf-148",
+      "emergency": true
+    },
+    {
+      "id": "rf-149",
+      "emergency": false
+    },
+    {
+      "id": "rf-150",
+      "emergency": false
+    },
+    {
+      "id": "rf-151",
+      "emergency": false
+    },
+    {
+      "id": "rf-152",
+      "emergency": false
+    },
+    {
+      "id": "rf-153",
+      "emergency": false
+    },
+    {
+      "id": "rf-154",
+      "emergency": false
+    },
+    {
+      "id": "rf-155",
+      "emergency": false
+    },
+    {
+      "id": "rf-156",
+      "emergency": false
+    },
+    {
+      "id": "rf-157",
+      "emergency": false
+    },
+    {
+      "id": "rf-158",
+      "emergency": false
+    },
+    {
+      "id": "rf-159",
+      "emergency": false
+    },
+    {
+      "id": "rf-160",
+      "emergency": false
+    }
+  ],
+  "engine_latency_ms_by_batch": [
+    51606.976029,
+    37499.966323,
+    22914.398517,
+    39147.024488,
+    45311.052949,
+    29092.777655,
+    81431.968992,
+    101396.583864,
+    54052.243238,
+    38644.855846,
+    42086.916518,
+    50500.402792,
+    41198.890782,
+    62450.270138,
+    35427.46278,
+    29317.727706,
+    19356.324752,
+    42119.434085,
+    50321.13515,
+    57671.889726,
+    28080.591491,
+    35896.635273,
+    28295.341246,
+    41394.646925,
+    35826.338569,
+    66378.185812,
+    43469.405275,
+    38128.285315,
+    35419.247737,
+    49521.788594,
+    57138.381298
+  ]
+}

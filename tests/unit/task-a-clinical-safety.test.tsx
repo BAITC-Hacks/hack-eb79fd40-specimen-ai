@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import DoctorPanel from "../../app/c/[token]/DoctorPanel";
+import { patientClosing } from "../../lib/patient-response";
 import { ABSTAIN_HYPOTHESIS } from "../../lib/triage";
 import {
   normalizeAnamnesis,
@@ -46,6 +47,38 @@ function scenarioTwo(): TriageResult {
 }
 
 describe("ClickUp A clinical-safety contract", () => {
+  it("keeps the terminal patient response free of clinical result details", () => {
+    const result = scenarioTwo();
+    const emergencyResult: TriageResult = {
+      ...result,
+      red_flags: [{
+        code: "safety",
+        label: "Скрытая клиническая деталь",
+        evidence: "Скрытая цитата пациента",
+        evidence_kind: "quote",
+        emergency: true,
+        source_message_index: 0,
+      }],
+    };
+
+    const routine = patientClosing(result, "ru");
+    const emergency = patientClosing(emergencyResult, "kk");
+    const exposed = JSON.stringify([routine, emergency]);
+
+    expect(routine).toEqual({
+      emergency: false,
+      text: "Спасибо. Ваши ответы переданы врачу. Дальнейшие шаги врач обсудит с вами отдельно.",
+    });
+    expect(emergency).toEqual({
+      emergency: true,
+      text: "Рақмет. Жауаптарыңыз дәрігерге жіберілді. Келесі қадамдарды дәрігер сізбен бөлек талқылайды.",
+    });
+    expect(exposed).not.toContain(result.anamnesis.chief_complaint);
+    expect(exposed).not.toContain(result.hypothesis.text);
+    expect(exposed).not.toContain("Скрытая клиническая деталь");
+    expect(exposed).not.toContain("Скрытая цитата пациента");
+  });
+
   it("normalizes old empty arrays as not stated rather than denied", () => {
     const normalized = normalizeAnamnesis(legacyAnamnesis());
 

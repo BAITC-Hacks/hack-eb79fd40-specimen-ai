@@ -262,8 +262,9 @@ referral_schema_at() {
     printf '%s' "$version"
     return 0
   fi
-  # Releases before the schema marker used the original v1 snapshot.
-  printf '1'
+  # Markerless releases used more than one strict snapshot shape while still
+  # labelling them v1. Their reader capability is therefore unknowable.
+  return 1
 }
 
 assert_referral_snapshot_compatible() {
@@ -293,7 +294,7 @@ assert_referral_snapshot_compatible() {
   [[ "$current_version" =~ ^[1-9][0-9]{0,2}$ ]] \
     || die "referral snapshot schemaVersion could not be verified"
   target_version="$(referral_schema_at "$target_commit")" \
-    || die "rollback target referral schema capability is invalid"
+    || die "rollback target referral schema capability is missing or invalid while referral state exists"
   if [ "$current_version" -gt "$target_version" ]; then
     die "referral snapshot schema v${current_version} is newer than rollback target capability v${target_version}"
   fi

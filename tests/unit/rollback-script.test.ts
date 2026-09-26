@@ -448,7 +448,7 @@ describe("deploy/rollback.sh", () => {
     expect((await runRollback(sandbox, [], { STUB_DIRTY: allowed })).code).toBe(0);
   });
 
-  it("fails closed before activation when the live referral snapshot is newer than the rollback reader", async () => {
+  it("fails closed before mutation when referral state exists and the rollback reader is markerless", async () => {
     const sandbox = await makeSandbox();
     const dataDir = join(sandbox.root, "workspace-data");
     await mkdir(dataDir);
@@ -470,11 +470,33 @@ describe("deploy/rollback.sh", () => {
     const commands = await readFile(sandbox.log, "utf8");
 
     expect(result.code).toBe(1);
-    expect(result.stderr).toContain("snapshot schema v2 is newer than rollback target capability v1");
+    expect(result.stderr).toContain("rollback target referral schema capability is missing or invalid while referral state exists");
     expect(commands).not.toContain("git reset");
     expect(commands).not.toMatch(/docker image tag/u);
     expect(commands).not.toMatch(/docker .* build/u);
     expect(commands).not.toMatch(/docker .* up/u);
+    expect(await readFile(join(sandbox.root, ".deploy_green_sha"), "utf8")).toBe(`${B.slice(0, 7)}\n`);
+    expect(await readFile(join(sandbox.root, ".deploy_prev_sha"), "utf8")).toBe(`${A.slice(0, 7)}\n`);
+  });
+
+  it.each([3, 42, 999])("fails closed before mutation when live referral schema v%s is newer than target v2", async (schemaVersion) => {
+    const sandbox = await makeSandbox();
+    const dataDir = join(sandbox.root, "workspace-data");
+    await mkdir(dataDir);
+    await writeFile(join(dataDir, "referrals.json"), JSON.stringify({ schemaVersion, referrals: [], links: [], commands: [] }));
+    await writeFile(join(sandbox.root, ".env"), `${validEnv()}DEMEU_HOST_DATA_DIR=${dataDir}\n`);
+
+    const result = await runRollback(sandbox);
+    const commands = await readFile(sandbox.log, "utf8");
+
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain(`referral snapshot schema v${schemaVersion} is newer than rollback target capability v2`);
+    expect(commands).not.toContain("git reset");
+    expect(commands).not.toMatch(/docker image tag/u);
+    expect(commands).not.toMatch(/docker .* build/u);
+    expect(commands).not.toMatch(/docker .* up/u);
+    expect(await readFile(join(sandbox.root, ".deploy_green_sha"), "utf8")).toBe(`${B.slice(0, 7)}\n`);
+    expect(await readFile(join(sandbox.root, ".deploy_prev_sha"), "utf8")).toBe(`${A.slice(0, 7)}\n`);
   });
 
   it("keeps workspace and ingress overlays on the current production profile", async () => {

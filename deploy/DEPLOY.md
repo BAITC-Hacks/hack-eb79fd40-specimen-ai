@@ -130,8 +130,10 @@ The script takes the same `.deploy.lock` as `deploy.sh`, rejects dirty or incomp
 before changing Git or containers, validates `.env` and the selected proxy compose branch without
 rendering secrets, and compares the live referral snapshot's `schemaVersion` with the rollback
 target capability declared in `deploy/referral-schema-version`. A newer live snapshot makes the
-rollback fail before Git, image, or container mutation; releases without the marker are treated as
-v1 readers. The script then snapshots `demeu-app:last-green` and keeps a mode-`0600` temporary `.env` snapshot
+rollback fail before Git, image, or container mutation. When a live referral snapshot exists, a
+release without the marker is treated as an unknown reader and is rejected before mutation: historical
+markerless releases reused the same root version for incompatible strict shapes. The script then
+snapshots `demeu-app:last-green` and keeps a mode-`0600` temporary `.env` snapshot
 outside the repository and Docker context. It then rebuilds the selected commit and
 requires `/api/healthz` to match that commit, its model version and processing mode and requires the
 workspace/auth surface to remain available; external mode also requires `llm_ok:true`. After success both

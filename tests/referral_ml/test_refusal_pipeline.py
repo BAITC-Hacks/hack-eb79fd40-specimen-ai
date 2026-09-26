@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from itertools import count
 from pathlib import Path
 
 import numpy as np
@@ -18,6 +19,8 @@ from scripts.referral_ml.refusal_pipeline import (
 )
 from scripts.referral_ml.train_refusal import validate_model_output
 
+ROW_IDS = count()
+
 
 def row(
     registration_dt: str,
@@ -26,8 +29,12 @@ def row(
     hospital: str = "hospital-a",
     profile: str | None = "profile-a",
     hospitalized: int | None = None,
+    hospitalization_code: str | None = None,
 ) -> dict[str, object]:
+    if hospitalization_code is None:
+        hospitalization_code = f"test-code-{next(ROW_IDS)}"
     return {
+        "hospitalization_code": hospitalization_code,
         "registration_dt": registration_dt,
         "is_refused": refused,
         "hospitalized": 1 - int(refused) if hospitalized is None else hospitalized,
@@ -82,8 +89,45 @@ class CohortAndSplitTests(unittest.TestCase):
         self.assertEqual(cohort.attrition["conflicting_both"], 1)
         self.assertEqual(
             cohort.attrition["policy"],
-            "exclude_censored_neither_and_conflicting_both",
+            "exclude_all_rows_for_repeated_hospitalization_code_before_temporal_split_then_exclude_censored_neither_and_conflicting_both",
         )
+
+    def test_excludes_every_row_for_a_repeated_identifier_without_using_outcome(self) -> None:
+        frame = pd.DataFrame(
+            [
+                row("2025-01-01", 1, hospitalization_code="duplicate"),
+                row("2025-01-02", 0, hospitalization_code="duplicate"),
+                row("2025-01-03", 1, hospitalization_code="unique"),
+            ]
+        )
+        cohort = build_cohort(frame)
+        self.assertEqual(cohort.frame["is_refused"].tolist(), [1])
+        self.assertEqual(
+            cohort.attrition["duplicate_audit"],
+            {
+                "policy": "exclude_all_rows_for_repeated_hospitalization_code_before_temporal_split",
+                "unique_hospitalization_codes": 2,
+                "repeated_hospitalization_codes": 1,
+                "rows_with_repeated_hospitalization_code": 2,
+                "is_refused_conflicting_codes": 1,
+                "hospitalized_conflicting_codes": 1,
+                "cross_month_codes": 0,
+                "selection_uses_target_or_timestamp": False,
+                "rows_after_policy": 1,
+            },
+        )
+
+    def test_fails_closed_when_a_repeated_identifier_crosses_months(self) -> None:
+        frame = pd.DataFrame(
+            [
+                row("2025-01-31", 1, hospitalization_code="cross-month"),
+                row("2025-02-01", 1, hospitalization_code="cross-month"),
+            ]
+        )
+        with self.assertRaisesRegex(
+            ValueError, "duplicate_identifier_crosses_temporal_partition"
+        ):
+            build_cohort(frame)
 
     def test_rejects_dates_outside_exact_first_quarter_boundaries(self) -> None:
         frame = pd.DataFrame(
@@ -173,6 +217,7 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(metrics["rows"], 4)
         self.assertEqual(metrics["positives"], 2)
         self.assertGreater(metrics["pr_auc"], 0)
+        self.assertEqual(metrics["roc_auc"], 0.75)
         self.assertEqual(
             sum(bucket["rows"] for bucket in calibration["bins"]),  # type: ignore[index]
             4,
@@ -180,9 +225,20 @@ class MetricsTests(unittest.TestCase):
 
     def test_constant_scores_emit_one_honest_calibration_bin(self) -> None:
         actual = np.array([0, 1, 0, 0], dtype=np.int8)
-        calibration = calibration_deciles(actual, np.full(4, 0.25))
+        probabilities = np.full(4, 0.25)
+        metrics = classification_metrics(actual, probabilities, threshold=0.25)
+        calibration = calibration_deciles(actual, probabilities)
+        self.assertEqual(metrics["roc_auc"], 0.5)
         self.assertEqual(calibration["actual_bins"], 1)
         self.assertEqual(calibration["bins"][0]["observed_rate"], 0.25)  # type: ignore[index]
+
+    def test_roc_auc_fails_closed_when_a_partition_has_one_class(self) -> None:
+        with self.assertRaisesRegex(ValueError, "metrics_require_both_classes"):
+            classification_metrics(
+                np.array([0, 0], dtype=np.int8),
+                np.array([0.1, 0.2]),
+                threshold=0.15,
+            )
 
 
 class ArtifactPolicyTests(unittest.TestCase):

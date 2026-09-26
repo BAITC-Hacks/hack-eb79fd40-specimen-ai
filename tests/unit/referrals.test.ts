@@ -191,8 +191,17 @@ describe("правки по смоуку 14.09", () => {
     expect(() => validateReferralDatabase(state)).not.toThrow();
   });
 
-  it("использует пять профилей переданного перечня и сохраняет версию проверки", async () => {
-    expect(REFERRAL_PROFILES).toEqual(["Хирургический", "Урологический", "Гинекологический", "Кардиохирургический", "Травматологический и ортопедический"]);
+  it("использует восемь закрытых профилей Приложения 5 и сохраняет версию проверки", async () => {
+    expect(REFERRAL_PROFILES).toEqual([
+      "Хирургический",
+      "Урологический",
+      "Гинекологический",
+      "Кардиохирургический",
+      "Травматологический и ортопедический",
+      "Офтальмологический",
+      "Сосудистая хирургия",
+      "Онкологический и радиологический",
+    ]);
     const repository = new MemoryReferralRepository();
     const firstCatalogue = { ...catalogue, version: "v1" };
     const first = new ReferralService(repository, { now: () => now, catalogue: firstCatalogue });
@@ -316,14 +325,14 @@ describe("агрегаты и устойчивость", () => {
     expect((await service.aggregates(doctor)).groups[0]).toMatchObject({ flow: "waiting", meanObservedDays: 3, observedTimeCount: 1 });
     expect((await service.detail(doctor, r.id)).observedStageDays).toBe(3);
   });
-  it("не придумывает время динамической готовности", async () => {
+  it("сохраняет наблюдаемое время подготовки независимо от изменений пакета", async () => {
     const service = new ReferralService(new MemoryReferralRepository(), { now: () => now, catalogue });
     const r = await service.create(doctor, createInput());
     const { id: _id, ...record } = exam;
     void _id;
     await service.examination(doctor, r.id, { expectedRevision: 1, idempotencyKey: "exam", record });
-    expect((await service.aggregates(doctor)).groups[0]).toMatchObject({ flow: "preparing", meanObservedDays: null, observedTimeCount: 0 });
-    expect((await service.detail(doctor, r.id)).observedStageDays).toBeNull();
+    expect((await service.aggregates(doctor)).groups[0]).toMatchObject({ flow: "preparing", meanObservedDays: 0, observedTimeCount: 1 });
+    expect((await service.detail(doctor, r.id)).observedStageDays).toBe(0);
   });
   it("показывает фиксированную историю наблюдений только в разрешённой области", async () => {
     const { service, advance } = setup();
@@ -349,7 +358,7 @@ describe("агрегаты и устойчивость", () => {
     expect(restricted.timelineUnavailableReason).toBe("not_available_for_analyst");
     expect(JSON.stringify(restricted)).not.toContain("Урологический");
   });
-  it("не выдаёт среднее по одному известному времени внутри большой группы", async () => {
+  it("считает все persisted timestamps создания известным началом этапа", async () => {
     const { service } = setup();
     for (let i = 0; i < 5; i++) {
       const r = await service.create(doctor, createInput(`mixed-${i}`));
@@ -359,7 +368,7 @@ describe("агрегаты и устойчивость", () => {
         await service.examination(doctor, r.id, { expectedRevision: 1, idempotencyKey: `exam-${i}`, record });
       }
     }
-    expect(await service.aggregates(analyst)).toMatchObject({ suppressed: true, total: 5, groups: [{ flow: "preparing", count: 5, meanObservedDays: null, observedTimeCount: null }] });
+    expect(await service.aggregates(analyst)).toMatchObject({ suppressed: false, total: 5, groups: [{ flow: "preparing", count: 5, meanObservedDays: 0, observedTimeCount: 5 }] });
   });
   it("возвращает detached данные и отвергает повреждённую историю", async () => {
     const { service, repository } = setup();
@@ -392,6 +401,7 @@ describe("агрегаты и устойчивость", () => {
       (state) => { state.referrals[0].events[1].before = null; },
       (state) => { state.referrals[0].events[1].id = state.referrals[0].events[0].id; },
       (state) => { state.referrals[0].events[1].occurredAt = now + 1; },
+      (state) => { Object.assign(state.referrals[0].events[1], { transition: { from: "preparing", to: "waiting", enteredAt: now, recordedAt: now, revision: 2 } }); },
       (state) => { state.referrals[0].updatedAt += 1; },
       (state) => { state.commands.push(state.commands[0]); },
       (state) => { state.commands[0].organizationId = "other"; },

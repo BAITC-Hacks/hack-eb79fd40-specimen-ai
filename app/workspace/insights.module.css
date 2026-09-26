@@ -41,6 +41,19 @@
 .sourceList > div { padding: 18px 0; border-top: 1px solid var(--hairline, #e3e8e8); }
 .sourceList dt { font-size: 14px; font-weight: 600; margin-bottom: 5px; }
 .sourceList dd { margin: 0; color: var(--muted, #68777b); font-size: 13px; line-height: 1.65; }
+.modelGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.modelCard { min-width: 0; border: 1px solid var(--hairline, #e3e8e8); border-radius: 10px; padding: 18px; background: var(--paper, #f7faf9); }
+.modelHead { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; }
+.modelHead span { color: var(--pine, #16604a); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.modelHead strong { border-radius: 999px; padding: 4px 8px; background: var(--card, #fff); color: var(--muted, #68777b); font-size: 11px; font-weight: 600; text-align: right; }
+.modelFacts { display: grid; gap: 0; margin: 14px 0; }
+.modelFacts > div { padding: 10px 0; border-top: 1px solid var(--hairline, #e3e8e8); }
+.modelFacts dt { color: var(--muted, #68777b); font-size: 11px; }
+.modelFacts dd { margin: 3px 0 0; font-size: 12px; line-height: 1.5; }
+.demoCard { border-style: dashed; }
+.demoTag { display: inline-flex; align-items: center; border-radius: 6px; padding: 5px 9px; color: #765b19; background: #fff4ce; font-size: 12px; font-weight: 650; white-space: nowrap; }
+.demoOrganizations { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+.demoOrganizations article { min-width: 0; border: 1px solid var(--hairline, #e3e8e8); border-radius: 10px; padding: 18px; }
 .profile { display: flex; align-items: center; gap: 16px; margin: 8px 0 26px; }
 .avatar { width: 60px; height: 60px; border-radius: 16px; display: grid; place-items: center; background: var(--pine-tint, #eaf4ef); color: var(--pine, #16604a); flex-shrink: 0; }
 .profile h2 { overflow-wrap: anywhere; }
@@ -51,5 +64,5 @@
 .permissions { list-style: none; padding: 0; display: grid; gap: 18px; margin-top: 22px; }
 .permissions li { display: flex; gap: 12px; font-size: 13px; line-height: 1.6; }
 .permissions svg { color: var(--pine, #16604a); flex-shrink: 0; margin-top: 2px; }
-@media (max-width: 1100px) { .columns { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .columns, .modelGrid, .demoOrganizations { grid-template-columns: 1fr; } }
 @media (max-width: 620px) { .kpis { grid-template-columns: 1fr; gap: 12px; } .card { padding: 18px; } .sectionHead { flex-wrap: wrap; } .facts > div { grid-template-columns: 1fr; gap: 5px; } }

@@ -5,7 +5,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PDFDocument } from "pdf-lib";
 import { DeliveryJournal, ScopedWorkspaceNotifier, workspaceNotifierFromEnv } from "../../lib/workspace-notifier";
-import { renderPatientMemoPdf, renderPatientMemoText } from "../../lib/patient-memo";
+import { patientMemoFromReferral, renderPatientMemoPdf, renderPatientMemoText } from "../../lib/patient-memo";
 import type { PatientMemo, ReferralActor, ReferralDetail } from "../../lib/referrals/types";
 import { handleReferralNotify } from "../../app/api/referrals/[id]/notify/handler";
 import type { ReadonlySession, TriageResult } from "../../lib/types";
@@ -22,7 +22,7 @@ async function journalFixture() {
 }
 const owner: ReferralActor = { id: "doctor-1", displayName: "Врач", role: "doctor", organizationId: "org-1", telegramChatId: "123" };
 const memo: PatientMemo = { patientLabel: "Пациент А", scheduledDate: null, destinationOrganization: null, catalogueAvailable: false, items: [{ label: "Обследование", status: "unknown", expiresOn: null }] };
-const referral = { id: "ref-1", doctorId: owner.id, organizationId: owner.organizationId, revision: 1, profile: "Профиль", patientLabel: memo.patientLabel, scheduledDate: null, destinationOrganization: null, triageSnapshot: { urgency: "urgent" }, completeness: { status: "unknown", catalogueAvailable: false, entries: [] }, examinations: [] } as unknown as ReferralDetail;
+const referral = { id: "ref-1", doctorId: owner.id, organizationId: owner.organizationId, revision: 1, profile: "Профиль", patientLabel: memo.patientLabel, scheduledDate: null, destinationOrganization: null, triageSnapshot: { urgency: "urgent" }, completeness: { status: "unknown", catalogueAvailable: false, entries: [{ requirementId: "snapshot-item", label: "Исследование из снимка", required: true, status: "unknown", expiresOn: "2026-09-30" }] }, examinations: [] } as unknown as ReferralDetail;
 
 describe("durable scoped delivery", () => {
   it("persists before sending and replays after restart, including a new key for the same revision", async () => {
@@ -116,6 +116,10 @@ describe("durable scoped delivery", () => {
     const lines = text.split("\n");
     expect(lines[0]).toBe("🟠 ПРИОРИТЕТ: СРОЧНО");
     expect(lines[1]).toBe("Эпизод: Пациент А · Врач: Врач");
+    expect(text).toContain("Целевая дата: не указана");
+    expect(text).toContain("Комплектность: не подтверждена");
+    expect(text).toContain("решение о готовности принимает врач");
+    expect(text).not.toMatch(/уверенн|\d+%/iu);
     expect(lines.at(-1)).toBe("https://demeu.example.test/workspace/referrals/ref-1");
     expect(client.sendDocument).toHaveBeenCalledWith("123", new Uint8Array([1, 2]), "demeu-patient-memo.pdf");
     await expect(notifier.sendReferral({ ...owner, id: "other" }, referral, memo, "key3")).rejects.toMatchObject({ code: "FORBIDDEN" });
@@ -165,8 +169,14 @@ describe("durable scoped delivery", () => {
 
 describe("patient memo and notification boundary", () => {
   it("renders Cyrillic PDF from a whitelist without clinician-only extras", async () => {
-    const extended = { ...memo, hypothesis: "PRIVATE-HYPOTHESIS", transcript: "PRIVATE-TRANSCRIPT", triageSnapshot: { secret: "PRIVATE-SNAPSHOT" } };
-    expect(renderPatientMemoText(extended)).not.toMatch(/PRIVATE/u);
+    const extended = { ...memo, scheduledDate: "2026-10-07", catalogueAvailable: true, items: [{ label: "Общий анализ крови", status: "expired" as const, expiresOn: "2026-10-01" }], hypothesis: "PRIVATE-HYPOTHESIS", transcript: "PRIVATE-TRANSCRIPT", triageSnapshot: { secret: "PRIVATE-SNAPSHOT" } };
+    const text = renderPatientMemoText(extended);
+    expect(text).not.toMatch(/PRIVATE/u);
+    expect(text).toContain("Что взять с собой к целевой дате");
+    expect(text).toContain("Целевая дата госпитализации: 07.10.2026");
+    expect(text).toContain("Общий анализ крови — обновить результат и взять его с собой; срок действия до 01.10.2026");
+    expect(text).toContain("Окончательный состав пакета и готовность подтверждает врач");
+    expect(text).toContain("Demeu не отправляет данные в Портал бюро госпитализации");
     const bytes = await renderPatientMemoPdf(extended);
     expect(Buffer.from(bytes).subarray(0, 4).toString()).toBe("%PDF");
     expect((await PDFDocument.load(bytes)).getPageCount()).toBeGreaterThan(0);
@@ -179,6 +189,7 @@ describe("patient memo and notification boundary", () => {
     const deps = { actor: async () => owner, detail, send };
     const request = (body: unknown = { expectedRevision: 1, idempotencyKey: "12345678" }, origin = "http://localhost") => new Request("http://localhost/api/referrals/ref-1/notify", { method: "POST", headers: { origin, "content-type": "application/json" }, body: JSON.stringify(body) });
     expect((await handleReferralNotify(request(), "ref-1", deps)).status).toBe(200);
+    expect(send).toHaveBeenCalledWith(owner, referral, patientMemoFromReferral(referral), "12345678");
     expect((await handleReferralNotify(request(undefined, "http://evil.test"), "ref-1", deps)).status).toBe(403);
     expect((await handleReferralNotify(request(), "ref-1", { ...deps, actor: async () => ({ ...owner, role: "analyst" }) })).status).toBe(403);
     expect((await handleReferralNotify(request({ expectedRevision: 2, idempotencyKey: "12345678" }), "ref-1", deps)).status).toBe(409);

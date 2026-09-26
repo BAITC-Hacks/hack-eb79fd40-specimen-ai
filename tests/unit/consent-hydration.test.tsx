@@ -26,6 +26,10 @@ describe("patient consent hydration", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    httpMocks.startChat.mockResolvedValue({
+      ok: true as const,
+      data: { sessionId: "session-from-first-click", reply: "Начинаем опрос", turnsLeft: 20 },
+    });
     Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
       configurable: true,
       value: vi.fn(),
@@ -73,5 +77,53 @@ describe("patient consent hydration", () => {
       container.remove();
       window.sessionStorage.clear();
     }
+  });
+
+  it("deduplicates rapid consent clicks before the first start request settles", async () => {
+    let release: (() => void) | undefined;
+    httpMocks.startChat.mockImplementationOnce(() => new Promise((resolve) => {
+      release = () => resolve({
+        ok: true as const,
+        data: { sessionId: "session-from-first-click", reply: "Начинаем опрос", turnsLeft: 20 },
+      });
+    }));
+    const container = document.createElement("div");
+    container.innerHTML = renderToString(<PatientChat />);
+    document.body.append(container);
+    await act(async () => { root = hydrateRoot(container, <PatientChat />); });
+    const button = [...container.querySelectorAll("button")]
+      .find((candidate) => candidate.textContent?.includes(PATIENT.ru.consentAction)) as HTMLButtonElement;
+
+    await act(async () => {
+      button.click();
+      button.click();
+      await Promise.resolve();
+    });
+    expect(httpMocks.startChat).toHaveBeenCalledOnce();
+
+    await act(async () => { release?.(); });
+    expect(container.textContent).toContain("Начинаем опрос");
+  });
+
+  it("shows a retryable safe state when the first start request fails", async () => {
+    httpMocks.startChat.mockResolvedValueOnce({
+      ok: false,
+      failure: { kind: "network" },
+    } as never);
+    const container = document.createElement("div");
+    container.innerHTML = renderToString(<PatientChat />);
+    document.body.append(container);
+    await act(async () => { root = hydrateRoot(container, <PatientChat />); });
+    const consent = [...container.querySelectorAll("button")]
+      .find((candidate) => candidate.textContent?.includes(PATIENT.ru.consentAction)) as HTMLButtonElement;
+
+    await act(async () => { consent.click(); });
+
+    expect(container.querySelector('[role="alert"]')?.textContent)
+      .toContain(PATIENT.ru.startErrorTitle);
+    const retry = [...container.querySelectorAll("button")]
+      .find((candidate) => candidate.textContent?.includes(PATIENT.ru.retry));
+    expect(retry).toBeInstanceOf(HTMLButtonElement);
+    expect((retry as HTMLButtonElement).disabled).toBe(false);
   });
 });

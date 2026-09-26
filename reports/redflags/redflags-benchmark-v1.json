@@ -1,0 +1,617 @@
+{
+  "schema_version": "redflags-benchmark-v1",
+  "generated_at": "2026-09-26T10:35:03.374147+00:00",
+  "research_only": true,
+  "runtime_integration": "none",
+  "owner_decision": "Keep hardened deterministic rules as the only runtime emergency detector. Classifier candidates remain research-only and are not integrated.",
+  "corpus": {
+    "path": "tests/fixtures/redflags-eval.json",
+    "sha256": "bafae774a648ccde988b4804a02d0d0adce983d7d979e6fcefcf230902ac5625",
+    "item_count": 160,
+    "frozen_on": "2026-09-26"
+  },
+  "method": {
+    "same_frozen_split": true,
+    "binary_positive": "at least one of the eight emergency trigger groups",
+    "ollama_url": "http://127.0.0.1:11434",
+    "ollama_batch_size": 10,
+    "ollama_temperature": 0,
+    "ollama_seed": 20260926,
+    "prompt_template_sha256": "94ca4bed2a599743ac0c73e5ca223230ea422f5f911c314b71ff40ff5a370384",
+    "external_calls_made": 0
+  },
+  "limitations": [
+    "Synthetic items are not an independent clinical gold set.",
+    "Labels follow the existing eight-rule taxonomy and await clinician review.",
+    "Only four verbatim items come from the 2026-09-26 production-task reproduction.",
+    "The hardened rules were developed against this exact corpus; their after score is in-sample regression coverage, not unseen generalization.",
+    "All labels await clinician review.",
+    "Local-model latency excludes rejected malformed-response request time; accepted-request latency and exact rejected-response counts are retained.",
+    "Post-benchmark adversarial review cases are held outside the developed corpus and are regression-tested separately."
+  ],
+  "candidates": [
+    {
+      "id": "rules_baseline",
+      "kind": "deterministic_rules_baseline",
+      "model": "lib/redflags.ts",
+      "version": "b454d2802fd8f6cf827bd13b042cda9c6ca3c15a60cbeb2d60e6d46cdd84d852",
+      "availability": "measured",
+      "research_only": true,
+      "item_count": 160,
+      "metrics": {
+        "tp": 45,
+        "fp": 27,
+        "tn": 53,
+        "fn": 35,
+        "precision": 0.625,
+        "recall": 0.5625,
+        "f1": 0.5921052631578947,
+        "false_positive_rate": 0.3375
+      },
+      "slices": {
+        "language:ru": {
+          "tp": 29,
+          "fp": 16,
+          "tn": 24,
+          "fn": 11,
+          "precision": 0.6444444444444445,
+          "recall": 0.725,
+          "f1": 0.6823529411764706,
+          "false_positive_rate": 0.4
+        },
+        "language:kk": {
+          "tp": 16,
+          "fp": 11,
+          "tn": 29,
+          "fn": 24,
+          "precision": 0.5925925925925926,
+          "recall": 0.4,
+          "f1": 0.4776119402985075,
+          "false_positive_rate": 0.275
+        },
+        "trigger:bleeding": {
+          "tp": 7,
+          "fp": 4,
+          "tn": 6,
+          "fn": 3,
+          "precision": 0.6363636363636364,
+          "recall": 0.7,
+          "f1": 0.6666666666666666,
+          "false_positive_rate": 0.4
+        },
+        "trigger:chest_pain": {
+          "tp": 9,
+          "fp": 5,
+          "tn": 5,
+          "fn": 1,
+          "precision": 0.6428571428571429,
+          "recall": 0.9,
+          "f1": 0.75,
+          "false_positive_rate": 0.5
+        },
+        "trigger:consciousness": {
+          "tp": 5,
+          "fp": 5,
+          "tn": 5,
+          "fn": 5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "false_positive_rate": 0.5
+        },
+        "trigger:dyspnea_rest": {
+          "tp": 4,
+          "fp": 2,
+          "tn": 8,
+          "fn": 6,
+          "precision": 0.6666666666666666,
+          "recall": 0.4,
+          "f1": 0.5,
+          "false_positive_rate": 0.2
+        },
+        "trigger:meningeal": {
+          "tp": 7,
+          "fp": 4,
+          "tn": 6,
+          "fn": 3,
+          "precision": 0.6363636363636364,
+          "recall": 0.7,
+          "f1": 0.6666666666666666,
+          "false_positive_rate": 0.4
+        },
+        "trigger:stroke": {
+          "tp": 4,
+          "fp": 2,
+          "tn": 8,
+          "fn": 6,
+          "precision": 0.6666666666666666,
+          "recall": 0.4,
+          "f1": 0.5,
+          "false_positive_rate": 0.2
+        },
+        "trigger:suicidal": {
+          "tp": 4,
+          "fp": 2,
+          "tn": 8,
+          "fn": 6,
+          "precision": 0.6666666666666666,
+          "recall": 0.4,
+          "f1": 0.5,
+          "false_positive_rate": 0.2
+        },
+        "trigger:thunderclap_headache": {
+          "tp": 5,
+          "fp": 3,
+          "tn": 7,
+          "fn": 5,
+          "precision": 0.625,
+          "recall": 0.5,
+          "f1": 0.5555555555555556,
+          "false_positive_rate": 0.3
+        }
+      },
+      "latency_ms": {
+        "measurement_unit": "per_item_wall_clock",
+        "request_count": 160,
+        "total": 503.91969399999994,
+        "mean": 3.1494980874999996,
+        "p50": 0.08096799999998439,
+        "p95": 0.27642500000001746
+      },
+      "cost": {
+        "currency": "USD",
+        "amount": 0.0,
+        "basis": "local execution; hardware, electricity and operator time excluded"
+      },
+      "predictions_artifact": "eval/redflags/rules-baseline-v1.json",
+      "development_stage": "before corpus-guided hardening"
+    },
+    {
+      "id": "rules",
+      "kind": "deterministic_rules",
+      "model": "lib/redflags.ts",
+      "version": "36c2bf1f899883d7274529d1c52729d4e38087fb25d4b9ae33fe102413d75409",
+      "availability": "measured",
+      "research_only": true,
+      "item_count": 160,
+      "metrics": {
+        "tp": 80,
+        "fp": 0,
+        "tn": 80,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "false_positive_rate": 0.0
+      },
+      "slices": {
+        "language:ru": {
+          "tp": 40,
+          "fp": 0,
+          "tn": 40,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
+        },
+        "language:kk": {
+          "tp": 40,
+          "fp": 0,
+          "tn": 40,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
+        },
+        "trigger:bleeding": {
+          "tp": 10,
+          "fp": 0,
+          "tn": 10,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
+        },
+        "trigger:chest_pain": {
+          "tp": 10,
+          "fp": 0,
+          "tn": 10,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
+        },
+        "trigger:consciousness": {
+          "tp": 10,
+          "fp": 0,
+          "tn": 10,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
+        },
+        "trigger:dyspnea_rest": {
+          "tp": 10,
+          "fp": 0,
+          "tn": 10,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
+        },
+        "trigger:meningeal": {
+          "tp": 10,
+          "fp": 0,
+          "tn": 10,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
+        },
+        "trigger:stroke": {
+          "tp": 10,
+          "fp": 0,
+          "tn": 10,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
+        },
+        "trigger:suicidal": {
+          "tp": 10,
+          "fp": 0,
+          "tn": 10,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
+        },
+        "trigger:thunderclap_headache": {
+          "tp": 10,
+          "fp": 0,
+          "tn": 10,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
+        }
+      },
+      "latency_ms": {
+        "measurement_unit": "per_item_wall_clock",
+        "request_count": 160,
+        "total": 124.37403200000014,
+        "mean": 0.7773377000000009,
+        "p50": 0.020978000000013708,
+        "p95": 0.9114649999999926
+      },
+      "cost": {
+        "currency": "USD",
+        "amount": 0.0,
+        "basis": "local execution; hardware, electricity and operator time excluded"
+      },
+      "predictions_artifact": "eval/redflags/rules-v1.json",
+      "development_stage": "after corpus-guided hardening"
+    },
+    {
+      "id": "qwen2.5:7b",
+      "kind": "local_ollama",
+      "model": "qwen2.5:7b",
+      "version": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+      "availability": "measured",
+      "research_only": true,
+      "item_count": 160,
+      "metrics": {
+        "tp": 31,
+        "fp": 1,
+        "tn": 79,
+        "fn": 49,
+        "precision": 0.96875,
+        "recall": 0.3875,
+        "f1": 0.5535714285714286,
+        "false_positive_rate": 0.0125
+      },
+      "slices": {
+        "language:ru": {
+          "tp": 21,
+          "fp": 1,
+          "tn": 39,
+          "fn": 19,
+          "precision": 0.9545454545454546,
+          "recall": 0.525,
+          "f1": 0.6774193548387099,
+          "false_positive_rate": 0.025
+        },
+        "language:kk": {
+          "tp": 10,
+          "fp": 0,
+          "tn": 40,
+          "fn": 30,
+          "precision": 1.0,
+          "recall": 0.25,
+          "f1": 0.4,
+          "false_positive_rate": 0.0
+        },
+        "trigger:bleeding": {
+          "tp": 2,
+          "fp": 0,
+          "tn": 10,
+          "fn": 8,
+          "precision": 1.0,
+          "recall": 0.2,
+          "f1": 0.33333333333333337,
+          "false_positive_rate": 0.0
+        },
+        "trigger:chest_pain": {
+          "tp": 2,
+          "fp": 0,
+          "tn": 10,
+          "fn": 8,
+          "precision": 1.0,
+          "recall": 0.2,
+          "f1": 0.33333333333333337,
+          "false_positive_rate": 0.0
+        },
+        "trigger:consciousness": {
+          "tp": 3,
+          "fp": 1,
+          "tn": 9,
+          "fn": 7,
+          "precision": 0.75,
+          "recall": 0.3,
+          "f1": 0.4285714285714285,
+          "false_positive_rate": 0.1
+        },
+        "trigger:dyspnea_rest": {
+          "tp": 4,
+          "fp": 0,
+          "tn": 10,
+          "fn": 6,
+          "precision": 1.0,
+          "recall": 0.4,
+          "f1": 0.5714285714285715,
+          "false_positive_rate": 0.0
+        },
+        "trigger:meningeal": {
+          "tp": 4,
+          "fp": 0,
+          "tn": 10,
+          "fn": 6,
+          "precision": 1.0,
+          "recall": 0.4,
+          "f1": 0.5714285714285715,
+          "false_positive_rate": 0.0
+        },
+        "trigger:stroke": {
+          "tp": 4,
+          "fp": 0,
+          "tn": 10,
+          "fn": 6,
+          "precision": 1.0,
+          "recall": 0.4,
+          "f1": 0.5714285714285715,
+          "false_positive_rate": 0.0
+        },
+        "trigger:suicidal": {
+          "tp": 6,
+          "fp": 0,
+          "tn": 10,
+          "fn": 4,
+          "precision": 1.0,
+          "recall": 0.6,
+          "f1": 0.7499999999999999,
+          "false_positive_rate": 0.0
+        },
+        "trigger:thunderclap_headache": {
+          "tp": 6,
+          "fp": 0,
+          "tn": 10,
+          "fn": 4,
+          "precision": 1.0,
+          "recall": 0.6,
+          "f1": 0.7499999999999999,
+          "false_positive_rate": 0.0
+        }
+      },
+      "latency_ms": {
+        "measurement_unit": "wall_clock_per_batch_of_up_to_10",
+        "request_count": 31,
+        "total": 1391451.5941179125,
+        "mean": 44885.53529412621,
+        "p50": 41407.963630976155,
+        "p95": 66383.55007098289,
+        "scope": "accepted structurally complete requests only; rejected malformed-response request time was not retained by benchmark v1 instrumentation"
+      },
+      "cost": {
+        "currency": "USD",
+        "amount": 0.0,
+        "basis": "local execution; hardware, electricity and operator time excluded"
+      },
+      "predictions_artifact": "eval/redflags/qwen2.5-7b-v1.json",
+      "structured_output": {
+        "logical_batch_count": 16,
+        "accepted_request_count": 31,
+        "rejected_malformed_response_count": 15
+      }
+    },
+    {
+      "id": "qwen2.5:14b",
+      "kind": "local_ollama",
+      "model": "qwen2.5:14b",
+      "version": "7cdf5a0187d5c58cc5d369b255592f7841d1c4696d45a8c8a9489440385b22f6",
+      "availability": "measured",
+      "research_only": true,
+      "item_count": 160,
+      "metrics": {
+        "tp": 22,
+        "fp": 5,
+        "tn": 75,
+        "fn": 58,
+        "precision": 0.8148148148148148,
+        "recall": 0.275,
+        "f1": 0.4112149532710281,
+        "false_positive_rate": 0.0625
+      },
+      "slices": {
+        "language:ru": {
+          "tp": 17,
+          "fp": 2,
+          "tn": 38,
+          "fn": 23,
+          "precision": 0.8947368421052632,
+          "recall": 0.425,
+          "f1": 0.576271186440678,
+          "false_positive_rate": 0.05
+        },
+        "language:kk": {
+          "tp": 5,
+          "fp": 3,
+          "tn": 37,
+          "fn": 35,
+          "precision": 0.625,
+          "recall": 0.125,
+          "f1": 0.20833333333333334,
+          "false_positive_rate": 0.075
+        },
+        "trigger:bleeding": {
+          "tp": 2,
+          "fp": 1,
+          "tn": 9,
+          "fn": 8,
+          "precision": 0.6666666666666666,
+          "recall": 0.2,
+          "f1": 0.30769230769230765,
+          "false_positive_rate": 0.1
+        },
+        "trigger:chest_pain": {
+          "tp": 2,
+          "fp": 0,
+          "tn": 10,
+          "fn": 8,
+          "precision": 1.0,
+          "recall": 0.2,
+          "f1": 0.33333333333333337,
+          "false_positive_rate": 0.0
+        },
+        "trigger:consciousness": {
+          "tp": 4,
+          "fp": 1,
+          "tn": 9,
+          "fn": 6,
+          "precision": 0.8,
+          "recall": 0.4,
+          "f1": 0.5333333333333333,
+          "false_positive_rate": 0.1
+        },
+        "trigger:dyspnea_rest": {
+          "tp": 2,
+          "fp": 1,
+          "tn": 9,
+          "fn": 8,
+          "precision": 0.6666666666666666,
+          "recall": 0.2,
+          "f1": 0.30769230769230765,
+          "false_positive_rate": 0.1
+        },
+        "trigger:meningeal": {
+          "tp": 4,
+          "fp": 1,
+          "tn": 9,
+          "fn": 6,
+          "precision": 0.8,
+          "recall": 0.4,
+          "f1": 0.5333333333333333,
+          "false_positive_rate": 0.1
+        },
+        "trigger:stroke": {
+          "tp": 1,
+          "fp": 0,
+          "tn": 10,
+          "fn": 9,
+          "precision": 1.0,
+          "recall": 0.1,
+          "f1": 0.18181818181818182,
+          "false_positive_rate": 0.0
+        },
+        "trigger:suicidal": {
+          "tp": 5,
+          "fp": 0,
+          "tn": 10,
+          "fn": 5,
+          "precision": 1.0,
+          "recall": 0.5,
+          "f1": 0.6666666666666666,
+          "false_positive_rate": 0.0
+        },
+        "trigger:thunderclap_headache": {
+          "tp": 2,
+          "fp": 1,
+          "tn": 9,
+          "fn": 8,
+          "precision": 0.6666666666666666,
+          "recall": 0.2,
+          "f1": 0.30769230769230765,
+          "false_positive_rate": 0.1
+        }
+      },
+      "latency_ms": {
+        "measurement_unit": "wall_clock_per_batch_of_up_to_10",
+        "request_count": 17,
+        "total": 2056652.7489949076,
+        "mean": 120979.57347028868,
+        "p50": 81840.33322098549,
+        "p95": 294098.09115499957,
+        "scope": "accepted structurally complete requests only; rejected malformed-response request time was not retained by benchmark v1 instrumentation"
+      },
+      "cost": {
+        "currency": "USD",
+        "amount": 0.0,
+        "basis": "local execution; hardware, electricity and operator time excluded"
+      },
+      "predictions_artifact": "eval/redflags/qwen2.5-14b-v1.json",
+      "structured_output": {
+        "logical_batch_count": 16,
+        "accepted_request_count": 17,
+        "rejected_malformed_response_count": 1
+      }
+    },
+    {
+      "id": "jev",
+      "kind": "external_candidate",
+      "provider": "Convex",
+      "model": "typesafe/jev-1.13",
+      "version": "1.13",
+      "endpoint": "/alpha/decisions",
+      "availability": "unavailable",
+      "unavailable_reason": "No explicit authorization for an external or potentially paid call in this leaf; the endpoint was not called.",
+      "provenance": "user-specified candidate in ClickUp task z8udzk90v0",
+      "research_only": true,
+      "item_count": 160,
+      "metrics": null,
+      "slices": null,
+      "latency_ms": null,
+      "cost": null,
+      "predictions_artifact": null
+    }
+  ],
+  "benchmark_title": "Synthetic RU/KK emergency regression benchmark",
+  "evaluation_design": {
+    "split_role": "development regression corpus",
+    "rules_developed_against_this_corpus": true,
+    "unseen_generalization_claim": false,
+    "local_models_frozen_before_rule_hardening": true,
+    "baseline_rules_preserved": true,
+    "independent_adversarial_review_cases_in_corpus": false,
+    "independent_adversarial_review_test": "tests/unit/redflags.production-20260926.test.ts",
+    "misses_artifact": "reports/redflags/rules-misses-before-hardening-v1.json"
+  }
+}

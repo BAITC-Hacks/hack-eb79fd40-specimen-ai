@@ -45,6 +45,14 @@ describe("referral detail record boundary", () => {
     expect(source).toContain("referral.triageSnapshot.hypothesis.disclaimer");
     expect(source).not.toContain(".confidence");
   });
+  it("joins the server-scoped intake and persisted stage history into the card", () => {
+    expect(source).toContain("referral.intake");
+    expect(source).toContain("encodeURIComponent(referral.intake.sessionId)");
+    expect(source).toContain("referral.triageSnapshot.anamnesis.chief_complaint");
+    expect(source).toContain("referral.completeness.entries.map");
+    expect(source).toContain("calendarDate(referral.scheduledDate)");
+    expect(source).toContain("event.transition.enteredAt");
+  });
   it("gates exam editing and focuses its first field respecting reduced motion", () => {
     expect(source).toContain('disabled={disabled} onClick={() => { setDateError(""); setEditingExam({ ...exam }); }}');
     expect(source).toContain('input[name="label"]');

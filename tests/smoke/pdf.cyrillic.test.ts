@@ -5,13 +5,14 @@ import { createHash } from "node:crypto";
 import { PDFFont } from "pdf-lib";
 import { describe, expect, it, vi } from "vitest";
 import { renderSummaryPdf } from "../../lib/pdf";
+import { renderPatientMemoPdf } from "../../lib/patient-memo";
 import { ABSTAIN_HYPOTHESIS } from "../../lib/clinical-copy";
 import { PDF_RESULT, PDF_SESSION } from "../fixtures/pdf";
 
 const OUTPUT_PATH = "/tmp/demeu-summary-test.pdf";
 const KAZAKH_SAMPLE = "Әә Ғғ Ққ Ңң Өө Ұұ Үү Һһ Іі";
 
-describe("PDF Cyrillic smoke", () => {
+describe("PDF Cyrillic smoke", { timeout: 20_000 }, () => {
   it("bundles the two runtime PDF families and their OFL records", () => {
     const expected = new Map([
       [
@@ -82,6 +83,32 @@ describe("PDF Cyrillic smoke", () => {
     expect(extracted.stdout).toMatch(/не диагноз/iu);
     expect(extracted.stdout).toContain("+2.41 — давящая боль за грудиной");
     expect(extracted.stdout).toContain("-0.35 — боль усиливается на вдохе");
+  });
+
+  it("renders the patient package memo as readable Cyrillic with dates and expirations", async () => {
+    const path = "/tmp/demeu-patient-memo-test.pdf";
+    await writeFile(path, await renderPatientMemoPdf({
+      patientLabel: "Пациент Нейро",
+      destinationOrganization: "Тестовая больница",
+      scheduledDate: "2026-10-07",
+      catalogueAvailable: true,
+      items: [
+        { label: "Общий анализ крови", status: "present", expiresOn: "2026-10-10" },
+        { label: "Электрокардиограмма", status: "expired", expiresOn: "2026-09-20" },
+      ],
+    }));
+    const extracted = spawnSync("pdftotext", [path, "-"], { encoding: "utf8" });
+    const readable = extracted.stdout.replace(/\s+/gu, " ");
+
+    expect(extracted.status).toBe(0);
+    expect(readable).toContain("Что взять с собой к целевой дате");
+    expect(readable).toContain("Целевая дата госпитализации: 07.10.2026");
+    expect(readable).toContain("Общий анализ крови");
+    expect(readable).toContain("срок действия до 10.10.2026");
+    expect(readable).toContain("Электрокардиограмма");
+    expect(readable).toContain("срок действия до 20.09.2026");
+    expect(readable).toContain("готовность подтверждает врач");
+    expect(readable).toContain("не отправляет данные в Портал бюро госпитализации");
   });
 
   it("renders a minimal summary without inventing missing content", async () => {

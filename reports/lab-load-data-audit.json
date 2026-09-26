@@ -1,0 +1,190 @@
+{
+  "coverage": {
+    "calendar_months": [
+      "2025-01",
+      "2025-02",
+      "2025-03"
+    ],
+    "month_count": 3,
+    "receiving_organization_distinct": 1385,
+    "referring_organization_distinct": 1140,
+    "region_distinct": 20,
+    "region_non_null_rows": 767130,
+    "registration_max": "2025-03-31T23:58:54.163000",
+    "registration_min": "2025-01-01T01:03:14.263000",
+    "registration_rows": 767130
+  },
+  "decision": {
+    "reason": "no_observed_laboratory_event_identity_time_or_load_measure",
+    "referral_to_laboratory_lag_test_allowed": false,
+    "rejected_proxy": {
+      "name": "appendix_5_requirements_expanded_per_referral",
+      "reason": "normative_requirements_are_not_observed_orders_specimens_or_results"
+    },
+    "target_constructible": false,
+    "temporal_benchmark_allowed": false
+  },
+  "field_evidence": {
+    "laboratory_demand": {
+      "available": false,
+      "required_groups": {
+        "event_time": {
+          "accepted_fields": [
+            "laboratory_event_dt",
+            "ordered_at",
+            "specimen_collected_at",
+            "resulted_at"
+          ],
+          "present_fields": []
+        },
+        "examination_identity": {
+          "accepted_fields": [
+            "examination_code",
+            "laboratory_test_code",
+            "analyte_code"
+          ],
+          "present_fields": []
+        },
+        "laboratory_identity": {
+          "accepted_fields": [
+            "laboratory_id",
+            "performing_organization"
+          ],
+          "present_fields": []
+        },
+        "load_measure": {
+          "accepted_fields": [
+            "examination_count",
+            "specimen_count",
+            "result_count",
+            "unit_count"
+          ],
+          "present_fields": []
+        }
+      }
+    },
+    "period": {
+      "available": true,
+      "present_fields": [
+        "registration_dt",
+        "reg_month",
+        "reg_dow"
+      ],
+      "required_fields": [
+        "registration_dt",
+        "reg_month",
+        "reg_dow"
+      ]
+    },
+    "referral_flow": {
+      "available": true,
+      "present_fields": [
+        "registration_dt",
+        "hospitalized",
+        "is_refused",
+        "wait_days",
+        "hospital_mo",
+        "referring_mo",
+        "bed_profile",
+        "profile_code"
+      ],
+      "required_fields": [
+        "registration_dt",
+        "hospitalized",
+        "is_refused",
+        "wait_days",
+        "hospital_mo",
+        "referring_mo",
+        "bed_profile",
+        "profile_code"
+      ]
+    },
+    "region": {
+      "available": true,
+      "present_fields": [
+        "region_code"
+      ],
+      "required_fields": [
+        "region_code"
+      ]
+    }
+  },
+  "minimum_source_contract": {
+    "license_and_provenance": "source_terms_raw_hashes_and_snapshot_date_required",
+    "minimum_history": "at_least_26_contiguous_weeks_for_weekly_seasonality",
+    "preferred_history": "at_least_24_months_for_annual_seasonality",
+    "recommended": [
+      "referral_id_or_privacy_preserving_join_key",
+      "ordered_at",
+      "specimen_collected_at",
+      "resulted_at",
+      "laboratory_id"
+    ],
+    "required": [
+      "event_timestamp",
+      "region_or_performing_organization",
+      "examination_code",
+      "observed_unit_count_or_one_row_per_event",
+      "event_status_or_stage"
+    ]
+  },
+  "privacy": {
+    "identifiers_emitted": false,
+    "row_data_emitted": false,
+    "source_must_remain_untracked": true
+  },
+  "schema_version": 1,
+  "source": {
+    "archive": {
+      "bytes": 10113357,
+      "license_file_present": false,
+      "member_count": 23,
+      "sha256": "3db524ccc2a4256443a0369e99bdada590f3494f32be3d01a926147738edfef8"
+    },
+    "catalog": "Ashyq Data / data.gov.kz",
+    "derived_by": "analysis/05_build_features.py",
+    "derived_parquet": {
+      "bytes": 13791102,
+      "column_count": 21,
+      "columns": [
+        "hospitalization_code",
+        "registration_dt",
+        "referring_mo",
+        "hospital_mo",
+        "icd10_ref_diag_code",
+        "bed_profile",
+        "territorial_type",
+        "referral_purpose",
+        "finance_source",
+        "region_code",
+        "profile_code",
+        "operation_code",
+        "has_operation",
+        "plan_lead_days",
+        "polyclinic_lag_days",
+        "has_polyclinic",
+        "reg_month",
+        "reg_dow",
+        "is_refused",
+        "wait_days",
+        "hospitalized"
+      ],
+      "embedded_metadata_present": false,
+      "rows": 767130,
+      "sha256": "c9386df30d37f3035aa653772abb74f648348a17b7de5497e9306b088bc01798"
+    },
+    "download_base": "https://magda-minio-web.data.gov.kz/magda-datasets",
+    "handoff_label": "demeu-data-handoff-2026-09-19",
+    "license_status": "not_verified",
+    "raw_source_hashes_status": "unavailable_in_handoff",
+    "referenced_by_downloader_but_not_used_for_parquet": [
+      "mz_ersb_treated_cases_list"
+    ],
+    "used_dataset_ids": [
+      "mz_bg_planned_hospitalization_referrals",
+      "mz_bg_awaiting_planned_hospitalization"
+    ]
+  },
+  "status": "blocked_missing_laboratory_demand_target",
+  "task": "D2_laboratory_load_forecast"
+}

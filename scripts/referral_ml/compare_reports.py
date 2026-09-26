@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from copy import deepcopy
 from pathlib import Path
@@ -21,6 +22,16 @@ def semantic_report(value: dict[str, Any]) -> dict[str, Any]:
     artifact["sha256"] = "joblib_serializer_hash_checked_separately"
     artifact["bytes"] = "joblib_serializer_size_checked_separately"
     return normalized
+
+
+def semantic_report_sha256(value: dict[str, Any]) -> str:
+    payload = json.dumps(
+        semantic_report(value),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
 
 
 def parse_args() -> argparse.Namespace:

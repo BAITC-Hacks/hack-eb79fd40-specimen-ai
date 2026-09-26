@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { patientMemoFromReferral } from "../../lib/patient-memo";
 import { evaluateCompleteness } from "../../lib/referrals/requirements";
 import { MemoryReferralRepository, ReferralService } from "../../lib/referrals/service";
 import type { ExaminationRecord, ReferralActor, RequirementCatalogue } from "../../lib/referrals/types";
@@ -36,7 +37,7 @@ const examination = (requirementId: string, patch: Partial<ExaminationRecord> = 
 });
 
 describe("review 25.09: referral readiness and privacy", () => {
-  it("reaches ready after a complete package instead of being shadowed by scheduled", async () => {
+  it("keeps completeness separate from the seven-phase journey and never invents ready", async () => {
     const service = new ReferralService(new MemoryReferralRepository(), {
       now: () => Date.parse("2026-09-13T12:00:00Z"),
       catalogue: catalogue([requirement("core", true, false)]),
@@ -50,13 +51,15 @@ describe("review 25.09: referral readiness and privacy", () => {
     expect(scheduled.flow).toBe("scheduled");
     const { id: _id, ...coreResult } = examination("core");
     void _id;
-    const ready = await service.examination(doctor, created.id, {
+    const complete = await service.examination(doctor, created.id, {
       expectedRevision: 2,
       idempotencyKey: "core-result",
       record: coreResult,
     });
-    expect(ready.completeness.status).toBe("complete");
-    expect(ready.flow).toBe("ready");
+    expect(complete.completeness.status).toBe("complete");
+    expect(complete.sent).toBeNull();
+    expect(complete.flow).toBe("scheduled");
+    expect(complete.events.flatMap((event) => event.transition ? [event.transition.to] : [])).toEqual(["preparing", "scheduled"]);
   });
 
   it("does not block on a truly optional item but blocks an applicable conditional item", () => {
@@ -95,6 +98,104 @@ describe("review 25.09: referral readiness and privacy", () => {
     ] }, conditionalCatalogue);
     expect(notApplicable.status).toBe("complete");
     expect(notApplicable.entries.find((entry) => entry.requirementId === "conditional")?.status).toBe("not_applicable");
+  });
+
+  it("distinguishes full, missing, expired and unvalidated package states", () => {
+    const checked = catalogue([requirement("core", true, false)]);
+    const base = { profile: "Хирургический", scheduledDate: "2026-09-20" };
+
+    expect(evaluateCompleteness({ ...base, examinations: [examination("core")] }, checked).status).toBe("complete");
+    expect(evaluateCompleteness({ ...base, examinations: [] }, checked).status).toBe("incomplete");
+    expect(evaluateCompleteness({ ...base, examinations: [examination("core", { expiresOn: "2026-09-19" })] }, checked).status).toBe("expired");
+
+    const unvalidated = evaluateCompleteness(
+      { ...base, examinations: [examination("core")] },
+      { ...checked, validated: false },
+    );
+    expect(unvalidated).toMatchObject({ status: "unknown", catalogueAvailable: false, catalogueValidated: false });
+    expect(unvalidated.entries).toEqual([expect.objectContaining({ requirementId: "core", status: "unknown" })]);
+  });
+
+  it("keeps former-profile examinations only in audit data after a profile correction", async () => {
+    const multiProfile: RequirementCatalogue = {
+      ...catalogue([requirement("old-profile", true, false)]),
+      profiles: [
+        { profile: "Хирургический", requirements: [requirement("old-profile", true, false)] },
+        { profile: "Урологический", requirements: [requirement("current-profile", true, false)] },
+      ],
+    };
+    const service = new ReferralService(new MemoryReferralRepository(), {
+      now: () => Date.parse("2026-09-20T12:00:00Z"),
+      catalogue: multiProfile,
+    });
+    let referral = await service.create(doctor, {
+      patientLabel: "Смена профиля",
+      profile: "Хирургический",
+      idempotencyKey: "profile-create",
+    });
+    referral = await service.update(doctor, referral.id, {
+      expectedRevision: referral.revision,
+      idempotencyKey: "profile-date",
+      patch: { scheduledDate: "2026-09-20" },
+    });
+    const { id: _oldId, ...oldRecord } = examination("old-profile", { expiresOn: "2026-09-19" });
+    void _oldId;
+    referral = await service.examination(doctor, referral.id, {
+      expectedRevision: referral.revision,
+      idempotencyKey: "old-profile-exam",
+      record: oldRecord,
+    });
+    referral = await service.update(doctor, referral.id, {
+      expectedRevision: referral.revision,
+      idempotencyKey: "profile-correction",
+      patch: { profile: "Урологический" },
+      reason: "Исправлен профиль госпитализации",
+    });
+    const { id: _currentId, ...currentRecord } = examination("current-profile");
+    void _currentId;
+    referral = await service.examination(doctor, referral.id, {
+      expectedRevision: referral.revision,
+      idempotencyKey: "current-profile-exam",
+      record: currentRecord,
+    });
+
+    expect(referral.examinations.map((entry) => entry.requirementId).sort()).toEqual(["current-profile", "old-profile"]);
+    expect(referral.completeness).toMatchObject({ status: "complete", catalogueVersion: "review-test" });
+    expect(referral.completeness.entries.map((entry) => entry.requirementId)).toEqual(["current-profile"]);
+    expect(patientMemoFromReferral(referral).items).toEqual([
+      expect.objectContaining({ label: "current-profile", status: "present" }),
+    ]);
+    expect((await service.memo(doctor, referral.id)).items).toEqual([
+      expect.objectContaining({ label: "current-profile", status: "present" }),
+    ]);
+
+    const uncheckedService = new ReferralService(new MemoryReferralRepository(), {
+      now: () => Date.parse("2026-09-20T12:00:00Z"),
+      catalogue: { ...multiProfile, validated: false },
+    });
+    let unchecked = await uncheckedService.create(doctor, {
+      patientLabel: "Смена профиля без валидации",
+      profile: "Хирургический",
+      idempotencyKey: "unchecked-profile-create",
+    });
+    const { id: _uncheckedOldId, ...uncheckedOldRecord } = examination("old-profile");
+    void _uncheckedOldId;
+    unchecked = await uncheckedService.examination(doctor, unchecked.id, {
+      expectedRevision: unchecked.revision,
+      idempotencyKey: "unchecked-old-profile-exam",
+      record: uncheckedOldRecord,
+    });
+    unchecked = await uncheckedService.update(doctor, unchecked.id, {
+      expectedRevision: unchecked.revision,
+      idempotencyKey: "unchecked-profile-correction",
+      patch: { profile: "Урологический" },
+      reason: "Исправлен профиль госпитализации",
+    });
+    expect(unchecked.completeness).toMatchObject({ status: "unknown", catalogueValidated: false });
+    expect(unchecked.completeness.entries.map((entry) => entry.requirementId)).toEqual(["current-profile"]);
+    expect((await uncheckedService.memo(doctor, unchecked.id)).items).toEqual([
+      expect.objectContaining({ label: "current-profile", status: "unknown" }),
+    ]);
   });
 
   it("keeps analyst aggregates on a stable release until five distinct referrals change", async () => {

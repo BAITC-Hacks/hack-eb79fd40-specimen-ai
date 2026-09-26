@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import type { ReferralDetail } from "@/lib/referrals/types";
+import { REFERRAL_JOURNEY_FLOWS, type ReferralDetail } from "@/lib/referrals/types";
 import { profileDisplayName } from "@/lib/referrals/profiles";
 import { calendarDate, COMPLETENESS_LABELS, FLOW_LABELS } from "../client";
 import { EMPTY_FILTERS, filterReferrals, useWorkspaceData, type ReferralFilters } from "../data";
@@ -27,7 +27,7 @@ export default function ReferralsPage() {
     <section className={s.card}>
       <div className={s.toolbar}>
         <label className={s.field}>Поиск<input type="search" value={filters.query} onChange={(e) => change("query", e.target.value)} placeholder="Метка, профиль, организация" /></label>
-        <label className={s.field}>Этап<select value={filters.flow} onChange={(e) => change("flow", e.target.value)}><option value="">Все этапы</option>{Object.entries(FLOW_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        <label className={s.field}>Этап<select value={filters.flow} onChange={(e) => change("flow", e.target.value)}><option value="">Все этапы</option>{REFERRAL_JOURNEY_FLOWS.map((value) => <option key={value} value={value}>{FLOW_LABELS[value]}</option>)}</select></label>
         <label className={s.field}>Комплектность<select value={filters.completeness} onChange={(e) => change("completeness", e.target.value)}><option value="">Все значения</option>{Object.entries(COMPLETENESS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <label className={s.field}>Рабочий порог, дней<input type="number" min="0" step="0.1" value={delayThreshold} onChange={(e) => setDelayThreshold(e.target.value)} placeholder="Не задан" /></label>
         <button className={s.secondary} onClick={resource.reload} disabled={resource.loading} aria-label="Обновить направления"><Icon name="refresh" size={17} /></button>

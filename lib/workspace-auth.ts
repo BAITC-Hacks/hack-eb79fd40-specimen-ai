@@ -12,8 +12,21 @@ export interface WorkspaceActor {
   telegramChatId?: string;
 }
 
+export interface WorkspaceAccessScope {
+  personalRecords: "organization" | "own" | "none";
+  aggregateRecords: "organization" | "own";
+  aggregatePrivacy: "direct" | "thresholded";
+}
+
+export function workspaceAccessScope(role: WorkspaceActor["role"]): WorkspaceAccessScope {
+  if (role === "owner") return { personalRecords: "organization", aggregateRecords: "organization", aggregatePrivacy: "direct" };
+  if (role === "doctor") return { personalRecords: "own", aggregateRecords: "own", aggregatePrivacy: "direct" };
+  return { personalRecords: "none", aggregateRecords: "organization", aggregatePrivacy: "thresholded" };
+}
+
 export interface WorkspaceAuthActor extends WorkspaceActor {
   organizationDisplayName: string;
+  access: WorkspaceAccessScope;
 }
 
 interface WorkspaceAccount extends WorkspaceActor {
@@ -154,6 +167,7 @@ function authActor(account: WorkspaceAccount): WorkspaceAuthActor {
   return {
     ...actor(account),
     organizationDisplayName: account.organizationDisplayName?.trim() || account.organizationId,
+    access: workspaceAccessScope(account.role),
   };
 }
 

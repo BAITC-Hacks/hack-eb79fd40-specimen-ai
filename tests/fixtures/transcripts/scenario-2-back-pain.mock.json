@@ -7,7 +7,7 @@
     "title": "Женщина 34 года, боль в пояснице две недели"
   },
   "completed_via": "chat",
-  "session_id": "8206866a-90ac-42a0-9371-588237cfcdf1",
+  "session_id": "a53ad0eb-a26f-431f-abd7-472a2fd4a735",
   "health": {
     "ok": true,
     "commit": "unknown",
@@ -17,6 +17,10 @@
   "http": [
     {
       "path": "/api/healthz",
+      "status": 200
+    },
+    {
+      "path": "/api/workspace/auth",
       "status": 200
     },
     {
@@ -37,6 +41,10 @@
     },
     {
       "path": "/api/chat",
+      "status": 200
+    },
+    {
+      "path": "/api/workspace/intakes/a53ad0eb-a26f-431f-abd7-472a2fd4a735",
       "status": 200
     }
   ],
@@ -70,6 +78,10 @@
       "content": "Спасибо, я передаю данные врачу."
     }
   ],
+  "closing": {
+    "emergency": false,
+    "text": "Спасибо. Ваши ответы переданы врачу. Дальнейшие шаги врач обсудит с вами отдельно."
+  },
   "result": {
     "anamnesis": {
       "chief_complaint": "ноющая боль в пояснице две недели",
@@ -85,12 +97,6 @@
       "chronic": [],
       "allergies": [],
       "medications": [],
-      "context": {
-        "age": 34,
-        "sex": "f",
-        "pregnancy": "na",
-        "risk_factors": []
-      },
       "history_status": {
         "past_history": "not_stated",
         "chronic": "denied",
@@ -101,7 +107,13 @@
         "температуры нет",
         "ноги не немеют",
         "мочеиспускание не нарушено"
-      ]
+      ],
+      "context": {
+        "age": 34,
+        "sex": "f",
+        "pregnancy": "na",
+        "risk_factors": []
+      }
     },
     "red_flags": [],
     "urgency": "planned",
@@ -127,6 +139,7 @@
       "model_version": "lr-v1",
       "abstain_reason": "out_of_label_space"
     },
-    "source": "llm_fallback"
+    "source": "llm_fallback",
+    "processing_mode": "external_llm"
   }
 }

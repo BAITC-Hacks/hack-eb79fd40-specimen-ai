@@ -183,4 +183,12 @@ describe("DONE marker", () => {
     expect(system).toContain("Отвечай ТОЛЬКО на казахском языке");
     expect(system).not.toContain(`«${GREETING_RU}»`);
   });
+
+  it("uses genuine Kazakh copy for the first patient message", () => {
+    expect(GREETING_KK).toBe(
+      "Сәлеметсіз бе! Мен дәрігеріңіздің көмекшісімін. Дәрігер қабылдауға алдын ала дайындалуы үшін бірнеше сұрақ қоямын. Сізді не мазалайды?",
+    );
+    expect(GREETING_KK).toMatch(/[әіңғүұқөһ]/iu);
+    expect(GREETING_KK).not.toMatch(/здравствуйте|что вас беспокоит|спасибо/iu);
+  });
 });

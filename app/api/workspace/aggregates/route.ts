@@ -1,4 +1,4 @@
-import { handleWorkspaceAggregates } from "@/lib/workspace-api";
+import { handleWorkspaceAggregateDashboard } from "./handler";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export function GET(req: Request) { return handleWorkspaceAggregates(req); }
+export function GET(req: Request) { return handleWorkspaceAggregateDashboard(req); }

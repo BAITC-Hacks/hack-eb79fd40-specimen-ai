@@ -140,16 +140,18 @@ export class ScopedWorkspaceNotifier {
       referral.triageSnapshot ? REFERRAL_URGENCY[referral.triageSnapshot.urgency] : "⚪ ПРИОРИТЕТ: НЕ УКАЗАН",
       `Эпизод: ${safeTelegramLine(referral.patientLabel)} · Врач: ${safeTelegramLine(recipient.displayName)}`,
       `Направление: ${safeTelegramLine(referral.profile)}`,
-      `Комплектность: ${{ complete: "комплектен", incomplete: "не комплектен", expired: "есть истёкшие сроки", unknown: "не проверено" }[referral.completeness.status]}`,
+      `Целевая дата: ${safeMemo.scheduledDate ?? "не указана"}`,
+      `Комплектность: ${{ complete: "полный пакет", incomplete: "не хватает результатов", expired: "есть истёкшие результаты", unknown: "не подтверждена" }[referral.completeness.status]}`,
+      ...(!referral.completeness.catalogueAvailable ? ["Справочник ожидает проверки врачом больницы; решение о готовности принимает врач."] : []),
       "",
       renderPatientMemoText(safeMemo),
       "",
       "Карточка направления:",
       workspaceUrl(`/workspace/referrals/${encodeURIComponent(referral.id)}`),
     ].join("\n");
-    const pdf = await (this.deps.pdf ?? renderPatientMemoPdf)(memo);
+    const pdf = await (this.deps.pdf ?? renderPatientMemoPdf)(safeMemo);
     const client = this.deps.client();
-    return this.deps.journal().deliver(["referral", referral.organizationId, referral.id, referral.revision], [actor.organizationId, actor.id, idempotencyKey], [recipient.id, recipient.telegramChatId, text], async () => {
+    return this.deps.journal().deliver(["referral", referral.organizationId, referral.id, referral.revision], [actor.organizationId, actor.id, idempotencyKey], [recipient.id, recipient.telegramChatId, text, safeMemo], async () => {
       for (const chunk of splitForTelegram(text)) await client.sendMessage(recipient.telegramChatId, chunk);
       await client.sendDocument(recipient.telegramChatId, pdf, "demeu-patient-memo.pdf");
     });

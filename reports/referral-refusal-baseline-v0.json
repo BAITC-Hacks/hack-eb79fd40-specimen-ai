@@ -2,44 +2,57 @@
   "cohort": {
     "by_month": {
       "2025-01": {
-        "censored_neither": 1138,
+        "censored_neither": 1137,
         "conflicting_both": 1,
-        "hospitalized_only": 244549,
-        "input_rows": 275605,
-        "mature_rows": 274466,
-        "refused_only": 29917
+        "hospitalized_only": 243338,
+        "input_rows": 274307,
+        "mature_rows": 273169,
+        "refused_only": 29831
       },
       "2025-02": {
-        "censored_neither": 1422,
+        "censored_neither": 1420,
         "conflicting_both": 0,
-        "hospitalized_only": 234437,
-        "input_rows": 265462,
-        "mature_rows": 264040,
-        "refused_only": 29603
+        "hospitalized_only": 233212,
+        "input_rows": 264130,
+        "mature_rows": 262710,
+        "refused_only": 29498
       },
       "2025-03": {
         "censored_neither": 1402,
         "conflicting_both": 0,
-        "hospitalized_only": 200101,
-        "input_rows": 226063,
-        "mature_rows": 224661,
-        "refused_only": 24560
+        "hospitalized_only": 198884,
+        "input_rows": 224755,
+        "mature_rows": 223353,
+        "refused_only": 24469
       }
     },
-    "censored_neither": 3962,
+    "censored_neither": 3959,
     "conflicting_both": 1,
-    "hospitalized_only": 679087,
-    "input_rows": 767130,
-    "mature_rows": 763167,
-    "policy": "exclude_censored_neither_and_conflicting_both",
-    "refused_only": 84080
+    "duplicate_audit": {
+      "cross_month_codes": 0,
+      "hospitalized_conflicting_codes": 5,
+      "is_refused_conflicting_codes": 6,
+      "policy": "exclude_all_rows_for_repeated_hospitalization_code_before_temporal_split",
+      "repeated_hospitalization_codes": 1969,
+      "rows_after_policy": 763192,
+      "rows_with_repeated_hospitalization_code": 3938,
+      "selection_uses_target_or_timestamp": false,
+      "unique_hospitalization_codes": 765161
+    },
+    "hospitalized_only": 675434,
+    "input_rows": 763192,
+    "mature_rows": 759232,
+    "policy": "exclude_all_rows_for_repeated_hospitalization_code_before_temporal_split_then_exclude_censored_neither_and_conflicting_both",
+    "refused_only": 83798,
+    "source_rows_before_duplicate_policy": 767130
   },
   "decision": {
-    "model_beats_pair_baseline": true,
-    "model_pr_auc_minus_pair": 0.03526788,
-    "recommended_candidate_for_future_runtime": "one_hot_logistic_regression",
-    "rule": "model_test_pr_auc_must_strictly_exceed_pair_baseline",
-    "runtime_changed_by_this_task": false
+    "march_evaluation_role": "descriptive_held_out_benchmark_previously_examined_in_handoff",
+    "march_test_used_for_selection": false,
+    "rule": "select_family_on_february_validation_before_march_evaluation",
+    "runtime_changed_by_this_task": false,
+    "selected_candidate": "one_hot_logistic_regression",
+    "selection_period": "2025-02"
   },
   "features": {
     "authorization": "ClickUp_z8udzk8t1g_registration_time_contract",
@@ -118,12 +131,13 @@
     "raw_source_hashes_unavailable_in_handoff",
     "national_2025_q1_not_pilot_hospital",
     "march_previously_examined_in_source_handoff",
+    "all_rows_for_repeated_identifiers_excluded_before_temporal_split",
     "patient_group_leakage_not_measurable",
     "no_runtime_parity_or_activation"
   ],
   "model_artifact": {
-    "bytes": 1100721,
-    "exact_threshold": 0.17016485706102835,
+    "bytes": 1093728,
+    "exact_threshold": 0.1709380688837899,
     "feature_order": [
       "bed_profile",
       "icd10_ref_diag_code",
@@ -136,7 +150,7 @@
     "path_policy": "data_processed_or_system_temp",
     "selected_c": 1.0,
     "serializer_byte_stable": false,
-    "sha256": "6bce4ce9fc1e30d76dff58c1223cd51b031c92311d6038d6c05435674042b194",
+    "sha256": "2ff0d5405d758b110d88b23b26b6f6e764f67aad65959a741ed7ab7da05097f3",
     "tracked_in_git": false
   },
   "model_name": "referral-refusal-baseline-v0",
@@ -195,27 +209,44 @@
         "bins": [
           {
             "bin": 1,
-            "mean_predicted": 0.10900075,
-            "observed_rate": 0.11211559,
-            "rows": 264040,
-            "score_max": 0.10900075,
-            "score_min": 0.10900075
+            "mean_predicted": 0.10920346,
+            "observed_rate": 0.11228351,
+            "rows": 262710,
+            "score_max": 0.10920346,
+            "score_min": 0.10920346
           }
         ],
         "requested_bins": 10
       },
       "metrics": {
-        "brier": 0.09955539,
-        "f1": 0.20162578,
-        "positives": 29603,
-        "pr_auc": 0.11211559,
-        "precision": 0.11211559,
-        "predicted_positive": 264040,
-        "prevalence": 0.11211559,
+        "brier": 0.09968541,
+        "f1": 0.20189728,
+        "positives": 29498,
+        "pr_auc": 0.11228351,
+        "precision": 0.11228351,
+        "predicted_positive": 262710,
+        "prevalence": 0.11228351,
         "recall": 1.0,
-        "rows": 264040,
-        "threshold": 0.1090007405483375
+        "roc_auc": 0.5,
+        "rows": 262710,
+        "threshold": 0.1092034501290776
       }
+    },
+    "final_comparator_selection": {
+      "candidates": [
+        "constant_baseline",
+        "smoothed_pair_baseline",
+        "one_hot_logistic_regression"
+      ],
+      "fixed_method_order": [
+        "constant_baseline",
+        "smoothed_pair_baseline",
+        "one_hot_logistic_regression"
+      ],
+      "primary_metric": "validation_pr_auc",
+      "selected": "one_hot_logistic_regression",
+      "test_used": false,
+      "tie_breaker": "validation_brier_then_fixed_method_order"
     },
     "model_candidates": [
       {
@@ -235,98 +266,99 @@
             "bins": [
               {
                 "bin": 1,
-                "mean_predicted": 0.01841315,
-                "observed_rate": 0.01344544,
-                "rows": 26403,
-                "score_max": 0.02490125,
-                "score_min": 0.00606964
+                "mean_predicted": 0.01843711,
+                "observed_rate": 0.01305622,
+                "rows": 26271,
+                "score_max": 0.02492441,
+                "score_min": 0.00609127
               },
               {
                 "bin": 2,
-                "mean_predicted": 0.03021852,
-                "observed_rate": 0.02193431,
-                "rows": 26397,
-                "score_max": 0.0350275,
-                "score_min": 0.02490442
+                "mean_predicted": 0.03023801,
+                "observed_rate": 0.02223407,
+                "rows": 26266,
+                "score_max": 0.03505224,
+                "score_min": 0.02493201
               },
               {
                 "bin": 3,
-                "mean_predicted": 0.0402319,
-                "observed_rate": 0.0393665,
-                "rows": 26393,
-                "score_max": 0.04535556,
-                "score_min": 0.03502763
+                "mean_predicted": 0.04022504,
+                "observed_rate": 0.03951727,
+                "rows": 26267,
+                "score_max": 0.04541269,
+                "score_min": 0.03505389
               },
               {
                 "bin": 4,
-                "mean_predicted": 0.05113527,
-                "observed_rate": 0.04969156,
-                "rows": 26423,
-                "score_max": 0.05746956,
-                "score_min": 0.04535766
+                "mean_predicted": 0.0511389,
+                "observed_rate": 0.05050274,
+                "rows": 26256,
+                "score_max": 0.05742265,
+                "score_min": 0.0454128
               },
               {
                 "bin": 5,
-                "mean_predicted": 0.06443534,
-                "observed_rate": 0.0680656,
-                "rows": 26401,
-                "score_max": 0.07188451,
-                "score_min": 0.05747036
+                "mean_predicted": 0.06444495,
+                "observed_rate": 0.06799772,
+                "rows": 26295,
+                "score_max": 0.07190781,
+                "score_min": 0.05742373
               },
               {
                 "bin": 6,
-                "mean_predicted": 0.08034997,
-                "observed_rate": 0.08956976,
-                "rows": 26404,
-                "score_max": 0.08995702,
-                "score_min": 0.07188505
+                "mean_predicted": 0.08042763,
+                "observed_rate": 0.09006128,
+                "rows": 26271,
+                "score_max": 0.09009378,
+                "score_min": 0.0719082
               },
               {
                 "bin": 7,
-                "mean_predicted": 0.10245574,
-                "observed_rate": 0.10970576,
-                "rows": 26407,
-                "score_max": 0.11630155,
-                "score_min": 0.08995825
+                "mean_predicted": 0.10263087,
+                "observed_rate": 0.10958852,
+                "rows": 26271,
+                "score_max": 0.11649411,
+                "score_min": 0.0901007
               },
               {
                 "bin": 8,
-                "mean_predicted": 0.13386882,
-                "observed_rate": 0.14959855,
-                "rows": 26404,
-                "score_max": 0.15469554,
-                "score_min": 0.11630163
+                "mean_predicted": 0.13407513,
+                "observed_rate": 0.14932816,
+                "rows": 26271,
+                "score_max": 0.15495032,
+                "score_min": 0.11649603
               },
               {
                 "bin": 9,
-                "mean_predicted": 0.18481455,
-                "observed_rate": 0.21091501,
-                "rows": 26404,
-                "score_max": 0.22379092,
-                "score_min": 0.15470556
+                "mean_predicted": 0.18515704,
+                "observed_rate": 0.21093304,
+                "rows": 26269,
+                "score_max": 0.22414567,
+                "score_min": 0.15495296
               },
               {
                 "bin": 10,
-                "mean_predicted": 0.33894677,
-                "observed_rate": 0.36884563,
-                "rows": 26404,
-                "score_max": 0.99430758,
-                "score_min": 0.22380059
+                "mean_predicted": 0.33958539,
+                "observed_rate": 0.36958094,
+                "rows": 26273,
+                "score_max": 0.99467626,
+                "score_min": 0.22415427
               }
             ],
             "requested_bins": 10
           },
           "metrics": {
-            "brier": 0.08736817,
-            "f1": 0.37371114,
-            "positives": 29603,
-            "pr_auc": 0.33899274,
-            "precision": 0.30749602,
-            "predicted_positive": 45851,
-            "prevalence": 0.11211559,
-            "recall": 0.4762693,
-            "rows": 264040,
-            "threshold": 0.16804279484979348
+            "brier": 0.08746914,
+            "f1": 0.37408624,
+            "positives": 29498,
+            "pr_auc": 0.33934276,
+            "precision": 0.30695006,
+            "predicted_positive": 46014,
+            "prevalence": 0.11228351,
+            "recall": 0.47881212,
+            "roc_auc": 0.76991627,
+            "rows": 262710,
+            "threshold": 0.16737602269608803
           }
         }
       },
@@ -347,98 +379,99 @@
             "bins": [
               {
                 "bin": 1,
-                "mean_predicted": 0.00888652,
-                "observed_rate": 0.01022572,
-                "rows": 26404,
-                "score_max": 0.0137825,
-                "score_min": 0.00134414
+                "mean_predicted": 0.00892679,
+                "observed_rate": 0.010471,
+                "rows": 26263,
+                "score_max": 0.0137974,
+                "score_min": 0.00135619
               },
               {
                 "bin": 2,
-                "mean_predicted": 0.01807254,
-                "observed_rate": 0.02159173,
-                "rows": 26399,
-                "score_max": 0.02258164,
-                "score_min": 0.0137826
+                "mean_predicted": 0.01805217,
+                "observed_rate": 0.02176643,
+                "rows": 26279,
+                "score_max": 0.02250753,
+                "score_min": 0.01380003
               },
               {
                 "bin": 3,
-                "mean_predicted": 0.02807224,
-                "observed_rate": 0.03491366,
-                "rows": 26408,
-                "score_max": 0.0336443,
-                "score_min": 0.02258223
+                "mean_predicted": 0.02805506,
+                "observed_rate": 0.03467702,
+                "rows": 26271,
+                "score_max": 0.03375086,
+                "score_min": 0.02250936
               },
               {
                 "bin": 4,
-                "mean_predicted": 0.04031231,
-                "observed_rate": 0.05067222,
-                "rows": 26405,
-                "score_max": 0.04743577,
-                "score_min": 0.03364499
+                "mean_predicted": 0.0403779,
+                "observed_rate": 0.05074036,
+                "rows": 26271,
+                "score_max": 0.04757614,
+                "score_min": 0.03375128
               },
               {
                 "bin": 5,
-                "mean_predicted": 0.05576175,
-                "observed_rate": 0.06987578,
-                "rows": 26404,
-                "score_max": 0.06475442,
-                "score_min": 0.0474368
+                "mean_predicted": 0.05590579,
+                "observed_rate": 0.07004454,
+                "rows": 26269,
+                "score_max": 0.06494735,
+                "score_min": 0.04757853
               },
               {
                 "bin": 6,
-                "mean_predicted": 0.07484592,
-                "observed_rate": 0.08760036,
-                "rows": 26404,
-                "score_max": 0.08580958,
-                "score_min": 0.06475663
+                "mean_predicted": 0.07500603,
+                "observed_rate": 0.087175,
+                "rows": 26269,
+                "score_max": 0.08590486,
+                "score_min": 0.0649494
               },
               {
                 "bin": 7,
-                "mean_predicted": 0.10056274,
-                "observed_rate": 0.11019681,
-                "rows": 26371,
-                "score_max": 0.11726622,
-                "score_min": 0.08581008
+                "mean_predicted": 0.10073966,
+                "observed_rate": 0.11127608,
+                "rows": 26268,
+                "score_max": 0.11755468,
+                "score_min": 0.08590499
               },
               {
                 "bin": 8,
-                "mean_predicted": 0.1378775,
-                "observed_rate": 0.15024398,
-                "rows": 26437,
-                "score_max": 0.16205883,
-                "score_min": 0.11726627
+                "mean_predicted": 0.13818434,
+                "observed_rate": 0.1498592,
+                "rows": 26278,
+                "score_max": 0.16241229,
+                "score_min": 0.1175564
               },
               {
                 "bin": 9,
-                "mean_predicted": 0.19818217,
-                "observed_rate": 0.21209711,
-                "rows": 26403,
-                "score_max": 0.24377558,
-                "score_min": 0.1620634
+                "mean_predicted": 0.19856119,
+                "observed_rate": 0.21293441,
+                "rows": 26271,
+                "score_max": 0.24400512,
+                "score_min": 0.1624142
               },
               {
                 "bin": 10,
-                "mean_predicted": 0.37799193,
-                "observed_rate": 0.37367923,
-                "rows": 26405,
-                "score_max": 0.99870408,
-                "score_min": 0.24378045
+                "mean_predicted": 0.37848336,
+                "observed_rate": 0.37387233,
+                "rows": 26271,
+                "score_max": 0.99877183,
+                "score_min": 0.24400924
               }
             ],
             "requested_bins": 10
           },
           "metrics": {
-            "brier": 0.08674649,
-            "f1": 0.37624592,
-            "positives": 29603,
-            "pr_auc": 0.34620466,
-            "precision": 0.30142003,
-            "predicted_positive": 49154,
-            "prevalence": 0.11211559,
-            "recall": 0.50048982,
-            "rows": 264040,
-            "threshold": 0.17016485706102835
+            "brier": 0.08685087,
+            "f1": 0.37637377,
+            "positives": 29498,
+            "pr_auc": 0.34650591,
+            "precision": 0.30204701,
+            "predicted_positive": 48754,
+            "prevalence": 0.11228351,
+            "recall": 0.49922029,
+            "roc_auc": 0.77524367,
+            "rows": 262710,
+            "threshold": 0.1709380688837899
           }
         }
       },
@@ -459,98 +492,99 @@
             "bins": [
               {
                 "bin": 1,
-                "mean_predicted": 0.00474643,
-                "observed_rate": 0.01321769,
-                "rows": 26404,
-                "score_max": 0.00929112,
-                "score_min": 5.241e-05
+                "mean_predicted": 0.00477598,
+                "observed_rate": 0.01337398,
+                "rows": 26245,
+                "score_max": 0.00930695,
+                "score_min": 5.249e-05
               },
               {
                 "bin": 2,
-                "mean_predicted": 0.01382668,
-                "observed_rate": 0.02007272,
-                "rows": 26404,
-                "score_max": 0.0185447,
-                "score_min": 0.00929244
+                "mean_predicted": 0.01381004,
+                "observed_rate": 0.02001296,
+                "rows": 26233,
+                "score_max": 0.01845646,
+                "score_min": 0.00930978
               },
               {
                 "bin": 3,
-                "mean_predicted": 0.02420289,
-                "observed_rate": 0.03511098,
-                "rows": 26402,
-                "score_max": 0.0303464,
-                "score_min": 0.01854527
+                "mean_predicted": 0.02414877,
+                "observed_rate": 0.03539655,
+                "rows": 26302,
+                "score_max": 0.03038214,
+                "score_min": 0.01845684
               },
               {
                 "bin": 4,
-                "mean_predicted": 0.03724413,
-                "observed_rate": 0.05142771,
-                "rows": 26406,
-                "score_max": 0.04473698,
-                "score_min": 0.03034776
+                "mean_predicted": 0.03731922,
+                "observed_rate": 0.05204532,
+                "rows": 26304,
+                "score_max": 0.04498134,
+                "score_min": 0.03038574
               },
               {
                 "bin": 5,
-                "mean_predicted": 0.05387076,
-                "observed_rate": 0.0686858,
-                "rows": 26381,
-                "score_max": 0.06340583,
-                "score_min": 0.04473801
+                "mean_predicted": 0.05406442,
+                "observed_rate": 0.06760563,
+                "rows": 26270,
+                "score_max": 0.06357525,
+                "score_min": 0.04498567
               },
               {
                 "bin": 6,
-                "mean_predicted": 0.0739475,
-                "observed_rate": 0.0881674,
-                "rows": 26427,
-                "score_max": 0.08501869,
-                "score_min": 0.06340712
+                "mean_predicted": 0.07411275,
+                "observed_rate": 0.08799543,
+                "rows": 26240,
+                "score_max": 0.08512908,
+                "score_min": 0.06357655
               },
               {
                 "bin": 7,
-                "mean_predicted": 0.10051046,
-                "observed_rate": 0.11032419,
-                "rows": 26404,
-                "score_max": 0.11783845,
-                "score_min": 0.08501953
+                "mean_predicted": 0.1006922,
+                "observed_rate": 0.11113223,
+                "rows": 26302,
+                "score_max": 0.11811836,
+                "score_min": 0.08513014
               },
               {
                 "bin": 8,
-                "mean_predicted": 0.13934496,
-                "observed_rate": 0.15043175,
-                "rows": 26404,
-                "score_max": 0.16494286,
-                "score_min": 0.11784009
+                "mean_predicted": 0.13968985,
+                "observed_rate": 0.15031212,
+                "rows": 26272,
+                "score_max": 0.16547056,
+                "score_min": 0.11812232
               },
               {
                 "bin": 9,
-                "mean_predicted": 0.20260804,
-                "observed_rate": 0.21079545,
-                "rows": 26400,
-                "score_max": 0.25036613,
-                "score_min": 0.16494588
+                "mean_predicted": 0.2030578,
+                "observed_rate": 0.21156408,
+                "rows": 26271,
+                "score_max": 0.25075552,
+                "score_min": 0.16547465
               },
               {
                 "bin": 10,
-                "mean_predicted": 0.38980096,
-                "observed_rate": 0.37287943,
-                "rows": 26408,
-                "score_max": 0.99914487,
-                "score_min": 0.25038157
+                "mean_predicted": 0.39024551,
+                "observed_rate": 0.37330136,
+                "rows": 26271,
+                "score_max": 0.99919825,
+                "score_min": 0.25075994
               }
             ],
             "requested_bins": 10
           },
           "metrics": {
-            "brier": 0.08686749,
-            "f1": 0.37533165,
-            "positives": 29603,
-            "pr_auc": 0.34592502,
-            "precision": 0.29728876,
-            "predicted_positive": 50678,
-            "prevalence": 0.11211559,
-            "recall": 0.50893491,
-            "rows": 264040,
-            "threshold": 0.16986968846656303
+            "brier": 0.08697561,
+            "f1": 0.37569544,
+            "positives": 29498,
+            "pr_auc": 0.34615937,
+            "precision": 0.29760136,
+            "predicted_positive": 50487,
+            "prevalence": 0.11228351,
+            "recall": 0.50935657,
+            "roc_auc": 0.77370257,
+            "rows": 262710,
+            "threshold": 0.1702119390662054
           }
         }
       }
@@ -559,7 +593,7 @@
     "selected_model": {
       "c": 1.0,
       "family": "one_hot_logistic_regression",
-      "threshold": 0.17016485706102835
+      "threshold": 0.1709380688837899
     },
     "smoothed_pair_baseline": {
       "candidates": [
@@ -572,105 +606,106 @@
               "bins": [
                 {
                   "bin": 1,
-                  "mean_predicted": 0.00334654,
-                  "observed_rate": 0.02631579,
-                  "rows": 25878,
-                  "score_max": 0.00853076,
-                  "score_min": 9.627e-05
+                  "mean_predicted": 0.00337162,
+                  "observed_rate": 0.02564103,
+                  "rows": 25272,
+                  "score_max": 0.00853083,
+                  "score_min": 9.625e-05
                 },
                 {
                   "bin": 2,
-                  "mean_predicted": 0.01388886,
-                  "observed_rate": 0.02945972,
-                  "rows": 26375,
-                  "score_max": 0.02026365,
-                  "score_min": 0.0085447
+                  "mean_predicted": 0.01412049,
+                  "observed_rate": 0.02883519,
+                  "rows": 27189,
+                  "score_max": 0.02034342,
+                  "score_min": 0.00855511
                 },
                 {
                   "bin": 3,
-                  "mean_predicted": 0.02604468,
-                  "observed_rate": 0.03654139,
-                  "rows": 26901,
-                  "score_max": 0.03268967,
-                  "score_min": 0.02027173
+                  "mean_predicted": 0.02625934,
+                  "observed_rate": 0.03761767,
+                  "rows": 26344,
+                  "score_max": 0.03304516,
+                  "score_min": 0.02040883
                 },
                 {
                   "bin": 4,
-                  "mean_predicted": 0.04076799,
-                  "observed_rate": 0.05338242,
-                  "rows": 26076,
-                  "score_max": 0.04905966,
-                  "score_min": 0.03277081
+                  "mean_predicted": 0.04112995,
+                  "observed_rate": 0.05400152,
+                  "rows": 26240,
+                  "score_max": 0.04961579,
+                  "score_min": 0.03306065
                 },
                 {
                   "bin": 5,
-                  "mean_predicted": 0.05885808,
-                  "observed_rate": 0.07828689,
-                  "rows": 26735,
-                  "score_max": 0.06875009,
-                  "score_min": 0.0490724
+                  "mean_predicted": 0.05917995,
+                  "observed_rate": 0.07879618,
+                  "rows": 26283,
+                  "score_max": 0.06885685,
+                  "score_min": 0.04968468
                 },
                 {
                   "bin": 6,
-                  "mean_predicted": 0.07949848,
-                  "observed_rate": 0.0919814,
-                  "rows": 26451,
-                  "score_max": 0.09158156,
-                  "score_min": 0.06875319
+                  "mean_predicted": 0.07966774,
+                  "observed_rate": 0.09196714,
+                  "rows": 26292,
+                  "score_max": 0.09160801,
+                  "score_min": 0.06887248
                 },
                 {
                   "bin": 7,
-                  "mean_predicted": 0.10696313,
-                  "observed_rate": 0.11506839,
-                  "rows": 26393,
-                  "score_max": 0.12235825,
-                  "score_min": 0.09161008
+                  "mean_predicted": 0.1071564,
+                  "observed_rate": 0.11546273,
+                  "rows": 26095,
+                  "score_max": 0.12251778,
+                  "score_min": 0.09162412
                 },
                 {
                   "bin": 8,
-                  "mean_predicted": 0.13883084,
-                  "observed_rate": 0.15116323,
-                  "rows": 26263,
-                  "score_max": 0.15886808,
-                  "score_min": 0.12247262
+                  "mean_predicted": 0.13881036,
+                  "observed_rate": 0.15142966,
+                  "rows": 26230,
+                  "score_max": 0.15886909,
+                  "score_min": 0.12252475
                 },
                 {
                   "bin": 9,
-                  "mean_predicted": 0.1929798,
-                  "observed_rate": 0.1906197,
-                  "rows": 26545,
-                  "score_max": 0.24341211,
+                  "mean_predicted": 0.19309991,
+                  "observed_rate": 0.19038629,
+                  "rows": 26483,
+                  "score_max": 0.24381833,
                   "score_min": 0.1588708
                 },
                 {
                   "bin": 10,
-                  "mean_predicted": 0.36907143,
-                  "observed_rate": 0.34731105,
-                  "rows": 26423,
-                  "score_max": 0.96312909,
-                  "score_min": 0.24362517
+                  "mean_predicted": 0.36949145,
+                  "observed_rate": 0.34784263,
+                  "rows": 26282,
+                  "score_max": 0.96329007,
+                  "score_min": 0.24398817
                 }
               ],
               "requested_bins": 10
             },
             "metrics": {
-              "brier": 0.08984602,
-              "f1": 0.34598082,
-              "positives": 29603,
-              "pr_auc": 0.30478074,
-              "precision": 0.27591751,
-              "predicted_positive": 49754,
-              "prevalence": 0.11211559,
-              "recall": 0.46373678,
-              "rows": 264040,
-              "threshold": 0.16531757753044876
+              "brier": 0.08995592,
+              "f1": 0.34609398,
+              "positives": 29498,
+              "pr_auc": 0.30500204,
+              "precision": 0.27612528,
+              "predicted_positive": 49521,
+              "prevalence": 0.11228351,
+              "recall": 0.46355685,
+              "roc_auc": 0.74448718,
+              "rows": 262710,
+              "threshold": 0.16531755273927504
             },
             "prediction_sources": {
               "global": 0,
               "hospital": 1,
-              "hospital_profile_blend": 998,
-              "pair": 262941,
-              "profile": 100
+              "hospital_profile_blend": 976,
+              "pair": 261630,
+              "profile": 103
             }
           }
         },
@@ -683,105 +718,106 @@
               "bins": [
                 {
                   "bin": 1,
-                  "mean_predicted": 0.00644285,
-                  "observed_rate": 0.01925052,
-                  "rows": 26285,
-                  "score_max": 0.0116484,
-                  "score_min": 0.00048484
+                  "mean_predicted": 0.00650996,
+                  "observed_rate": 0.01915592,
+                  "rows": 26206,
+                  "score_max": 0.01178274,
+                  "score_min": 0.00048476
                 },
                 {
                   "bin": 2,
-                  "mean_predicted": 0.01791722,
-                  "observed_rate": 0.02781811,
-                  "rows": 26170,
-                  "score_max": 0.02363506,
-                  "score_min": 0.0116681
+                  "mean_predicted": 0.01811208,
+                  "observed_rate": 0.02698793,
+                  "rows": 26271,
+                  "score_max": 0.02365197,
+                  "score_min": 0.01178598
                 },
                 {
                   "bin": 3,
-                  "mean_predicted": 0.03002956,
-                  "observed_rate": 0.04006609,
-                  "rows": 26631,
-                  "score_max": 0.03743057,
-                  "score_min": 0.02365202
+                  "mean_predicted": 0.03017946,
+                  "observed_rate": 0.04090338,
+                  "rows": 26257,
+                  "score_max": 0.03759781,
+                  "score_min": 0.02368688
                 },
                 {
                   "bin": 4,
-                  "mean_predicted": 0.04450965,
-                  "observed_rate": 0.05634017,
-                  "rows": 26340,
-                  "score_max": 0.05264158,
-                  "score_min": 0.03743078
+                  "mean_predicted": 0.0447296,
+                  "observed_rate": 0.05686245,
+                  "rows": 26186,
+                  "score_max": 0.05280667,
+                  "score_min": 0.03760079
                 },
                 {
                   "bin": 5,
-                  "mean_predicted": 0.06194967,
-                  "observed_rate": 0.0759752,
-                  "rows": 26456,
-                  "score_max": 0.07101152,
-                  "score_min": 0.05272234
+                  "mean_predicted": 0.06217788,
+                  "observed_rate": 0.07618976,
+                  "rows": 26434,
+                  "score_max": 0.07131738,
+                  "score_min": 0.05282931
                 },
                 {
                   "bin": 6,
-                  "mean_predicted": 0.08180437,
-                  "observed_rate": 0.09448849,
-                  "rows": 26490,
-                  "score_max": 0.09408412,
-                  "score_min": 0.07101633
+                  "mean_predicted": 0.0820608,
+                  "observed_rate": 0.09478132,
+                  "rows": 26271,
+                  "score_max": 0.09420201,
+                  "score_min": 0.0713382
                 },
                 {
                   "bin": 7,
-                  "mean_predicted": 0.10810353,
-                  "observed_rate": 0.1165921,
-                  "rows": 26151,
-                  "score_max": 0.12267528,
-                  "score_min": 0.09408792
+                  "mean_predicted": 0.10834682,
+                  "observed_rate": 0.11703572,
+                  "rows": 25787,
+                  "score_max": 0.12266626,
+                  "score_min": 0.09422073
                 },
                 {
                   "bin": 8,
-                  "mean_predicted": 0.13847967,
-                  "observed_rate": 0.14976118,
-                  "rows": 26589,
-                  "score_max": 0.15727938,
-                  "score_min": 0.1226888
+                  "mean_predicted": 0.13850075,
+                  "observed_rate": 0.14983089,
+                  "rows": 26610,
+                  "score_max": 0.15727919,
+                  "score_min": 0.12268874
                 },
                 {
                   "bin": 9,
-                  "mean_predicted": 0.1897356,
-                  "observed_rate": 0.19043308,
-                  "rows": 26508,
-                  "score_max": 0.23693946,
-                  "score_min": 0.15744703
+                  "mean_predicted": 0.18996335,
+                  "observed_rate": 0.19031574,
+                  "rows": 26414,
+                  "score_max": 0.23742153,
+                  "score_min": 0.15744689
                 },
                 {
                   "bin": 10,
-                  "mean_predicted": 0.35024761,
-                  "observed_rate": 0.34920515,
-                  "rows": 26420,
-                  "score_max": 0.85106813,
-                  "score_min": 0.23702209
+                  "mean_predicted": 0.35078731,
+                  "observed_rate": 0.34969932,
+                  "rows": 26274,
+                  "score_max": 0.85106814,
+                  "score_min": 0.23744528
                 }
               ],
               "requested_bins": 10
             },
             "metrics": {
-              "brier": 0.08950806,
-              "f1": 0.34735335,
-              "positives": 29603,
-              "pr_auc": 0.30510917,
-              "precision": 0.27794678,
-              "predicted_positive": 49308,
-              "prevalence": 0.11211559,
-              "recall": 0.46295984,
-              "rows": 264040,
-              "threshold": 0.16444963986121122
+              "brier": 0.08961401,
+              "f1": 0.34745763,
+              "positives": 29498,
+              "pr_auc": 0.3054185,
+              "precision": 0.27812182,
+              "predicted_positive": 49090,
+              "prevalence": 0.11228351,
+              "recall": 0.46284494,
+              "roc_auc": 0.74862105,
+              "rows": 262710,
+              "threshold": 0.16445330664668242
             },
             "prediction_sources": {
               "global": 0,
               "hospital": 1,
-              "hospital_profile_blend": 998,
-              "pair": 262941,
-              "profile": 100
+              "hospital_profile_blend": 976,
+              "pair": 261630,
+              "profile": 103
             }
           }
         },
@@ -794,105 +830,106 @@
               "bins": [
                 {
                   "bin": 1,
-                  "mean_predicted": 0.00814159,
-                  "observed_rate": 0.01496733,
-                  "rows": 26324,
-                  "score_max": 0.01399819,
-                  "score_min": 0.00097761
+                  "mean_predicted": 0.00816723,
+                  "observed_rate": 0.01504334,
+                  "rows": 26191,
+                  "score_max": 0.01403086,
+                  "score_min": 0.00097749
                 },
                 {
                   "bin": 2,
-                  "mean_predicted": 0.0203674,
-                  "observed_rate": 0.02976168,
-                  "rows": 26477,
-                  "score_max": 0.02575134,
-                  "score_min": 0.01403028
+                  "mean_predicted": 0.02041828,
+                  "observed_rate": 0.02985188,
+                  "rows": 26330,
+                  "score_max": 0.02550956,
+                  "score_min": 0.01410451
                 },
                 {
                   "bin": 3,
-                  "mean_predicted": 0.03290564,
-                  "observed_rate": 0.04082869,
-                  "rows": 26403,
-                  "score_max": 0.0400999,
-                  "score_min": 0.02575343
+                  "mean_predicted": 0.03295828,
+                  "observed_rate": 0.04041403,
+                  "rows": 26278,
+                  "score_max": 0.04015099,
+                  "score_min": 0.02559556
                 },
                 {
                   "bin": 4,
-                  "mean_predicted": 0.04774608,
-                  "observed_rate": 0.05609424,
-                  "rows": 26402,
-                  "score_max": 0.05642849,
-                  "score_min": 0.04010926
+                  "mean_predicted": 0.04786766,
+                  "observed_rate": 0.05583098,
+                  "rows": 26222,
+                  "score_max": 0.05644063,
+                  "score_min": 0.04040004
                 },
                 {
                   "bin": 5,
-                  "mean_predicted": 0.06485292,
-                  "observed_rate": 0.07746666,
-                  "rows": 26321,
-                  "score_max": 0.07365722,
-                  "score_min": 0.0564408
+                  "mean_predicted": 0.06496853,
+                  "observed_rate": 0.07782785,
+                  "rows": 26186,
+                  "score_max": 0.07373282,
+                  "score_min": 0.05650569
                 },
                 {
                   "bin": 6,
-                  "mean_predicted": 0.08403816,
-                  "observed_rate": 0.09284656,
-                  "rows": 26323,
-                  "score_max": 0.09575595,
-                  "score_min": 0.0736957
+                  "mean_predicted": 0.08422078,
+                  "observed_rate": 0.09292322,
+                  "rows": 26269,
+                  "score_max": 0.09615737,
+                  "score_min": 0.07377283
                 },
                 {
                   "bin": 7,
-                  "mean_predicted": 0.10946868,
-                  "observed_rate": 0.11937378,
-                  "rows": 26572,
-                  "score_max": 0.12305767,
-                  "score_min": 0.0957682
+                  "mean_predicted": 0.10977499,
+                  "observed_rate": 0.12082876,
+                  "rows": 26401,
+                  "score_max": 0.12330102,
+                  "score_min": 0.09616904
                 },
                 {
                   "bin": 8,
-                  "mean_predicted": 0.13846039,
-                  "observed_rate": 0.14877318,
-                  "rows": 26369,
-                  "score_max": 0.1569481,
-                  "score_min": 0.12309771
+                  "mean_predicted": 0.13860821,
+                  "observed_rate": 0.14857753,
+                  "rows": 26222,
+                  "score_max": 0.15696653,
+                  "score_min": 0.1233763
                 },
                 {
                   "bin": 9,
-                  "mean_predicted": 0.18680868,
-                  "observed_rate": 0.19056804,
-                  "rows": 26442,
-                  "score_max": 0.22956476,
-                  "score_min": 0.15695966
+                  "mean_predicted": 0.18695008,
+                  "observed_rate": 0.1902968,
+                  "rows": 26280,
+                  "score_max": 0.22966927,
+                  "score_min": 0.15698341
                 },
                 {
                   "bin": 10,
-                  "mean_predicted": 0.33780081,
-                  "observed_rate": 0.35009657,
-                  "rows": 26407,
-                  "score_max": 0.83977323,
-                  "score_min": 0.22966881
+                  "mean_predicted": 0.33809508,
+                  "observed_rate": 0.35038548,
+                  "rows": 26331,
+                  "score_max": 0.83977327,
+                  "score_min": 0.22975985
                 }
               ],
               "requested_bins": 10
             },
             "metrics": {
-              "brier": 0.08945996,
-              "f1": 0.3472691,
-              "positives": 29603,
-              "pr_auc": 0.30455933,
-              "precision": 0.27328952,
-              "predicted_positive": 51579,
-              "prevalence": 0.11211559,
-              "recall": 0.47616796,
-              "rows": 264040,
-              "threshold": 0.15829578932903993
+              "brier": 0.08956406,
+              "f1": 0.3473205,
+              "positives": 29498,
+              "pr_auc": 0.30491023,
+              "precision": 0.27344267,
+              "predicted_positive": 51338,
+              "prevalence": 0.11228351,
+              "recall": 0.47589667,
+              "roc_auc": 0.74997589,
+              "rows": 262710,
+              "threshold": 0.1582999410593548
             },
             "prediction_sources": {
               "global": 0,
               "hospital": 1,
-              "hospital_profile_blend": 998,
-              "pair": 262941,
-              "profile": 100
+              "hospital_profile_blend": 976,
+              "pair": 261630,
+              "profile": 103
             }
           }
         },
@@ -905,105 +942,106 @@
               "bins": [
                 {
                   "bin": 1,
-                  "mean_predicted": 0.01028727,
-                  "observed_rate": 0.01444305,
-                  "rows": 26241,
-                  "score_max": 0.01781331,
-                  "score_min": 0.00198212
+                  "mean_predicted": 0.01024403,
+                  "observed_rate": 0.01449777,
+                  "rows": 26004,
+                  "score_max": 0.01782281,
+                  "score_min": 0.00198202
                 },
                 {
                   "bin": 2,
-                  "mean_predicted": 0.0232834,
-                  "observed_rate": 0.02546033,
-                  "rows": 26394,
-                  "score_max": 0.0299117,
-                  "score_min": 0.01786882
+                  "mean_predicted": 0.02323399,
+                  "observed_rate": 0.02649032,
+                  "rows": 26387,
+                  "score_max": 0.02978434,
+                  "score_min": 0.01786859
                 },
                 {
                   "bin": 3,
-                  "mean_predicted": 0.036635,
-                  "observed_rate": 0.04508384,
-                  "rows": 26240,
-                  "score_max": 0.04358716,
-                  "score_min": 0.02993158
+                  "mean_predicted": 0.03661105,
+                  "observed_rate": 0.04340749,
+                  "rows": 25802,
+                  "score_max": 0.04360368,
+                  "score_min": 0.02991225
                 },
                 {
                   "bin": 4,
-                  "mean_predicted": 0.05144604,
-                  "observed_rate": 0.0577247,
-                  "rows": 26713,
-                  "score_max": 0.06008059,
-                  "score_min": 0.04361168
+                  "mean_predicted": 0.0514729,
+                  "observed_rate": 0.05798935,
+                  "rows": 26867,
+                  "score_max": 0.06009866,
+                  "score_min": 0.04362657
                 },
                 {
                   "bin": 5,
-                  "mean_predicted": 0.06870048,
-                  "observed_rate": 0.07571722,
-                  "rows": 26282,
-                  "score_max": 0.07793855,
-                  "score_min": 0.06009792
+                  "mean_predicted": 0.06887057,
+                  "observed_rate": 0.07611509,
+                  "rows": 26276,
+                  "score_max": 0.0781067,
+                  "score_min": 0.06011446
                 },
                 {
                   "bin": 6,
-                  "mean_predicted": 0.08729907,
-                  "observed_rate": 0.09091936,
-                  "rows": 26551,
-                  "score_max": 0.09860738,
-                  "score_min": 0.07794229
+                  "mean_predicted": 0.08754334,
+                  "observed_rate": 0.09094024,
+                  "rows": 26270,
+                  "score_max": 0.09911796,
+                  "score_min": 0.07811432
                 },
                 {
                   "bin": 7,
-                  "mean_predicted": 0.11130124,
-                  "observed_rate": 0.11959616,
-                  "rows": 26347,
-                  "score_max": 0.12396895,
-                  "score_min": 0.0986661
+                  "mean_predicted": 0.11160122,
+                  "observed_rate": 0.12099536,
+                  "rows": 26282,
+                  "score_max": 0.12430061,
+                  "score_min": 0.09916798
                 },
                 {
                   "bin": 8,
-                  "mean_predicted": 0.13815635,
-                  "observed_rate": 0.15189778,
-                  "rows": 26452,
-                  "score_max": 0.15601993,
-                  "score_min": 0.12405056
+                  "mean_predicted": 0.1383604,
+                  "observed_rate": 0.15178401,
+                  "rows": 26261,
+                  "score_max": 0.15643726,
+                  "score_min": 0.12435185
                 },
                 {
                   "bin": 9,
-                  "mean_predicted": 0.18253799,
-                  "observed_rate": 0.18998443,
-                  "rows": 26339,
-                  "score_max": 0.22229796,
-                  "score_min": 0.15602187
+                  "mean_predicted": 0.18294633,
+                  "observed_rate": 0.19017167,
+                  "rows": 26271,
+                  "score_max": 0.22328379,
+                  "score_min": 0.15644278
                 },
                 {
                   "bin": 10,
-                  "mean_predicted": 0.32201392,
-                  "observed_rate": 0.34930705,
-                  "rows": 26481,
-                  "score_max": 0.81847685,
-                  "score_min": 0.22231372
+                  "mean_predicted": 0.3227763,
+                  "observed_rate": 0.34967668,
+                  "rows": 26290,
+                  "score_max": 0.81847701,
+                  "score_min": 0.22336775
                 }
               ],
               "requested_bins": 10
             },
             "metrics": {
-              "brier": 0.08953704,
-              "f1": 0.34784941,
-              "positives": 29603,
-              "pr_auc": 0.30332461,
-              "precision": 0.27969514,
-              "predicted_positive": 48678,
-              "prevalence": 0.11211559,
-              "recall": 0.4599196,
-              "rows": 264040,
-              "threshold": 0.16163332078774015
+              "brier": 0.08964012,
+              "f1": 0.3479399,
+              "positives": 29498,
+              "pr_auc": 0.30367037,
+              "precision": 0.27992154,
+              "predicted_positive": 48435,
+              "prevalence": 0.11228351,
+              "recall": 0.45962438,
+              "roc_auc": 0.75060435,
+              "rows": 262710,
+              "threshold": 0.1620609596835335
             },
             "prediction_sources": {
               "global": 0,
               "hospital": 1,
-              "hospital_profile_blend": 998,
-              "pair": 262941,
-              "profile": 100
+              "hospital_profile_blend": 976,
+              "pair": 261630,
+              "profile": 103
             }
           }
         },
@@ -1016,105 +1054,106 @@
               "bins": [
                 {
                   "bin": 1,
-                  "mean_predicted": 0.01455624,
-                  "observed_rate": 0.01423636,
-                  "rows": 26341,
-                  "score_max": 0.02233006,
-                  "score_min": 0.00503966
+                  "mean_predicted": 0.01449593,
+                  "observed_rate": 0.01434364,
+                  "rows": 26144,
+                  "score_max": 0.0222973,
+                  "score_min": 0.00503956
                 },
                 {
                   "bin": 2,
-                  "mean_predicted": 0.02883568,
-                  "observed_rate": 0.02685769,
-                  "rows": 26175,
-                  "score_max": 0.03559393,
-                  "score_min": 0.0225063
+                  "mean_predicted": 0.02866804,
+                  "observed_rate": 0.02679906,
+                  "rows": 26083,
+                  "score_max": 0.03559876,
+                  "score_min": 0.02233215
                 },
                 {
                   "bin": 3,
-                  "mean_predicted": 0.04342661,
-                  "observed_rate": 0.04276932,
-                  "rows": 26678,
-                  "score_max": 0.05086778,
-                  "score_min": 0.03562044
+                  "mean_predicted": 0.04345045,
+                  "observed_rate": 0.04268453,
+                  "rows": 26567,
+                  "score_max": 0.05104123,
+                  "score_min": 0.03562103
                 },
                 {
                   "bin": 4,
-                  "mean_predicted": 0.05841414,
-                  "observed_rate": 0.06332353,
-                  "rows": 26183,
-                  "score_max": 0.0663954,
-                  "score_min": 0.05103772
+                  "mean_predicted": 0.05843045,
+                  "observed_rate": 0.06287298,
+                  "rows": 25973,
+                  "score_max": 0.06638838,
+                  "score_min": 0.05104571
                 },
                 {
                   "bin": 5,
-                  "mean_predicted": 0.07440044,
-                  "observed_rate": 0.07493834,
-                  "rows": 26355,
-                  "score_max": 0.08306581,
-                  "score_min": 0.06640906
+                  "mean_predicted": 0.0745631,
+                  "observed_rate": 0.07563847,
+                  "rows": 26587,
+                  "score_max": 0.08310173,
+                  "score_min": 0.06640942
                 },
                 {
                   "bin": 6,
-                  "mean_predicted": 0.09205527,
-                  "observed_rate": 0.09187239,
-                  "rows": 26613,
-                  "score_max": 0.10278133,
-                  "score_min": 0.08310132
+                  "mean_predicted": 0.09241369,
+                  "observed_rate": 0.09175745,
+                  "rows": 26254,
+                  "score_max": 0.10307244,
+                  "score_min": 0.08314157
                 },
                 {
                   "bin": 7,
-                  "mean_predicted": 0.11422274,
-                  "observed_rate": 0.11242177,
-                  "rows": 26365,
-                  "score_max": 0.12485894,
-                  "score_min": 0.10282884
+                  "mean_predicted": 0.1144813,
+                  "observed_rate": 0.11386761,
+                  "rows": 26241,
+                  "score_max": 0.12493268,
+                  "score_min": 0.10308978
                 },
                 {
                   "bin": 8,
-                  "mean_predicted": 0.13748282,
-                  "observed_rate": 0.15579751,
-                  "rows": 26451,
-                  "score_max": 0.15295557,
-                  "score_min": 0.12486093
+                  "mean_predicted": 0.13779545,
+                  "observed_rate": 0.15627376,
+                  "rows": 26300,
+                  "score_max": 0.15321647,
+                  "score_min": 0.12493526
                 },
                 {
                   "bin": 9,
-                  "mean_predicted": 0.17559631,
-                  "observed_rate": 0.19189894,
-                  "rows": 26441,
-                  "score_max": 0.20982831,
-                  "score_min": 0.15297096
+                  "mean_predicted": 0.17589741,
+                  "observed_rate": 0.19122089,
+                  "rows": 26153,
+                  "score_max": 0.21031563,
+                  "score_min": 0.15332857
                 },
                 {
                   "bin": 10,
-                  "mean_predicted": 0.2970802,
-                  "observed_rate": 0.34597927,
-                  "rows": 26438,
-                  "score_max": 0.76326801,
-                  "score_min": 0.20994433
+                  "mean_predicted": 0.29725098,
+                  "observed_rate": 0.34603151,
+                  "rows": 26408,
+                  "score_max": 0.76326884,
+                  "score_min": 0.21039955
                 }
               ],
               "requested_bins": 10
             },
             "metrics": {
-              "brier": 0.08994367,
-              "f1": 0.34605902,
-              "positives": 29603,
-              "pr_auc": 0.29919842,
-              "precision": 0.2809583,
-              "predicted_positive": 47459,
-              "prevalence": 0.11211559,
-              "recall": 0.45042732,
-              "rows": 264040,
-              "threshold": 0.16059942742650288
+              "brier": 0.09004691,
+              "f1": 0.34634244,
+              "positives": 29498,
+              "pr_auc": 0.29953202,
+              "precision": 0.28581825,
+              "predicted_positive": 45347,
+              "prevalence": 0.11228351,
+              "recall": 0.43938572,
+              "roc_auc": 0.74941444,
+              "rows": 262710,
+              "threshold": 0.16408219171934588
             },
             "prediction_sources": {
               "global": 0,
               "hospital": 1,
-              "hospital_profile_blend": 998,
-              "pair": 262941,
-              "profile": 100
+              "hospital_profile_blend": 976,
+              "pair": 261630,
+              "profile": 103
             }
           }
         },
@@ -1127,105 +1166,106 @@
               "bins": [
                 {
                   "bin": 1,
-                  "mean_predicted": 0.01963152,
-                  "observed_rate": 0.01556509,
-                  "rows": 26341,
-                  "score_max": 0.02839857,
-                  "score_min": 0.00812137
+                  "mean_predicted": 0.01954472,
+                  "observed_rate": 0.01552319,
+                  "rows": 26090,
+                  "score_max": 0.02778326,
+                  "score_min": 0.00812208
                 },
                 {
                   "bin": 2,
-                  "mean_predicted": 0.03516821,
-                  "observed_rate": 0.02740088,
-                  "rows": 26459,
-                  "score_max": 0.04323431,
-                  "score_min": 0.02855155
+                  "mean_predicted": 0.03494684,
+                  "observed_rate": 0.0274532,
+                  "rows": 26445,
+                  "score_max": 0.0431826,
+                  "score_min": 0.02784512
                 },
                 {
                   "bin": 3,
-                  "mean_predicted": 0.04999686,
-                  "observed_rate": 0.04253383,
-                  "rows": 26379,
-                  "score_max": 0.0572605,
-                  "score_min": 0.04326255
+                  "mean_predicted": 0.050002,
+                  "observed_rate": 0.04280274,
+                  "rows": 26260,
+                  "score_max": 0.05734581,
+                  "score_min": 0.04324195
                 },
                 {
                   "bin": 4,
-                  "mean_predicted": 0.06493739,
-                  "observed_rate": 0.06729674,
-                  "rows": 26346,
-                  "score_max": 0.07184828,
-                  "score_min": 0.05728234
+                  "mean_predicted": 0.06498183,
+                  "observed_rate": 0.06699676,
+                  "rows": 26255,
+                  "score_max": 0.07187142,
+                  "score_min": 0.05735093
                 },
                 {
                   "bin": 5,
-                  "mean_predicted": 0.0792486,
-                  "observed_rate": 0.07354497,
-                  "rows": 26460,
-                  "score_max": 0.08564185,
-                  "score_min": 0.07186762
+                  "mean_predicted": 0.07927718,
+                  "observed_rate": 0.07320331,
+                  "rows": 26201,
+                  "score_max": 0.08575718,
+                  "score_min": 0.07188913
                 },
                 {
                   "bin": 6,
-                  "mean_predicted": 0.09540042,
-                  "observed_rate": 0.09192825,
-                  "rows": 26314,
-                  "score_max": 0.10583062,
-                  "score_min": 0.08566052
+                  "mean_predicted": 0.09550173,
+                  "observed_rate": 0.09251339,
+                  "rows": 25953,
+                  "score_max": 0.10582033,
+                  "score_min": 0.08577448
                 },
                 {
                   "bin": 7,
-                  "mean_predicted": 0.11575256,
-                  "observed_rate": 0.11486435,
-                  "rows": 26022,
-                  "score_max": 0.12570177,
-                  "score_min": 0.10585749
+                  "mean_predicted": 0.11601,
+                  "observed_rate": 0.11585778,
+                  "rows": 26662,
+                  "score_max": 0.12595503,
+                  "score_min": 0.10585882
                 },
                 {
                   "bin": 8,
-                  "mean_predicted": 0.1365828,
-                  "observed_rate": 0.15246553,
-                  "rows": 26911,
-                  "score_max": 0.15075829,
-                  "score_min": 0.12573126
+                  "mean_predicted": 0.13694495,
+                  "observed_rate": 0.15240539,
+                  "rows": 26108,
+                  "score_max": 0.15093818,
+                  "score_min": 0.12595859
                 },
                 {
                   "bin": 9,
-                  "mean_predicted": 0.16996779,
-                  "observed_rate": 0.19273595,
-                  "rows": 26404,
-                  "score_max": 0.1984903,
-                  "score_min": 0.15077402
+                  "mean_predicted": 0.17007335,
+                  "observed_rate": 0.19196412,
+                  "rows": 26307,
+                  "score_max": 0.19863284,
+                  "score_min": 0.15096045
                 },
                 {
                   "bin": 10,
-                  "mean_predicted": 0.27481569,
-                  "observed_rate": 0.34188002,
-                  "rows": 26404,
-                  "score_max": 0.69230424,
-                  "score_min": 0.19882307
+                  "mean_predicted": 0.27481504,
+                  "observed_rate": 0.34231337,
+                  "rows": 26429,
+                  "score_max": 0.69230698,
+                  "score_min": 0.19882826
                 }
               ],
               "requested_bins": 10
             },
             "metrics": {
-              "brier": 0.09055565,
-              "f1": 0.3449792,
-              "positives": 29603,
-              "pr_auc": 0.29323661,
-              "precision": 0.2826298,
-              "predicted_positive": 46361,
-              "prevalence": 0.11211559,
-              "recall": 0.44262406,
-              "rows": 264040,
-              "threshold": 0.15863126928087587
+              "brier": 0.09065981,
+              "f1": 0.3453596,
+              "positives": 29498,
+              "pr_auc": 0.29355692,
+              "precision": 0.28260963,
+              "predicted_positive": 46336,
+              "prevalence": 0.11228351,
+              "recall": 0.4439284,
+              "roc_auc": 0.74629239,
+              "rows": 262710,
+              "threshold": 0.15865291385840402
             },
             "prediction_sources": {
               "global": 0,
               "hospital": 1,
-              "hospital_profile_blend": 998,
-              "pair": 262941,
-              "profile": 100
+              "hospital_profile_blend": 976,
+              "pair": 261630,
+              "profile": 103
             }
           }
         },
@@ -1238,105 +1278,106 @@
               "bins": [
                 {
                   "bin": 1,
-                  "mean_predicted": 0.02692468,
-                  "observed_rate": 0.01781635,
-                  "rows": 26268,
-                  "score_max": 0.03686007,
-                  "score_min": 0.01226279
+                  "mean_predicted": 0.02691155,
+                  "observed_rate": 0.01763071,
+                  "rows": 26261,
+                  "score_max": 0.03685817,
+                  "score_min": 0.01227714
                 },
                 {
                   "bin": 2,
-                  "mean_predicted": 0.04387829,
-                  "observed_rate": 0.02736874,
-                  "rows": 26417,
-                  "score_max": 0.05072369,
-                  "score_min": 0.03689095
+                  "mean_predicted": 0.04375895,
+                  "observed_rate": 0.02747882,
+                  "rows": 26202,
+                  "score_max": 0.05061778,
+                  "score_min": 0.03686968
                 },
                 {
                   "bin": 3,
-                  "mean_predicted": 0.05772973,
-                  "observed_rate": 0.04152367,
-                  "rows": 26515,
-                  "score_max": 0.06468812,
-                  "score_min": 0.05079841
+                  "mean_predicted": 0.05767334,
+                  "observed_rate": 0.04179796,
+                  "rows": 26341,
+                  "score_max": 0.06446822,
+                  "score_min": 0.05074604
                 },
                 {
                   "bin": 4,
-                  "mean_predicted": 0.07171312,
-                  "observed_rate": 0.07070323,
-                  "rows": 26293,
-                  "score_max": 0.07775241,
-                  "score_min": 0.06471381
+                  "mean_predicted": 0.07173783,
+                  "observed_rate": 0.07080897,
+                  "rows": 26169,
+                  "score_max": 0.07778986,
+                  "score_min": 0.06447355
                 },
                 {
                   "bin": 5,
-                  "mean_predicted": 0.08356062,
-                  "observed_rate": 0.07504337,
-                  "rows": 26518,
-                  "score_max": 0.09026579,
-                  "score_min": 0.07776093
+                  "mean_predicted": 0.08357895,
+                  "observed_rate": 0.07463084,
+                  "rows": 26276,
+                  "score_max": 0.09046415,
+                  "score_min": 0.07781156
                 },
                 {
                   "bin": 6,
-                  "mean_predicted": 0.09828875,
-                  "observed_rate": 0.09042957,
-                  "rows": 26352,
-                  "score_max": 0.10727253,
-                  "score_min": 0.0902756
+                  "mean_predicted": 0.0984254,
+                  "observed_rate": 0.09154021,
+                  "rows": 26360,
+                  "score_max": 0.10737518,
+                  "score_min": 0.09048123
                 },
                 {
                   "bin": 7,
-                  "mean_predicted": 0.11643144,
-                  "observed_rate": 0.12077789,
-                  "rows": 26379,
-                  "score_max": 0.1252129,
-                  "score_min": 0.10727638
+                  "mean_predicted": 0.11669245,
+                  "observed_rate": 0.12064241,
+                  "rows": 26276,
+                  "score_max": 0.12526194,
+                  "score_min": 0.10737627
                 },
                 {
                   "bin": 8,
-                  "mean_predicted": 0.1352407,
-                  "observed_rate": 0.14548001,
-                  "rows": 26416,
-                  "score_max": 0.1477775,
-                  "score_min": 0.12522437
+                  "mean_predicted": 0.13556377,
+                  "observed_rate": 0.14556528,
+                  "rows": 26270,
+                  "score_max": 0.14791542,
+                  "score_min": 0.12526596
                 },
                 {
                   "bin": 9,
-                  "mean_predicted": 0.16370307,
-                  "observed_rate": 0.19638136,
-                  "rows": 26474,
-                  "score_max": 0.18563745,
-                  "score_min": 0.14782892
+                  "mean_predicted": 0.16410567,
+                  "observed_rate": 0.1966626,
+                  "rows": 26248,
+                  "score_max": 0.18688797,
+                  "score_min": 0.14814207
                 },
                 {
                   "bin": 10,
-                  "mean_predicted": 0.25021461,
-                  "observed_rate": 0.33516359,
-                  "rows": 26408,
-                  "score_max": 0.59648548,
-                  "score_min": 0.1857531
+                  "mean_predicted": 0.25056567,
+                  "observed_rate": 0.33569012,
+                  "rows": 26307,
+                  "score_max": 0.59649335,
+                  "score_min": 0.1870058
                 }
               ],
               "requested_bins": 10
             },
             "metrics": {
-              "brier": 0.09145467,
-              "f1": 0.34076846,
-              "positives": 29603,
-              "pr_auc": 0.28562712,
-              "precision": 0.26416287,
-              "predicted_positive": 53785,
-              "prevalence": 0.11211559,
-              "recall": 0.47995136,
-              "rows": 264040,
-              "threshold": 0.14664491746073244
+              "brier": 0.09156012,
+              "f1": 0.34123865,
+              "positives": 29498,
+              "pr_auc": 0.28597632,
+              "precision": 0.26524281,
+              "predicted_positive": 53189,
+              "prevalence": 0.11228351,
+              "recall": 0.47826971,
+              "roc_auc": 0.74111036,
+              "rows": 262710,
+              "threshold": 0.14733968303165654
             },
             "prediction_sources": {
               "global": 0,
               "hospital": 1,
-              "hospital_profile_blend": 998,
-              "pair": 262941,
-              "profile": 100
+              "hospital_profile_blend": 976,
+              "pair": 261630,
+              "profile": 103
             }
           }
         }
@@ -1351,7 +1392,7 @@
       "primary_metric": "validation_pr_auc",
       "selected": {
         "smoothing_strength": 5.0,
-        "threshold": 0.16444963986121122
+        "threshold": 0.16445330664668242
       },
       "tie_breaker": "validation_brier_then_lower_smoothing_strength"
     },
@@ -1396,25 +1437,26 @@
   "split": {
     "strategy": "calendar_months",
     "test": {
-      "evaluated_after_selection": true,
+      "evaluated_once_after_selection": true,
+      "evaluation_role": "descriptive_held_out_benchmark",
       "period": "2025-03",
-      "positives": 24560,
-      "prevalence": 0.10932026,
+      "positives": 24469,
+      "prevalence": 0.10955304,
       "previously_examined_in_source_handoff": true,
-      "rows": 224661,
+      "rows": 223353,
       "used_for_selection": false
     },
     "train": {
       "period": "2025-01",
-      "positives": 29917,
-      "prevalence": 0.10900075,
-      "rows": 274466
+      "positives": 29831,
+      "prevalence": 0.10920346,
+      "rows": 273169
     },
     "validation": {
       "period": "2025-02",
-      "positives": 29603,
-      "prevalence": 0.11211559,
-      "rows": 264040,
+      "positives": 29498,
+      "prevalence": 0.11228351,
+      "rows": 262710,
       "used_for": "model_and_threshold_selection"
     }
   },
@@ -1423,8 +1465,8 @@
     "definition": "refusal_dt_present_among_mature_non_conflicting_outcomes",
     "evaluation_population": "mature_outcomes_only",
     "field": "is_refused",
-    "negative_rows": 679087,
-    "positive_rows": 84080,
+    "negative_rows": 675434,
+    "positive_rows": 83798,
     "prediction_time": "registration_dt"
   },
   "task": "B3_referral_refusal_offline_benchmark",
@@ -1435,26 +1477,27 @@
         "bins": [
           {
             "bin": 1,
-            "mean_predicted": 0.10900075,
-            "observed_rate": 0.10932026,
-            "rows": 224661,
-            "score_max": 0.10900075,
-            "score_min": 0.10900075
+            "mean_predicted": 0.10920346,
+            "observed_rate": 0.10955304,
+            "rows": 223353,
+            "score_max": 0.10920346,
+            "score_min": 0.10920346
           }
         ],
         "requested_bins": 10
       },
       "metrics": {
-        "brier": 0.09736945,
-        "f1": 0.19709415,
-        "positives": 24560,
-        "pr_auc": 0.10932026,
-        "precision": 0.10932026,
-        "predicted_positive": 224661,
-        "prevalence": 0.10932026,
+        "brier": 0.09755129,
+        "f1": 0.19747238,
+        "positives": 24469,
+        "pr_auc": 0.10955304,
+        "precision": 0.10955304,
+        "predicted_positive": 223353,
+        "prevalence": 0.10955304,
         "recall": 1.0,
-        "rows": 224661,
-        "threshold": 0.1090007405483375
+        "roc_auc": 0.5,
+        "rows": 223353,
+        "threshold": 0.1092034501290776
       }
     },
     "one_hot_logistic_regression": {
@@ -1463,98 +1506,99 @@
         "bins": [
           {
             "bin": 1,
-            "mean_predicted": 0.00870463,
-            "observed_rate": 0.01224126,
-            "rows": 22465,
-            "score_max": 0.01345972,
-            "score_min": 0.00085359
+            "mean_predicted": 0.00875199,
+            "observed_rate": 0.01232079,
+            "rows": 22320,
+            "score_max": 0.0134872,
+            "score_min": 0.00086252
           },
           {
             "bin": 2,
-            "mean_predicted": 0.01762398,
-            "observed_rate": 0.01971781,
-            "rows": 22467,
-            "score_max": 0.02197903,
-            "score_min": 0.01346193
+            "mean_predicted": 0.01759231,
+            "observed_rate": 0.01955432,
+            "rows": 22348,
+            "score_max": 0.02191824,
+            "score_min": 0.01348724
           },
           {
             "bin": 3,
-            "mean_predicted": 0.02753543,
-            "observed_rate": 0.03090075,
-            "rows": 22459,
-            "score_max": 0.03311741,
-            "score_min": 0.02198006
+            "mean_predicted": 0.02750455,
+            "observed_rate": 0.0312472,
+            "rows": 22338,
+            "score_max": 0.03315128,
+            "score_min": 0.02191835
           },
           {
             "bin": 4,
-            "mean_predicted": 0.03974817,
-            "observed_rate": 0.04639152,
-            "rows": 22461,
-            "score_max": 0.04683011,
-            "score_min": 0.03311997
+            "mean_predicted": 0.03979489,
+            "observed_rate": 0.04625028,
+            "rows": 22335,
+            "score_max": 0.04690005,
+            "score_min": 0.03315308
           },
           {
             "bin": 5,
-            "mean_predicted": 0.05487009,
-            "observed_rate": 0.06377392,
-            "rows": 22470,
-            "score_max": 0.06374547,
-            "score_min": 0.04683737
+            "mean_predicted": 0.05499528,
+            "observed_rate": 0.06426908,
+            "rows": 22328,
+            "score_max": 0.06399459,
+            "score_min": 0.04690437
           },
           {
             "bin": 6,
-            "mean_predicted": 0.0738981,
-            "observed_rate": 0.08597748,
-            "rows": 22471,
-            "score_max": 0.08486967,
-            "score_min": 0.06374639
+            "mean_predicted": 0.07404739,
+            "observed_rate": 0.0858882,
+            "rows": 22343,
+            "score_max": 0.08499087,
+            "score_min": 0.06399595
           },
           {
             "bin": 7,
-            "mean_predicted": 0.09947856,
-            "observed_rate": 0.11277259,
-            "rows": 22470,
-            "score_max": 0.11634573,
-            "score_min": 0.08487098
+            "mean_predicted": 0.09960793,
+            "observed_rate": 0.11376763,
+            "rows": 22335,
+            "score_max": 0.11661924,
+            "score_min": 0.08499314
           },
           {
             "bin": 8,
-            "mean_predicted": 0.13686224,
-            "observed_rate": 0.14521658,
-            "rows": 22463,
-            "score_max": 0.16084431,
-            "score_min": 0.11634722
+            "mean_predicted": 0.13713786,
+            "observed_rate": 0.14483994,
+            "rows": 22335,
+            "score_max": 0.16110498,
+            "score_min": 0.11662113
           },
           {
             "bin": 9,
-            "mean_predicted": 0.19752156,
-            "observed_rate": 0.20283082,
-            "rows": 22467,
-            "score_max": 0.24423881,
-            "score_min": 0.16085174
+            "mean_predicted": 0.1979273,
+            "observed_rate": 0.20349228,
+            "rows": 22335,
+            "score_max": 0.24458393,
+            "score_min": 0.16110766
           },
           {
             "bin": 10,
-            "mean_predicted": 0.37579421,
-            "observed_rate": 0.37333096,
-            "rows": 22468,
-            "score_max": 0.99887953,
-            "score_min": 0.24424498
+            "mean_predicted": 0.37646549,
+            "observed_rate": 0.37388073,
+            "rows": 22336,
+            "score_max": 0.99893398,
+            "score_min": 0.24458614
           }
         ],
         "requested_bins": 10
       },
       "metrics": {
-        "brier": 0.08453568,
-        "f1": 0.37409832,
-        "positives": 24560,
-        "pr_auc": 0.3476473,
-        "precision": 0.29793859,
-        "predicted_positive": 41428,
-        "prevalence": 0.10932026,
-        "recall": 0.50256515,
-        "rows": 224661,
-        "threshold": 0.17016485706102835
+        "brier": 0.08467742,
+        "f1": 0.3747635,
+        "positives": 24469,
+        "pr_auc": 0.34820996,
+        "precision": 0.29901877,
+        "predicted_positive": 41071,
+        "prevalence": 0.10955304,
+        "recall": 0.50190036,
+        "roc_auc": 0.77881696,
+        "rows": 223353,
+        "threshold": 0.1709380688837899
       }
     },
     "smoothed_pair_baseline": {
@@ -1563,105 +1607,106 @@
         "bins": [
           {
             "bin": 1,
-            "mean_predicted": 0.00637193,
-            "observed_rate": 0.01587799,
-            "rows": 22358,
-            "score_max": 0.01149987,
-            "score_min": 0.00048484
+            "mean_predicted": 0.00640475,
+            "observed_rate": 0.01604955,
+            "rows": 22119,
+            "score_max": 0.01150133,
+            "score_min": 0.00048476
           },
           {
             "bin": 2,
-            "mean_predicted": 0.01770514,
-            "observed_rate": 0.02561712,
-            "rows": 22524,
-            "score_max": 0.02357128,
-            "score_min": 0.01150145
+            "mean_predicted": 0.01778837,
+            "observed_rate": 0.02508751,
+            "rows": 22282,
+            "score_max": 0.02363491,
+            "score_min": 0.01162192
           },
           {
             "bin": 3,
-            "mean_predicted": 0.03004604,
-            "observed_rate": 0.03871283,
-            "rows": 22499,
-            "score_max": 0.03743057,
-            "score_min": 0.02363506
+            "mean_predicted": 0.03007801,
+            "observed_rate": 0.03894261,
+            "rows": 22546,
+            "score_max": 0.03759781,
+            "score_min": 0.02365197
           },
           {
             "bin": 4,
-            "mean_predicted": 0.04453158,
-            "observed_rate": 0.0566487,
-            "rows": 22260,
-            "score_max": 0.05268932,
-            "score_min": 0.03743078
+            "mean_predicted": 0.04475003,
+            "observed_rate": 0.05680532,
+            "rows": 22093,
+            "score_max": 0.05281826,
+            "score_min": 0.03760079
           },
           {
             "bin": 5,
-            "mean_predicted": 0.06193022,
-            "observed_rate": 0.07230722,
-            "rows": 22681,
-            "score_max": 0.07101152,
-            "score_min": 0.05272234
+            "mean_predicted": 0.06212807,
+            "observed_rate": 0.07290745,
+            "rows": 22604,
+            "score_max": 0.07131738,
+            "score_min": 0.05282931
           },
           {
             "bin": 6,
-            "mean_predicted": 0.08172422,
-            "observed_rate": 0.09194123,
-            "rows": 22460,
-            "score_max": 0.09403002,
-            "score_min": 0.07101633
+            "mean_predicted": 0.08197956,
+            "observed_rate": 0.0914787,
+            "rows": 22344,
+            "score_max": 0.09420201,
+            "score_min": 0.0713382
           },
           {
             "bin": 7,
-            "mean_predicted": 0.10783235,
-            "observed_rate": 0.10532887,
-            "rows": 22425,
-            "score_max": 0.12254275,
-            "score_min": 0.09408412
+            "mean_predicted": 0.10814002,
+            "observed_rate": 0.1059725,
+            "rows": 22185,
+            "score_max": 0.12266605,
+            "score_min": 0.09422073
           },
           {
             "bin": 8,
-            "mean_predicted": 0.1384495,
-            "observed_rate": 0.14751622,
-            "rows": 22506,
-            "score_max": 0.15727938,
-            "score_min": 0.12256808
+            "mean_predicted": 0.13854288,
+            "observed_rate": 0.14787884,
+            "rows": 22417,
+            "score_max": 0.15727919,
+            "score_min": 0.12268874
           },
           {
             "bin": 9,
-            "mean_predicted": 0.18976814,
-            "observed_rate": 0.19180459,
-            "rows": 22476,
-            "score_max": 0.2373541,
-            "score_min": 0.15744703
+            "mean_predicted": 0.19001036,
+            "observed_rate": 0.19182053,
+            "rows": 22422,
+            "score_max": 0.2377017,
+            "score_min": 0.15744689
           },
           {
             "bin": 10,
-            "mean_predicted": 0.35391432,
-            "observed_rate": 0.34700961,
-            "rows": 22472,
-            "score_max": 0.85106813,
-            "score_min": 0.23742011
+            "mean_predicted": 0.3544904,
+            "observed_rate": 0.34747773,
+            "rows": 22341,
+            "score_max": 0.85106814,
+            "score_min": 0.2379704
           }
         ],
         "requested_bins": 10
       },
       "metrics": {
-        "brier": 0.08696721,
-        "f1": 0.34907876,
-        "positives": 24560,
-        "pr_auc": 0.31237942,
-        "precision": 0.27691536,
-        "predicted_positive": 41872,
-        "prevalence": 0.10932026,
-        "recall": 0.47210912,
-        "rows": 224661,
-        "threshold": 0.16444963986121122
+        "brier": 0.08712507,
+        "f1": 0.34917565,
+        "positives": 24469,
+        "pr_auc": 0.31268672,
+        "precision": 0.27702379,
+        "predicted_positive": 41704,
+        "prevalence": 0.10955304,
+        "recall": 0.47214843,
+        "roc_auc": 0.75355589,
+        "rows": 223353,
+        "threshold": 0.16445330664668242
       },
       "prediction_sources": {
         "global": 0,
         "hospital": 0,
-        "hospital_profile_blend": 1182,
-        "pair": 223323,
-        "profile": 156
+        "hospital_profile_blend": 1150,
+        "pair": 222046,
+        "profile": 157
       }
     }
   }

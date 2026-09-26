@@ -3,8 +3,13 @@ import { randomUUID } from "node:crypto";
 import filesystem from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { REFERRAL_PROFILES } from "../lib/referrals/profiles";
 import { validateReferralDatabase } from "../lib/referrals/service";
-import type { ReferralDatabase } from "../lib/referrals/types";
+import type {
+  Referral,
+  ReferralDatabase,
+  ReferralFacts,
+} from "../lib/referrals/types";
 
 export const INSTALLATION_CHECK_REFERRAL_ID = "2e2d9e10-e4a2-46e3-9119-3b8b1d55db34";
 const MAX_SNAPSHOT_BYTES = 32 * 1024 * 1024;
@@ -15,6 +20,54 @@ export interface CleanupResult {
   changed: boolean;
   removedReferrals: number;
   removedCommands: number;
+  normalizedProfiles: number;
+}
+
+const SAFE_LEGACY_PROFILES = ["Кардиология", "Терапия"] as const;
+const SAFE_PROFILE_NAMES = [...REFERRAL_PROFILES, ...SAFE_LEGACY_PROFILES];
+
+function safeCanonicalProfile(value: string): string {
+  const normalized = value.trim().toLocaleLowerCase("ru");
+  return SAFE_PROFILE_NAMES.find(
+    (profile) => profile.toLocaleLowerCase("ru") === normalized,
+  ) ?? value;
+}
+
+function normalizeFactsProfile(value: ReferralFacts): ReferralFacts {
+  return { ...value, profile: safeCanonicalProfile(value.profile) };
+}
+
+function normalizeReferralProfile(referral: Referral): {
+  referral: Referral;
+  changed: boolean;
+} {
+  const normalized = structuredClone(referral);
+  let changed = false;
+  const normalizeFacts = (value: ReferralFacts): ReferralFacts => {
+    const next = normalizeFactsProfile(value);
+    if (next.profile !== value.profile) changed = true;
+    return next;
+  };
+
+  const canonical = safeCanonicalProfile(normalized.profile);
+  if (canonical !== normalized.profile) {
+    normalized.profile = canonical;
+    changed = true;
+  }
+  for (const event of normalized.events) {
+    if (event.type === "examination_recorded") continue;
+    if (event.before) event.before = normalizeFacts(event.before as ReferralFacts);
+    event.after = normalizeFacts(event.after as ReferralFacts);
+  }
+  if (normalized.requirementSnapshot?.profiles.length === 1) {
+    const snapshotProfile = normalized.requirementSnapshot.profiles[0];
+    const normalizedSnapshotProfile = safeCanonicalProfile(snapshotProfile.profile);
+    if (normalizedSnapshotProfile !== snapshotProfile.profile) {
+      snapshotProfile.profile = normalizedSnapshotProfile;
+      changed = true;
+    }
+  }
+  return { referral: normalized, changed };
 }
 
 export function snapshotSha256(bytes: Uint8Array): string {
@@ -31,25 +84,32 @@ export function assertSnapshotSha(bytes: Uint8Array, expectedSha256: string): st
 
 export function cleanupInstallationCheck(
   value: unknown,
-  referralId = INSTALLATION_CHECK_REFERRAL_ID,
 ): CleanupResult {
   const current = validateReferralDatabase(value);
+  const referralId = INSTALLATION_CHECK_REFERRAL_ID;
   const matches = current.referrals.filter((referral) => referral.id === referralId);
   if (matches.length > 1) throw new Error("Synthetic referral ID is not unique");
-  if (matches.length === 0) {
-    return { snapshot: current, changed: false, removedReferrals: 0, removedCommands: 0 };
-  }
+  let normalizedProfiles = 0;
+  const referrals = current.referrals
+    .filter((referral) => referral.id !== referralId)
+    .map((referral) => {
+      const normalized = normalizeReferralProfile(referral);
+      if (normalized.changed) normalizedProfiles += 1;
+      return normalized.referral;
+    });
   const removedCommands = current.commands.filter((command) => command.referralId === referralId).length;
   const candidate: ReferralDatabase = {
     ...structuredClone(current),
-    referrals: current.referrals.filter((referral) => referral.id !== referralId),
+    referrals,
     commands: current.commands.filter((command) => command.referralId !== referralId),
   };
+  const removedReferrals = matches.length;
   return {
     snapshot: validateReferralDatabase(candidate),
-    changed: true,
-    removedReferrals: 1,
+    changed: removedReferrals > 0 || normalizedProfiles > 0,
+    removedReferrals,
     removedCommands,
+    normalizedProfiles,
   };
 }
 
@@ -95,7 +155,7 @@ interface AtomicHandle {
 export interface AtomicFileOperations {
   lstat(path: string): Promise<unknown>;
   open(path: string, flags: string, mode?: number): Promise<AtomicHandle>;
-  rename(from: string, to: string): Promise<unknown>;
+  link(from: string, to: string): Promise<unknown>;
   unlink(path: string): Promise<unknown>;
 }
 
@@ -112,7 +172,7 @@ export async function writeProtected(
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
   }
   const temporary = `${destination}.${randomUUID()}.tmp`;
-  let renamed = false;
+  let published = false;
   try {
     const handle = await operations.open(temporary, "wx", 0o600);
     try {
@@ -121,15 +181,18 @@ export async function writeProtected(
     } finally {
       await handle.close();
     }
-    await operations.rename(temporary, destination);
-    renamed = true;
+    // A hard-link publish is atomic and fails with EEXIST instead of replacing a
+    // candidate that appeared after the lstat preflight.
+    await operations.link(temporary, destination);
+    published = true;
+    await operations.unlink(temporary);
     const directory = await operations.open(dirname(destination), "r");
     try { await directory.sync(); } finally { await directory.close(); }
   } catch (error) {
-    if (renamed) await operations.unlink(destination).catch(() => undefined);
+    if (published) await operations.unlink(destination).catch(() => undefined);
     throw error;
   } finally {
-    if (!renamed) await operations.unlink(temporary).catch(() => undefined);
+    await operations.unlink(temporary).catch(() => undefined);
   }
 }
 
@@ -147,6 +210,7 @@ export async function runCleanupCli(args: readonly string[]): Promise<Record<str
     changed: result.changed,
     removed_referrals: result.removedReferrals,
     removed_commands: result.removedCommands,
+    normalized_profiles: result.normalizedProfiles,
     input_sha256: inputSha256,
     output_sha256: outputSha256,
     output_written: Boolean(options.output),

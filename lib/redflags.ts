@@ -13,11 +13,13 @@ export const RULES: readonly Rule[] = [
     label: "Боль в груди",
     emergency: true,
     patterns: [
-      { id: "chest_pain.ru_pain", regex: /(?:бол\p{L}*\s+в\s+груд\p{L}*|бол\p{L}*\s+(?:ли\s+)?(?:у\s+вас\s+)?груд\p{L}*)/iu },
+      { id: "chest_pain.ru_pain", regex: /(?:бол\p{L}*\s+в\s+груд\p{L}*|бол\p{L}*\s+(?:ли\s+)?(?:у\s+вас\s+)?груд\p{L}*|груд\p{L}*\s+бол\p{L}*)/iu },
       { id: "chest_pain.ru_pressure", regex: /давит\p{L}*\s+(?:в\s+)?груд\p{L}*/iu },
+      { id: "chest_pain.ru_retrosternal_pressure", regex: /давящ\p{L}*\s+бол\p{L}*\s+за\s+грудин\p{L}*/iu },
       { id: "chest_pain.ru_burning", regex: /жжени\p{L}*\s+за\s+грудин\p{L}*/iu },
       { id: "chest_pain.kk_pressure", regex: /кеуд\p{L}*\s+(?:қатты\s+)?қыс(?!пай|пей|бай|бей|май|мей)\p{L}*/iu },
       { id: "chest_pain.kk_pain", regex: /кеуд\p{L}*\s+(?:қатты\s+)?ауыр(?!май|мей)\p{L}*/iu },
+      { id: "chest_pain.kk_location_pain", regex: /кеуде\s+тұс\p{L}*\s+(?:қатты\s+)?ауыр\p{L}*/iu },
     ],
   },
   {
@@ -26,10 +28,15 @@ export const RULES: readonly Rule[] = [
     emergency: true,
     patterns: [
       { id: "stroke.ru_face", regex: /перекос\p{L}*\s+лиц\p{L}*/iu },
-      { id: "stroke.ru_arm_weakness", regex: /слабост\p{L}*\s+в\s+рук\p{L}*/iu },
+      { id: "stroke.ru_arm_weakness", regex: /слабост\p{L}*\s+в\s+(?:\p{L}+\s+)?рук\p{L}*/iu },
       { id: "stroke.ru_speech", regex: /(?:наруш\p{L}*\s+реч\p{L}*|реч\p{L}*\s+наруш\p{L}*)/iu },
       { id: "stroke.ru_numbness", regex: /онемел\p{L}*\s+половин\p{L}*/iu },
       { id: "stroke.kk_face", regex: /бет\p{L}*\s+қиса\p{L}*/iu },
+      { id: "stroke.ru_mouth_arm", regex: /(?:угол\s+рта\s+опуст\p{L}*|рук\p{L}*\s+ослаб\p{L}*)/iu },
+      { id: "stroke.kk_arm_weakness", regex: /қол\p{L}*(?:\s+кенет)?\s+әлсір\p{L}*/iu },
+      { id: "stroke.kk_speech", regex: /сөз\p{L}*\s+түсініксіз\p{L}*/iu },
+      { id: "stroke.kk_half_numb", regex: /ден\p{L}*\s+бір\s+жағ\p{L}*\s+ұйы\p{L}*/iu },
+      { id: "stroke.kk_mouth", regex: /ау\p{L}*\s+қиса\p{L}*/iu },
     ],
   },
   {
@@ -42,6 +49,9 @@ export const RULES: readonly Rule[] = [
       { id: "bleeding.ru_stool_with", regex: /стул\p{L}*\s+с\s+кров\p{L}*/iu },
       { id: "bleeding.ru_blood_in_stool", regex: /кров\p{L}*\s+в\s+стул\p{L}*/iu },
       { id: "bleeding.kk_blood", regex: /қан\s+(?:құс\p{L}*|кет\p{L}*|ағ\p{L}*)/iu },
+      { id: "bleeding.ru_flow", regex: /кров\p{L}*\s+(?:ид\p{L}*|теч\p{L}*)/iu },
+      { id: "bleeding.kk_vomit_blood", regex: /құс\p{L}*\s+қан\s+бар/iu },
+      { id: "bleeding.kk_stool_blood", regex: /дәрет\p{L}*\s+қан\p{L}*/iu },
     ],
   },
   {
@@ -50,9 +60,14 @@ export const RULES: readonly Rule[] = [
     emergency: true,
     patterns: [
       { id: "thunderclap_headache.ru_strongest", regex: /сильнейш\p{L}*\s+головн\p{L}*\s+бол\p{L}*/iu },
+      { id: "thunderclap_headache.ru_lifetime_worst", regex: /сам\p{L}*\s+сильн\p{L}*\s+головн\p{L}*\s+бол\p{L}*\s+в\s+жизн\p{L}*/iu },
       { id: "thunderclap_headache.ru_worst", regex: /худш\p{L}*\s+головн\p{L}*\s+бол\p{L}*/iu },
-      { id: "thunderclap_headache.ru_impact", regex: /как\s+удар\p{L}*\s+в\s+голов\p{L}*/iu },
+      { id: "thunderclap_headache.ru_impact", regex: /(?:как|будто)\s+удар\p{L}*\s+в\s+голов\p{L}*/iu },
       { id: "thunderclap_headache.kk_sudden_worst", regex: /кенет\p{L}*(?:\s+\p{L}+){0,4}\s+ең\s+қатты\s+бас\s+(?:ауру|ауыр)\p{L}*/iu },
+      { id: "thunderclap_headache.ru_seconds", regex: /за\s+секунд\p{L}*\s+возник\p{L}*(?:\s+\p{L}+){0,2}\s+головн\p{L}*\s+бол\p{L}*/iu },
+      { id: "thunderclap_headache.kk_unprecedented", regex: /кенет\p{L}*\s+бас\p{L}*\s+бұрын-соңды\s+болмағандай\s+қатты\s+ауыр\p{L}*/iu },
+      { id: "thunderclap_headache.kk_impact", regex: /бас\p{L}*\s+соққы\s+тигендей(?:\s+\p{L}+){0,2}\s+ауыр\p{L}*/iu },
+      { id: "thunderclap_headache.kk_worst_first", regex: /өмір\p{L}*\s+ең\s+қатты\s+бас\s+ауру\p{L}*(?:\s+\p{L}+){0,2}\s+кенет\p{L}*/iu },
     ],
   },
   {
@@ -65,6 +80,11 @@ export const RULES: readonly Rule[] = [
       { id: "consciousness.ru_faint", regex: /обморок\p{L}*/iu },
       { id: "consciousness.ru_confusion", regex: /спутанн\p{L}*\s+сознани\p{L}*/iu },
       { id: "consciousness.kk_loss", regex: /ес\p{L}*\s+тан\p{L}*/iu },
+      { id: "consciousness.ru_blackout", regex: /отключил(?:ся|ась|ось)(?!\s+(?:телефон\p{L}*|интернет\p{L}*|свет\p{L}*))/iu },
+      { id: "consciousness.kk_faint", regex: /тал\p{L}*\s+қал\p{L}*/iu },
+      { id: "consciousness.kk_seizure", regex: /құрыс\p{L}*\s+қал\p{L}*/iu },
+      { id: "consciousness.kk_confusion", regex: /ес\p{L}*\s+шатас\p{L}*/iu },
+      { id: "consciousness.kk_loss_reverse", regex: /ес\p{L}*\s+жоғалт\p{L}*/iu },
     ],
   },
   {
@@ -73,10 +93,15 @@ export const RULES: readonly Rule[] = [
     emergency: true,
     patterns: [
       { id: "dyspnea_rest.ru_rest", regex: /одышк\p{L}*\s+в\s+поко\p{L}*/iu },
-      { id: "dyspnea_rest.ru_unable", regex: /не\s+могу\s+дышать\p{L}*/iu },
+      { id: "dyspnea_rest.ru_unable", regex: /не\s+могу(?:\s+\p{L}+){0,2}\s+дышать\p{L}*/iu },
       { id: "dyspnea_rest.ru_air_hunger", regex: /задыха\p{L}*/iu },
       { id: "dyspnea_rest.kk_difficult", regex: /дем\s+ал\p{L}*\s+қиын\p{L}*/iu },
       { id: "dyspnea_rest.kk_air_hunger", regex: /дем\p{L}*\s+жетпе\p{L}*/iu },
+      { id: "dyspnea_rest.ru_air_lack", regex: /воздух\p{L}*\s+не\s+хвата\p{L}*(?:\s+без\s+нагруз\p{L}*)?/iu },
+      { id: "dyspnea_rest.ru_difficult_bed", regex: /тяжел\p{L}*\s+дышать\p{L}*\s+даже\s+в\s+постел\p{L}*/iu },
+      { id: "dyspnea_rest.kk_rest_air", regex: /тыныш\p{L}*(?:\s+\p{L}+){0,3}\s+ауа\s+жетпе\p{L}*/iu },
+      { id: "dyspnea_rest.kk_lying", regex: /жат\p{L}*\s+тыныс\s+алу\s+қиын\p{L}*/iu },
+      { id: "dyspnea_rest.kk_rest_dyspnea", regex: /қимылда\p{L}*\s+да\s+ентіг\p{L}*/iu },
     ],
   },
   {
@@ -88,6 +113,12 @@ export const RULES: readonly Rule[] = [
       { id: "suicidal.ru_no_life", regex: /не\s+хочу\s+жить\p{L}*/iu },
       { id: "suicidal.ru_end_self", regex: /покончить\p{L}*\s+с\s+собой\p{L}*/iu },
       { id: "suicidal.kk_self_harm", regex: /өзіме\s+қол\s+жұмса\p{L}*/iu },
+      { id: "suicidal.ru_self_harm", regex: /причинить\p{L}*\s+себе\s+вред\p{L}*/iu },
+      { id: "suicidal.ru_kill_self", regex: /(?:мысл\p{L}*\s+)?убить\p{L}*\s+себя/iu },
+      { id: "suicidal.kk_no_life", regex: /өмір\s+сүрг\p{L}*\s+келмей\p{L}*/iu },
+      { id: "suicidal.kk_kill_self", regex: /өзім\p{L}*\s+өлтір\p{L}*(?:\s+туралы\s+ой\p{L}*)?/iu },
+      { id: "suicidal.kk_harm", regex: /өзіме\s+зиян\s+келтірг\p{L}*\s+кел(?!мей)\p{L}*/iu },
+      { id: "suicidal.kk_farewell", regex: /өмірмен\s+қоштас\p{L}*\s+ойла\p{L}*/iu },
     ],
   },
   {
@@ -99,7 +130,11 @@ export const RULES: readonly Rule[] = [
       { id: "meningeal.ru_photophobia", regex: /светобоязн\p{L}*/iu },
       { id: "meningeal.ru_cannot_bend", regex: /не\s+могу\s+наклонить\p{L}*\s+голов\p{L}*/iu },
       { id: "meningeal.ru_stiff_everyday", regex: /(?:ше\p{L}*\s+не\s+сгиба\p{L}*|не\s+(?:могу\s+)?согну\p{L}*\s+ше\p{L}*)/iu },
+      { id: "meningeal.ru_neck_cannot_lower", regex: /ше\p{L}*\s+не\s+могу\s+нагну\p{L}*/iu },
       { id: "meningeal.kk_neck", regex: /мой\p{L}*\s+қатай\p{L}*/iu },
+      { id: "meningeal.kk_light", regex: /жарық\p{L}*\s+қарай\s+алмай\p{L}*/iu },
+      { id: "meningeal.kk_bend", regex: /мой\p{L}*\s+бүг\p{L}*\s+қиын\p{L}*/iu },
+      { id: "meningeal.kk_stiff", regex: /мой\p{L}*\s+сірес\p{L}*/iu },
     ],
   },
 ];
@@ -113,11 +148,11 @@ export const CONTEXT_PATTERN_RULES: readonly Rule[] = [
   },
 ];
 
-const CLAUSE_BOUNDARY = /[.,;!?]|\s+(?:и|а|но|және|бірақ|алайда)\s+/gu;
+const CLAUSE_BOUNDARY = /[.,;:!?]|\s+(?:и|а|но|және|бірақ|алайда)\s+/gu;
 const NEGATION_BEFORE =
-  /(?:^|\s)(?:(?:никогда\s+)?не(?:\s+было)?|нет|без|отрицаю|отрицает|жоқ|емес)\s+$/iu;
+  /(?:^|\s)(?:(?:никогда\s+)?не(?:\s+было)?|никогда\s+не\s+\p{L}+|нет|без|отрицаю|отрицает|жоқ|емес)\s+$/iu;
 const NEGATION_AFTER =
-  /^\s*(?:[\p{L}\p{N}_-]+\s+){0,2}(?:нет|не\s+было|не\s+бывает|не\s+беспокоит|не\s+болит|отсутствует|не\s+замеча(?:л|ла)|не\s+чувствую|не\s+наблюдается|жоқ\p{L}*|болған\s+жоқ\p{L}*|болмады|емес|келмейді)(?!\p{L})/iu;
+  /^\s*(?:[\p{L}\p{N}_-]+\s+){0,3}(?:нет|не\s+было|не\s+бывает|не\s+беспокоит|не\s+болит|не\s+случа\p{L}*|отсутствует|не\s+замеча(?:л|ла)|не\s+чувствую|не\s+наблюдается|жоқ\p{L}*|болған\s+жоқ\p{L}*|болмады|емес\p{L}*|келмейді)(?!\p{L})/iu;
 const SHORT_AFFIRMATION =
   /^\s*(?:(?:да|ага|угу|верно|точно|правда|конечно|иә|ия)(?:\s*[,—-]?\s*(?:(?:очень\s+)?сильно|есть|бывает|қатты|бар))?|есть|бывает|бар)\s*[,.!]?\s*$/iu;
 
@@ -125,22 +160,67 @@ const SHORT_AFFIRMATION =
 export const RESOLVED_YEARS_AGO_AFTER =
   /^(?:\s+был(?:а|и|о)?)?\s+(?:(?:[1-9][0-9]*|один|два|три|четыре|пять|шесть|семь|восемь|девять|десять|несколько)\s+)?(?:год|года|лет)\s+назад\s*[,.;!]?\s*(?:прошл[аои]|сейчас\s+ничего\s+не\s+беспокоит)(?=\s*[.!]?\s*$)/iu;
 
-export const RESOLVED_CHEST_HISTORY_AFTER =
-  /^\s*(?:был(?:а|и|о)?\s*)?[,;]?\s*(?:(?:(?:[1-9][0-9]*|один|два|три|четыре|пять|шесть|семь|восемь|девять|десять|несколько)\s+)?(?:год|года|лет)\s+назад\s*[,;.!]?\s*(?:прошл[аои]?|сейчас\s+ничего\s+не\s+беспокоит)|на\s+прошл\p{L}*\s+недел\p{L}*\s*[,;.!]?\s*прошл[аои]?|(?:сейчас|теперь)\s+прошл[аои]?)\s*[.!]?\s*$/iu;
+const PAST_CONTEXT =
+  /(?:\p{L}+\s+){0,3}(?:год|года|лет|недел\p{L}*)\s+назад|на\s+прошл\p{L}*\s+недел\p{L}*|(?:бұрын|өткен\s+(?:жылы|аптада))/iu;
+const RESOLVED_CONTEXT =
+  /(?:прошл\p{L}*|прекратил\p{L}*|сейчас\s+(?:вс[её]\s+)?(?:ничего\s+)?(?:нет|не\s+беспокоит|прошл\p{L}*)|қазір(?:\s+\p{L}+){0,3}\s+(?:өт\p{L}*|тоқта\p{L}*|жоқ\p{L}*))/iu;
+const ELAPSED_DURATION =
+  /прошл\p{L}*\s+(?:[1-9][0-9]*|один|два|три|четыре|пять|несколько)\s+(?:дн\p{L}*|час\p{L}*|недел\p{L}*)/iu;
+const CURRENT_AFTER_RESOLUTION =
+  /(?:вернул\p{L}*|(?:сейчас|теперь|сегодня|қазір)\s+(?:снова|опять)(?!\p{L})|(?:нет\s*[,;:—-]\s*)?(?:снова|опять)\s*$|(?:сейчас|теперь|сегодня|қазір)(?:\s+\p{L}+){0,4}\s+(?:бол\p{L}*|дав\p{L}*|ауыр\p{L}*|қайта\p{L}*)|(?:но\s+)?сегодня\s+это\s+начал\p{L}*|уже(?:\s+\p{L}+){1,3}\s+так\s+же)/iu;
+const CURRENT_RECURRENCE = CURRENT_AFTER_RESOLUTION;
+const EXPLICIT_CURRENT_RESOLUTION = /(?:сейчас|теперь)\s+(?:вс[её]\s+)?прошл\p{L}*/iu;
+const THIRD_PARTY_CONTEXT =
+  /(?:у\s+(?:брата|мамы|жены|мужа|сестры|друга|реб[её]нка)|(?:брат|мам|жен|муж|сестр|друг|реб[её]нок|герой\s+фильм)\p{L}*|(?:әкем|ағам|жұбайым|досым|бала|кейіпкер)\p{L}*)/iu;
+const SELF_CLEAR_CONTEXT =
+  /(?:у\s+меня|со\s+мной|ко\s+мне)(?:\s+\p{L}+){0,5}\s+(?:нет|ничего\s+не\s+\p{L}+|нормальн\p{L}*|не\s+относится)|(?:а\s+)?я(?:\s+\p{L}+){0,5}\s+(?:нормальн\p{L}*|помощ\p{L}*)|мен(?:де)?(?:\s+\p{L}+){0,5}\s+(?:жоқ\p{L}*|жақсы|қалыпты)/iu;
+const QUOTED_DENIAL_CONTEXT =
+  /(?:фраза(?:\s+\p{L}+){0,8}\s+книг\p{L}*|фильм\p{L}*(?:\s+\p{L}+){0,4}\s+кейіпкер\p{L}*).*(?:у\s+меня|ко\s+мне|менде).*(?:нет|не\s+\p{L}+|жоқ\p{L}*)/iu;
+const SCREENING_DENIAL_CONTEXT =
+  /(?:врач\p{L}*\s+спросил\p{L}*|дәрігер\p{L}*(?:\s+\p{L}+){0,4}\s+сұра\p{L}*).*(?:нет|жоқ\p{L}*)/iu;
+const NON_REPORT_QUESTION_OR_HYPOTHESIS =
+  /^\s*(?:(?:что|почему)\s+(?:такое|значит|будет|начн\p{L}*)|боюсь\s*,?\s*что\s+(?:начн\p{L}*|будет))/iu;
+const NASAL_BREATHING_CONTEXT =
+  /дышать\s+нос\p{L}*[^.!?]*(?:насморк\p{L}*|залож\p{L}*)/iu;
+const MENINGEAL_META_CONTEXT =
+  /(?:в\s+(?:статье|выписке|книге)|термин|слово)\p{L}*/iu;
+const MENINGEAL_BENIGN_CONTEXT =
+  /(?:при\s+мигрен\p{L}*[^.!?]*без\s+температур\p{L}*|после\s+сна)/iu;
+const MENINGEAL_LEXICAL_PATTERNS = new Set([
+  "meningeal.ru_neck",
+  "meningeal.ru_photophobia",
+]);
 
-const CURRENT_RECURRENCE =
-  /(?:сейчас|теперь|сегодня)\s+(?:снова|опять|болит\p{L}*|давит\p{L}*|это\s+начал\p{L}*)|уже(?:\s+\p{L}+){1,3}\s+так\s+же/iu;
+function isNonCurrentMatch(clause: string, followUp: string): boolean {
+  const context = `${clause} ${followUp}`;
+  if (
+    (PAST_CONTEXT.test(clause) || EXPLICIT_CURRENT_RESOLUTION.test(context)) &&
+    RESOLVED_CONTEXT.test(context) &&
+    !ELAPSED_DURATION.test(context) &&
+    !CURRENT_AFTER_RESOLUTION.test(context)
+  ) return true;
+  if (THIRD_PARTY_CONTEXT.test(clause) && SELF_CLEAR_CONTEXT.test(context)) return true;
+  return SCREENING_DENIAL_CONTEXT.test(context) || QUOTED_DENIAL_CONTEXT.test(context);
+}
 
-function isResolvedChestHistory(text: string, rule: Rule): boolean {
-  for (const { regex } of rule.patterns) {
-    const match = regex.exec(text);
-    if (
-      match &&
-      !CURRENT_RECURRENCE.test(text.slice(0, match.index)) &&
-      RESOLVED_CHEST_HISTORY_AFTER.test(text.slice(match.index + match[0].length))
-    ) {
-      return true;
-    }
+function isNonEmergencyMeaning(
+  text: string,
+  clause: string,
+  rule: Rule,
+  patternId: string,
+): boolean {
+  if (NON_REPORT_QUESTION_OR_HYPOTHESIS.test(clause)) return true;
+  if (rule.code === "dyspnea_rest" && NASAL_BREATHING_CONTEXT.test(clause)) {
+    return true;
+  }
+  if (
+    rule.code === "meningeal" &&
+    (MENINGEAL_BENIGN_CONTEXT.test(clause) || (
+      MENINGEAL_LEXICAL_PATTERNS.has(patternId) &&
+      MENINGEAL_META_CONTEXT.test(text)
+    ))
+  ) {
+    return true;
   }
   return false;
 }
@@ -171,19 +251,24 @@ function matchRule(
   rule: Rule,
   includeResolvedHistory = false,
 ): string | undefined {
-  if (
-    !includeResolvedHistory &&
-    rule.code === "chest_pain" &&
-    isResolvedChestHistory(text, rule)
-  ) {
-    return undefined;
-  }
-  for (const clause of clauses(text)) {
-    for (const { regex } of rule.patterns) {
+  const textClauses = clauses(text);
+  for (let clauseIndex = 0; clauseIndex < textClauses.length; clauseIndex += 1) {
+    const clause = textClauses[clauseIndex];
+    // Resolution/ownership qualifiers often occupy their own short clause. Keep
+    // this window local to the matched report so a later, unrelated emergency
+    // remains detectable (for example historical chest pain + current dyspnea).
+    const followUp = textClauses
+      .slice(clauseIndex + 1)
+      .filter((candidate) => candidate.trim().length > 0)
+      .slice(0, 2)
+      .join(" ");
+    for (const { id, regex } of rule.patterns) {
       const match = regex.exec(clause);
       if (
         match?.index !== undefined &&
-        !isNegated(clause, match.index, match.index + match[0].length)
+        !isNegated(clause, match.index, match.index + match[0].length) &&
+        (includeResolvedHistory || CURRENT_RECURRENCE.test(text) || !isNonCurrentMatch(clause, followUp)) &&
+        !isNonEmergencyMeaning(text, clause, rule, id)
       ) {
         return match[0];
       }
@@ -192,7 +277,7 @@ function matchRule(
   return undefined;
 }
 
-function hasLaterChestRecurrence(
+function hasLaterRecurrence(
   messages: readonly ChatMessage[],
   userMessageIndex: number,
   rule: Rule,
@@ -200,10 +285,7 @@ function hasLaterChestRecurrence(
   for (let index = userMessageIndex + 1; index < messages.length; index += 1) {
     const message = messages[index];
     if (message.role !== "user") continue;
-    if (
-      CURRENT_RECURRENCE.test(message.content) ||
-      matchRule(message.content, rule, true) !== undefined
-    ) {
+    if (CURRENT_RECURRENCE.test(message.content) || matchRule(message.content, rule) !== undefined) {
       return true;
     }
   }
@@ -212,13 +294,20 @@ function hasLaterChestRecurrence(
 
 function precedingQuestion(
   messages: readonly ChatMessage[],
-  userMessageIndex: number
+  userMessageIndex: number,
+  rule: Rule,
 ): string | undefined {
   const answer = messages[userMessageIndex].content;
   if (!SHORT_AFFIRMATION.test(answer)) return undefined;
 
   const previous = messages[userMessageIndex - 1];
-  return previous?.role === "assistant" ? previous.content : undefined;
+  if (previous?.role !== "assistant") return undefined;
+  const matchingCodes = RULES.filter((candidate) =>
+    candidate.patterns.some(({ regex }) => regex.test(previous.content)),
+  ).map(({ code }) => code);
+  return matchingCodes.length === 1 && matchingCodes[0] === rule.code
+    ? previous.content
+    : undefined;
 }
 
 export function detectRedFlags(messages: readonly ChatMessage[]): RedFlag[] {
@@ -229,10 +318,9 @@ export function detectRedFlags(messages: readonly ChatMessage[]): RedFlag[] {
       const message = messages[index];
       if (message.role !== "user") continue;
 
-      const elicitedBy = precedingQuestion(messages, index);
+      const elicitedBy = precedingQuestion(messages, index, rule);
       const includeResolvedHistory = Boolean(elicitedBy) || (
-        rule.code === "chest_pain" &&
-        hasLaterChestRecurrence(messages, index, rule)
+        rule.code === "chest_pain" && hasLaterRecurrence(messages, index, rule)
       );
       const matched = matchRule(
         elicitedBy ?? message.content,

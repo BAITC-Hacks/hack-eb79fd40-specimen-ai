@@ -1,0 +1,98 @@
+{
+  "next_data_gate": {
+    "acceptance": [
+      "chronological_train_validation_test_split",
+      "same_weekday_previous_week_or_train_only_seasonal_baseline",
+      "peak_threshold_fitted_on_train_only",
+      "held_out_mae_rmse_and_peak_recall",
+      "lag_selection_on_train_validation_only",
+      "final_lag_evidence_on_untouched_test_period"
+    ],
+    "minimum_history": "at_least_26_contiguous_weeks_for_weekly_seasonality",
+    "preferred_history": "at_least_24_months_for_annual_seasonality",
+    "required_fields": [
+      "event_timestamp",
+      "region_or_performing_organization",
+      "examination_code",
+      "observed_unit_count_or_one_row_per_event",
+      "event_status_or_stage"
+    ]
+  },
+  "privacy": {
+    "contains_identifiers": false,
+    "contains_row_data": false
+  },
+  "publication": {
+    "allowed_statement": "D2_is_blocked_until_observed_laboratory_events_are_provided",
+    "metrics_claim_allowed": false
+  },
+  "referral_flow_lag": {
+    "candidate_lag_window_days": [
+      0,
+      28
+    ],
+    "correlation": null,
+    "hypothesis": "referral_registrations_precede_observed_laboratory_units",
+    "limitations": [
+      "no_observed_laboratory_target",
+      "no_privacy_preserving_referral_to_laboratory_join_key",
+      "three_month_referral_window_cannot_measure_annual_seasonality",
+      "source_license_not_verified"
+    ],
+    "sample_counts": {
+      "aligned_time_buckets": null,
+      "laboratory_event_rows": null,
+      "referral_rows": 767130
+    },
+    "status": "not_testable_without_laboratory_events",
+    "uplift": null
+  },
+  "runtime_activation": "blocked",
+  "schema_version": 1,
+  "source": {
+    "calendar_months": [
+      "2025-01",
+      "2025-02",
+      "2025-03"
+    ],
+    "derived_parquet_sha256": "c9386df30d37f3035aa653772abb74f648348a17b7de5497e9306b088bc01798",
+    "laboratory_event_rows": null,
+    "license_status": "not_verified",
+    "raw_source_hashes_status": "unavailable_in_handoff",
+    "referral_rows": 767130,
+    "region_distinct": 20
+  },
+  "status": "blocked_missing_laboratory_demand_target",
+  "target": {
+    "available": false,
+    "definition": "observed_laboratory_units_by_time_region_and_examination",
+    "missing_groups": [
+      "event_time",
+      "examination_identity",
+      "load_measure",
+      "laboratory_identity"
+    ],
+    "proxy_allowed": false,
+    "proxy_rejection": "appendix_5_requirements_are_normative_not_observed_demand"
+  },
+  "task": "D2_laboratory_load_forecast",
+  "temporal_benchmark": {
+    "blocker": "no_observed_laboratory_target",
+    "candidate_model": null,
+    "executed": false,
+    "future_metric_contract": {
+      "mae": "mean_absolute_error_on_untouched_test_buckets",
+      "peak_definition": "observed_load_at_or_above_train_only_p90",
+      "peak_recall": "test_peaks_predicted_at_or_above_train_only_p90_divided_by_test_peaks",
+      "rmse": "root_mean_squared_error_on_untouched_test_buckets"
+    },
+    "held_out_metrics": {
+      "mae": null,
+      "peak_recall": null,
+      "rmse": null
+    },
+    "seasonal_baseline": null,
+    "selection_or_test_peeking": false,
+    "split": null
+  }
+}

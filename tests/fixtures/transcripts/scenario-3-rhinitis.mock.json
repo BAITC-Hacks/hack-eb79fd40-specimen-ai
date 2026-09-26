@@ -7,7 +7,7 @@
     "title": "Насморк один день"
   },
   "completed_via": "chat",
-  "session_id": "33d56d1c-3586-49f0-8d06-b7443940ddbb",
+  "session_id": "d0f2d5dc-5eed-4a29-8c80-ec810f16020d",
   "health": {
     "ok": true,
     "commit": "unknown",
@@ -17,6 +17,10 @@
   "http": [
     {
       "path": "/api/healthz",
+      "status": 200
+    },
+    {
+      "path": "/api/workspace/auth",
       "status": 200
     },
     {
@@ -33,6 +37,10 @@
     },
     {
       "path": "/api/chat",
+      "status": 200
+    },
+    {
+      "path": "/api/workspace/intakes/d0f2d5dc-5eed-4a29-8c80-ec810f16020d",
       "status": 200
     }
   ],
@@ -58,6 +66,10 @@
       "content": "Спасибо, я передаю данные врачу."
     }
   ],
+  "closing": {
+    "emergency": false,
+    "text": "Спасибо. Ваши ответы переданы врачу. Дальнейшие шаги врач обсудит с вами отдельно."
+  },
   "result": {
     "anamnesis": {
       "chief_complaint": "насморк и чихание один день",
@@ -75,12 +87,6 @@
       "chronic": [],
       "allergies": [],
       "medications": [],
-      "context": {
-        "age": 27,
-        "sex": "m",
-        "pregnancy": "na",
-        "risk_factors": []
-      },
       "history_status": {
         "past_history": "not_stated",
         "chronic": "not_stated",
@@ -89,9 +95,14 @@
       },
       "negative_findings": [
         "температуры нет",
-        "горло не болит",
-        "других жалоб нет"
-      ]
+        "горло не болит"
+      ],
+      "context": {
+        "age": 27,
+        "sex": "m",
+        "pregnancy": "na",
+        "risk_factors": []
+      }
     },
     "red_flags": [],
     "urgency": "planned",
@@ -117,6 +128,7 @@
       "model_version": "lr-v1",
       "abstain_reason": "out_of_label_space"
     },
-    "source": "llm_fallback"
+    "source": "llm_fallback",
+    "processing_mode": "external_llm"
   }
 }

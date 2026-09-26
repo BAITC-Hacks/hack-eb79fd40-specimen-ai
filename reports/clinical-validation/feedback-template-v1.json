@@ -1,0 +1,76 @@
+{
+  "schema_version": "clinical-feedback-v1",
+  "status": "pending",
+  "packet": "reports/clinical-validation/packet-v1.json",
+  "records": [],
+  "record_contract": {
+    "required_fields": [
+      "reviewer_id",
+      "reviewer_role",
+      "specialty",
+      "country_of_practice",
+      "reviewed_at",
+      "language_competence",
+      "reviewed_case_ids",
+      "case_reviews",
+      "flow_review",
+      "summary_review",
+      "privacy_review",
+      "findings",
+      "overall_verdict",
+      "quote_permission"
+    ],
+    "reviewer_identity": {
+      "reviewer_id": "pseudonymous stable id such as clinician-01",
+      "reviewer_name": "optional and must not be published without explicit permission",
+      "reviewer_role": "professional role, required",
+      "specialty": "current practicing specialty, required",
+      "country_of_practice": "required because urgency practice can vary",
+      "reviewed_at": "ISO-8601 date, required",
+      "language_competence": {
+        "ru": ["clinical_fluent", "conversational", "not_reviewed"],
+        "kk": ["clinical_fluent", "conversational", "not_reviewed"]
+      }
+    },
+    "case_review": {
+      "required_fields": ["case_id", "action", "wording", "comment"],
+      "action_enum": [
+        "immediate_emergency_alert",
+        "same_day_urgent_review",
+        "no_emergency_alert",
+        "unclear_needs_context",
+        "outside_reviewer_scope"
+      ],
+      "wording_enum": [
+        "natural_and_clear",
+        "understandable_but_unnatural",
+        "ambiguous",
+        "incorrect_meaning",
+        "language_not_reviewed"
+      ]
+    },
+    "flow_review": {
+      "required_fields": ["realism_rating_1_to_5", "blocking_step", "delay_or_false_reassurance_risk", "minimum_safe_follow_up", "doctor_control_points"]
+    },
+    "summary_review": {
+      "required_fields": ["priority_visible_within_10_seconds", "usefulness_rating_1_to_5", "missing_context", "redundant_or_overconfident_lines", "requested_changes"]
+    },
+    "privacy_review": {
+      "required_fields": ["unnecessary_fields", "link_or_transcript_access_concern", "telegram_or_pdf_forwarding_risk", "requested_changes"]
+    },
+    "finding": {
+      "required_fields": ["feedback_id", "area", "severity", "finding", "case_ids", "suggested_change"],
+      "area_enum": ["trigger_logic", "ru_wording", "kk_wording", "flow", "summary", "privacy"],
+      "severity_enum": ["blocking", "major", "minor", "observation"]
+    },
+    "overall_verdict_enum": ["usable", "usable_with_changes", "not_usable", "partial_outside_scope"],
+    "quote_permission_enum": ["anonymous_quote_allowed", "attributed_quote_allowed", "do_not_quote"]
+  },
+  "completion_rule": {
+    "minimum_real_records": 1,
+    "preferred_real_records": 2,
+    "all_16_cases_reviewed_or_explicitly_marked_outside_scope": true,
+    "all_findings_require_traceability_disposition": true,
+    "clinical_validation_claim_allowed_before_completion": false
+  }
+}

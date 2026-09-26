@@ -1,0 +1,1109 @@
+{
+  "candidate": "rules_baseline",
+  "predictions": [
+    {
+      "id": "rf-001",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 368.3342890000001
+    },
+    {
+      "id": "rf-002",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 31.050576000000092
+    },
+    {
+      "id": "rf-003",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 14.74700699999994
+    },
+    {
+      "id": "rf-004",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 5.604146000000128
+    },
+    {
+      "id": "rf-005",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 0.15516299999990224
+    },
+    {
+      "id": "rf-006",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 0.11864700000000994
+    },
+    {
+      "id": "rf-007",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 0.07938500000000204
+    },
+    {
+      "id": "rf-008",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 0.09350100000006023
+    },
+    {
+      "id": "rf-009",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 0.12073099999997794
+    },
+    {
+      "id": "rf-010",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.09450300000003153
+    },
+    {
+      "id": "rf-011",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 5.579171000000088
+    },
+    {
+      "id": "rf-012",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.1967490000001817
+    },
+    {
+      "id": "rf-013",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.1244970000000194
+    },
+    {
+      "id": "rf-014",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 0.16902900000013688
+    },
+    {
+      "id": "rf-015",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 51.82764899999984
+    },
+    {
+      "id": "rf-016",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.12030000000004293
+    },
+    {
+      "id": "rf-017",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.05597199999988334
+    },
+    {
+      "id": "rf-018",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 0.09901100000001861
+    },
+    {
+      "id": "rf-019",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 0.09621599999991304
+    },
+    {
+      "id": "rf-020",
+      "emergency": true,
+      "codes": [
+        "chest_pain"
+      ],
+      "latency_ms": 2.8200110000000222
+    },
+    {
+      "id": "rf-021",
+      "emergency": true,
+      "codes": [
+        "stroke"
+      ],
+      "latency_ms": 0.10246699999993325
+    },
+    {
+      "id": "rf-022",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.05369800000016767
+    },
+    {
+      "id": "rf-023",
+      "emergency": true,
+      "codes": [
+        "stroke"
+      ],
+      "latency_ms": 0.09532399999989138
+    },
+    {
+      "id": "rf-024",
+      "emergency": true,
+      "codes": [
+        "stroke"
+      ],
+      "latency_ms": 0.05297700000005534
+    },
+    {
+      "id": "rf-025",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.09616600000003928
+    },
+    {
+      "id": "rf-026",
+      "emergency": true,
+      "codes": [
+        "stroke"
+      ],
+      "latency_ms": 0.07421599999997852
+    },
+    {
+      "id": "rf-027",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07000799999991614
+    },
+    {
+      "id": "rf-028",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.08176000000003114
+    },
+    {
+      "id": "rf-029",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07665000000019973
+    },
+    {
+      "id": "rf-030",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.11590099999989434
+    },
+    {
+      "id": "rf-031",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07119999999986248
+    },
+    {
+      "id": "rf-032",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07812300000000505
+    },
+    {
+      "id": "rf-033",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07038899999997739
+    },
+    {
+      "id": "rf-034",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.141208000000006
+    },
+    {
+      "id": "rf-035",
+      "emergency": true,
+      "codes": [
+        "stroke"
+      ],
+      "latency_ms": 0.10196700000005876
+    },
+    {
+      "id": "rf-036",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07028900000000249
+    },
+    {
+      "id": "rf-037",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.06720300000006318
+    },
+    {
+      "id": "rf-038",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.0699379999998655
+    },
+    {
+      "id": "rf-039",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.11497000000008484
+    },
+    {
+      "id": "rf-040",
+      "emergency": true,
+      "codes": [
+        "stroke"
+      ],
+      "latency_ms": 0.10555199999998877
+    },
+    {
+      "id": "rf-041",
+      "emergency": true,
+      "codes": [
+        "bleeding"
+      ],
+      "latency_ms": 0.0764200000000983
+    },
+    {
+      "id": "rf-042",
+      "emergency": true,
+      "codes": [
+        "bleeding"
+      ],
+      "latency_ms": 0.07495700000004035
+    },
+    {
+      "id": "rf-043",
+      "emergency": true,
+      "codes": [
+        "bleeding"
+      ],
+      "latency_ms": 0.06249400000001515
+    },
+    {
+      "id": "rf-044",
+      "emergency": true,
+      "codes": [
+        "bleeding"
+      ],
+      "latency_ms": 0.07363499999996748
+    },
+    {
+      "id": "rf-045",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.14540600000009363
+    },
+    {
+      "id": "rf-046",
+      "emergency": true,
+      "codes": [
+        "bleeding"
+      ],
+      "latency_ms": 0.07891400000016802
+    },
+    {
+      "id": "rf-047",
+      "emergency": true,
+      "codes": [
+        "bleeding"
+      ],
+      "latency_ms": 0.06812399999989793
+    },
+    {
+      "id": "rf-048",
+      "emergency": true,
+      "codes": [
+        "bleeding"
+      ],
+      "latency_ms": 0.054979999999886786
+    },
+    {
+      "id": "rf-049",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.03576500000008309
+    },
+    {
+      "id": "rf-050",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.037017999999989115
+    },
+    {
+      "id": "rf-051",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.0669719999998506
+    },
+    {
+      "id": "rf-052",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.0681649999999081
+    },
+    {
+      "id": "rf-053",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07243200000016259
+    },
+    {
+      "id": "rf-054",
+      "emergency": true,
+      "codes": [
+        "bleeding"
+      ],
+      "latency_ms": 0.0755580000000009
+    },
+    {
+      "id": "rf-055",
+      "emergency": true,
+      "codes": [
+        "bleeding"
+      ],
+      "latency_ms": 0.07173099999999977
+    },
+    {
+      "id": "rf-056",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.047317000000020926
+    },
+    {
+      "id": "rf-057",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.04464200000006713
+    },
+    {
+      "id": "rf-058",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.039542000000210464
+    },
+    {
+      "id": "rf-059",
+      "emergency": true,
+      "codes": [
+        "bleeding"
+      ],
+      "latency_ms": 0.06758399999989706
+    },
+    {
+      "id": "rf-060",
+      "emergency": true,
+      "codes": [
+        "bleeding"
+      ],
+      "latency_ms": 0.07134100000007493
+    },
+    {
+      "id": "rf-061",
+      "emergency": true,
+      "codes": [
+        "thunderclap_headache"
+      ],
+      "latency_ms": 0.10419999999999163
+    },
+    {
+      "id": "rf-062",
+      "emergency": true,
+      "codes": [
+        "thunderclap_headache"
+      ],
+      "latency_ms": 0.05598299999996925
+    },
+    {
+      "id": "rf-063",
+      "emergency": true,
+      "codes": [
+        "thunderclap_headache"
+      ],
+      "latency_ms": 0.050763000000188185
+    },
+    {
+      "id": "rf-064",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.04652499999997417
+    },
+    {
+      "id": "rf-065",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.05233599999996841
+    },
+    {
+      "id": "rf-066",
+      "emergency": true,
+      "codes": [
+        "thunderclap_headache"
+      ],
+      "latency_ms": 0.08055699999999888
+    },
+    {
+      "id": "rf-067",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07015799999999217
+    },
+    {
+      "id": "rf-068",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.06279399999993984
+    },
+    {
+      "id": "rf-069",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.057575000000042564
+    },
+    {
+      "id": "rf-070",
+      "emergency": true,
+      "codes": [
+        "thunderclap_headache"
+      ],
+      "latency_ms": 0.06961699999988014
+    },
+    {
+      "id": "rf-071",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.04978099999993901
+    },
+    {
+      "id": "rf-072",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.05702399999995578
+    },
+    {
+      "id": "rf-073",
+      "emergency": true,
+      "codes": [
+        "thunderclap_headache"
+      ],
+      "latency_ms": 0.09275899999988724
+    },
+    {
+      "id": "rf-074",
+      "emergency": true,
+      "codes": [
+        "thunderclap_headache"
+      ],
+      "latency_ms": 0.11360700000000179
+    },
+    {
+      "id": "rf-075",
+      "emergency": true,
+      "codes": [
+        "thunderclap_headache"
+      ],
+      "latency_ms": 10.161520999999993
+    },
+    {
+      "id": "rf-076",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.09105699999986427
+    },
+    {
+      "id": "rf-077",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07932499999992615
+    },
+    {
+      "id": "rf-078",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.13775200000009136
+    },
+    {
+      "id": "rf-079",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.08363199999985227
+    },
+    {
+      "id": "rf-080",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.1268320000001495
+    },
+    {
+      "id": "rf-081",
+      "emergency": true,
+      "codes": [
+        "consciousness"
+      ],
+      "latency_ms": 0.08889299999987088
+    },
+    {
+      "id": "rf-082",
+      "emergency": true,
+      "codes": [
+        "consciousness"
+      ],
+      "latency_ms": 0.07977600000003804
+    },
+    {
+      "id": "rf-083",
+      "emergency": true,
+      "codes": [
+        "consciousness"
+      ],
+      "latency_ms": 0.08577700000000732
+    },
+    {
+      "id": "rf-084",
+      "emergency": true,
+      "codes": [
+        "consciousness"
+      ],
+      "latency_ms": 0.11449900000002344
+    },
+    {
+      "id": "rf-085",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.11728399999992689
+    },
+    {
+      "id": "rf-086",
+      "emergency": true,
+      "codes": [
+        "consciousness"
+      ],
+      "latency_ms": 0.08183000000008178
+    },
+    {
+      "id": "rf-087",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.0667719999999008
+    },
+    {
+      "id": "rf-088",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.06636100000014267
+    },
+    {
+      "id": "rf-089",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.12806399999999485
+    },
+    {
+      "id": "rf-090",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.0748270000001412
+    },
+    {
+      "id": "rf-091",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.06994799999984025
+    },
+    {
+      "id": "rf-092",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07295300000009775
+    },
+    {
+      "id": "rf-093",
+      "emergency": true,
+      "codes": [
+        "consciousness"
+      ],
+      "latency_ms": 0.08912299999997231
+    },
+    {
+      "id": "rf-094",
+      "emergency": true,
+      "codes": [
+        "consciousness"
+      ],
+      "latency_ms": 0.15230799999994815
+    },
+    {
+      "id": "rf-095",
+      "emergency": true,
+      "codes": [
+        "consciousness"
+      ],
+      "latency_ms": 0.16015300000003663
+    },
+    {
+      "id": "rf-096",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.08338200000002871
+    },
+    {
+      "id": "rf-097",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07425499999999374
+    },
+    {
+      "id": "rf-098",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.06966699999998127
+    },
+    {
+      "id": "rf-099",
+      "emergency": true,
+      "codes": [
+        "consciousness"
+      ],
+      "latency_ms": 0.27642500000001746
+    },
+    {
+      "id": "rf-100",
+      "emergency": true,
+      "codes": [
+        "consciousness"
+      ],
+      "latency_ms": 0.13364400000000387
+    },
+    {
+      "id": "rf-101",
+      "emergency": true,
+      "codes": [
+        "dyspnea_rest"
+      ],
+      "latency_ms": 0.10974999999984902
+    },
+    {
+      "id": "rf-102",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.09948199999985263
+    },
+    {
+      "id": "rf-103",
+      "emergency": true,
+      "codes": [
+        "dyspnea_rest"
+      ],
+      "latency_ms": 0.10224700000003395
+    },
+    {
+      "id": "rf-104",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07838300000003073
+    },
+    {
+      "id": "rf-105",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07073000000013963
+    },
+    {
+      "id": "rf-106",
+      "emergency": true,
+      "codes": [
+        "dyspnea_rest"
+      ],
+      "latency_ms": 0.07718100000010963
+    },
+    {
+      "id": "rf-107",
+      "emergency": true,
+      "codes": [
+        "dyspnea_rest"
+      ],
+      "latency_ms": 0.07581799999979921
+    },
+    {
+      "id": "rf-108",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07918399999994108
+    },
+    {
+      "id": "rf-109",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.0727119999999104
+    },
+    {
+      "id": "rf-110",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07105000000001382
+    },
+    {
+      "id": "rf-111",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07997599999998783
+    },
+    {
+      "id": "rf-112",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.06958699999995588
+    },
+    {
+      "id": "rf-113",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07108999999991283
+    },
+    {
+      "id": "rf-114",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.12729300000000876
+    },
+    {
+      "id": "rf-115",
+      "emergency": true,
+      "codes": [
+        "dyspnea_rest"
+      ],
+      "latency_ms": 0.15699700000004668
+    },
+    {
+      "id": "rf-116",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.0810079999998834
+    },
+    {
+      "id": "rf-117",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.08249100000011822
+    },
+    {
+      "id": "rf-118",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07550800000012714
+    },
+    {
+      "id": "rf-119",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.12165199999981269
+    },
+    {
+      "id": "rf-120",
+      "emergency": true,
+      "codes": [
+        "dyspnea_rest"
+      ],
+      "latency_ms": 0.12824399999999514
+    },
+    {
+      "id": "rf-121",
+      "emergency": true,
+      "codes": [
+        "suicidal"
+      ],
+      "latency_ms": 0.08580699999993158
+    },
+    {
+      "id": "rf-122",
+      "emergency": true,
+      "codes": [
+        "suicidal"
+      ],
+      "latency_ms": 0.07102000000008957
+    },
+    {
+      "id": "rf-123",
+      "emergency": true,
+      "codes": [
+        "suicidal"
+      ],
+      "latency_ms": 0.1055229999999483
+    },
+    {
+      "id": "rf-124",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.070308999999952
+    },
+    {
+      "id": "rf-125",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.08191999999985455
+    },
+    {
+      "id": "rf-126",
+      "emergency": true,
+      "codes": [
+        "suicidal"
+      ],
+      "latency_ms": 0.08134799999993447
+    },
+    {
+      "id": "rf-127",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.06899600000019745
+    },
+    {
+      "id": "rf-128",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.06603999999992993
+    },
+    {
+      "id": "rf-129",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07405599999992774
+    },
+    {
+      "id": "rf-130",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07507700000019213
+    },
+    {
+      "id": "rf-131",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.0766399999999976
+    },
+    {
+      "id": "rf-132",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07370499999979074
+    },
+    {
+      "id": "rf-133",
+      "emergency": true,
+      "codes": [
+        "suicidal"
+      ],
+      "latency_ms": 0.08429399999999987
+    },
+    {
+      "id": "rf-134",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.12443699999994351
+    },
+    {
+      "id": "rf-135",
+      "emergency": true,
+      "codes": [
+        "suicidal"
+      ],
+      "latency_ms": 0.16132500000003347
+    },
+    {
+      "id": "rf-136",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.0751869999999144
+    },
+    {
+      "id": "rf-137",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.06351600000016333
+    },
+    {
+      "id": "rf-138",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.06667099999981474
+    },
+    {
+      "id": "rf-139",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.11417800000003808
+    },
+    {
+      "id": "rf-140",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.12336600000003273
+    },
+    {
+      "id": "rf-141",
+      "emergency": true,
+      "codes": [
+        "meningeal"
+      ],
+      "latency_ms": 0.16662499999983993
+    },
+    {
+      "id": "rf-142",
+      "emergency": true,
+      "codes": [
+        "meningeal"
+      ],
+      "latency_ms": 0.11975899999993089
+    },
+    {
+      "id": "rf-143",
+      "emergency": true,
+      "codes": [
+        "meningeal"
+      ],
+      "latency_ms": 0.111754000000019
+    },
+    {
+      "id": "rf-144",
+      "emergency": true,
+      "codes": [
+        "meningeal"
+      ],
+      "latency_ms": 0.09945100000004459
+    },
+    {
+      "id": "rf-145",
+      "emergency": true,
+      "codes": [
+        "meningeal"
+      ],
+      "latency_ms": 0.10812699999996767
+    },
+    {
+      "id": "rf-146",
+      "emergency": true,
+      "codes": [
+        "meningeal"
+      ],
+      "latency_ms": 0.12446700000009514
+    },
+    {
+      "id": "rf-147",
+      "emergency": true,
+      "codes": [
+        "meningeal"
+      ],
+      "latency_ms": 0.1116540000000441
+    },
+    {
+      "id": "rf-148",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.11315700000000106
+    },
+    {
+      "id": "rf-149",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.08096799999998439
+    },
+    {
+      "id": "rf-150",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.11597200000005614
+    },
+    {
+      "id": "rf-151",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07490600000005543
+    },
+    {
+      "id": "rf-152",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07554800000002615
+    },
+    {
+      "id": "rf-153",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.0773220000000947
+    },
+    {
+      "id": "rf-154",
+      "emergency": true,
+      "codes": [
+        "meningeal"
+      ],
+      "latency_ms": 0.14513499999998203
+    },
+    {
+      "id": "rf-155",
+      "emergency": true,
+      "codes": [
+        "meningeal"
+      ],
+      "latency_ms": 0.12205300000005082
+    },
+    {
+      "id": "rf-156",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07841300000018236
+    },
+    {
+      "id": "rf-157",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.07046900000000278
+    },
+    {
+      "id": "rf-158",
+      "emergency": false,
+      "codes": [],
+      "latency_ms": 0.061602999999877284
+    },
+    {
+      "id": "rf-159",
+      "emergency": true,
+      "codes": [
+        "meningeal"
+      ],
+      "latency_ms": 0.11196399999994355
+    },
+    {
+      "id": "rf-160",
+      "emergency": true,
+      "codes": [
+        "meningeal"
+      ],
+      "latency_ms": 0.11725400000000263
+    }
+  ]
+}

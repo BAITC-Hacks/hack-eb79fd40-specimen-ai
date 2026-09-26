@@ -1,17 +1,17 @@
 "use client";
 
-import type { ReferralAggregates, ReferralDetail } from "@/lib/referrals/types";
+import type { ReferralDetail } from "@/lib/referrals/types";
 import { FLOW_LABELS } from "../client";
 import { useWorkspaceContext } from "../shell";
 import { EmptyState, Icon, KpiCard, PageHeading } from "../ui";
-import { aggregateCoverage, insightEndpoint, referralQuality } from "../insights";
+import { aggregateCoverage, insightEndpoint, referralQuality, type InsightAggregate } from "../insights";
 import { useInsightData } from "../insights-client";
 import styles from "../insights.module.css";
 
 export default function DataQualityPage() {
   const { actor } = useWorkspaceContext();
   const analyst = actor.role === "analyst";
-  const { data, loading, error, refresh } = useInsightData<{ referrals?: ReferralDetail[]; aggregates?: ReferralAggregates }>(insightEndpoint(actor.role, "quality"));
+  const { data, loading, error, refresh } = useInsightData<{ referrals?: ReferralDetail[]; aggregates?: InsightAggregate }>(insightEndpoint(actor.role, "quality"));
   const quality = !analyst && data?.referrals ? referralQuality(data.referrals) : null;
   const aggregates = analyst ? data?.aggregates : undefined;
   const coverage = aggregates ? aggregateCoverage(aggregates) : null;
@@ -52,7 +52,7 @@ export default function DataQualityPage() {
       <section className={styles.card}><h2>Границы этих показателей</h2><dl className={styles.sourceList}>
         <div><dt>Не медицинская оценка</dt><dd>Полнота записей не оценивает состояние пациента, качество лечения или работу врача.</dd></div>
         <div><dt>Не мониторинг интеграций</dt><dd>Состояние Telegram и внешних подключений этот API не сообщает. Здесь нельзя подтвердить их доступность или доставку конкретного сообщения.</dd></div>
-        <div><dt>Прогнозы</dt><dd>Недоступны до проверки исходных данных и качества отдельных моделей.</dd></div>
+        <div><dt>Модельные оценки</dt><dd>В показатели этой страницы не входят модельные оценки: здесь показаны только сохранённые факты и явно неизвестные значения.</dd></div>
       </dl></section>
     </div>
   </div>;

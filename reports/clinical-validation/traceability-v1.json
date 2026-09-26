@@ -1,0 +1,35 @@
+{
+  "schema_version": "clinical-feedback-traceability-v1",
+  "status": "pending_feedback",
+  "feedback_source": "reports/clinical-validation/feedback-template-v1.json",
+  "items": [],
+  "item_contract": {
+    "required_fields": [
+      "feedback_id",
+      "reviewer_id",
+      "finding",
+      "severity",
+      "case_ids",
+      "trigger_codes",
+      "disposition",
+      "rationale",
+      "code_paths",
+      "test_paths",
+      "status"
+    ],
+    "disposition_enum": [
+      "accepted_code_change",
+      "accepted_test_or_copy_change",
+      "no_change_with_clinical_rationale",
+      "needs_second_clinician_review",
+      "out_of_product_scope"
+    ],
+    "status_enum": ["planned", "implemented", "verified", "closed"]
+  },
+  "completion_rule": {
+    "one_trace_item_per_feedback_finding": true,
+    "accepted_changes_require_test_paths": true,
+    "no_change_requires_nonempty_rationale": true,
+    "validation_status_remains_pending_while_items_or_feedback_are_empty": true
+  }
+}

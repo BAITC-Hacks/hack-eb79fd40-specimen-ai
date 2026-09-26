@@ -116,11 +116,52 @@ export interface Completeness {
   catalogueStatus?: "available" | "unavailable";
   entries: { requirementId: string; label: string; required: boolean | null; status: ExaminationStatus; expiresOn: string | null }[];
 }
+/**
+ * Seven product phases are represented by eight values because the seventh
+ * (arrival outcome) has two independently filterable outcomes.
+ */
+export const REFERRAL_JOURNEY_FLOWS = [
+  "interviewed",
+  "specialist_referred",
+  "preparing",
+  "sent",
+  "waiting",
+  "scheduled",
+  "attended",
+  "not_attended",
+] as const;
+export type ReferralJourneyFlow = typeof REFERRAL_JOURNEY_FLOWS[number];
+export interface ReferralTransition {
+  from: ReferralJourneyFlow | null;
+  to: ReferralJourneyFlow;
+  enteredAt: number;
+  recordedAt: number;
+  revision: number;
+}
+export interface ReferralEventDetail extends ReferralEvent {
+  /** Derived from the immutable v2 event journal; never serialized. */
+  transition?: ReferralTransition | null;
+}
+// ready/cancelled are retained in the public union for older serialized/UI
+// consumers. New service records use only REFERRAL_JOURNEY_FLOWS: package
+// readiness is completeness, while cancellation remains an independent fact.
 export type ReferralFlow = "interviewed" | "specialist_referred" | "preparing" | "ready" | "sent" | "waiting" | "scheduled" | "attended" | "not_attended" | "cancelled";
+export interface ReferralIntakeSummary {
+  sessionId: string;
+  createdAt: number;
+  status: "collecting" | "completed" | "aborted";
+  deliveryStatus: "pending" | "sent" | "failed";
+}
 export interface ReferralDetail extends Referral {
+  events: ReferralEventDetail[];
   completeness: Completeness;
   flow: ReferralFlow;
   observedStageDays: number | null;
+  intake?: ReferralIntakeSummary | null;
+}
+export interface ReferralListFilters {
+  state?: ReferralJourneyFlow;
+  profile?: string;
 }
 export interface PatientMemo {
   patientLabel: string;

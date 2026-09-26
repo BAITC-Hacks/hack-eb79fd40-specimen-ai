@@ -1,0 +1,1314 @@
+{
+  "schema_version": "redflags-rule-misses-v1",
+  "research_only": true,
+  "clinician_review_status": "pending",
+  "corpus_sha256": "bafae774a648ccde988b4804a02d0d0adce983d7d979e6fcefcf230902ac5625",
+  "baseline": {
+    "false_negative_count": 35,
+    "false_positive_count": 27,
+    "false_negatives": [
+      {
+        "id": "rf-010",
+        "language": "kk",
+        "target_trigger": "chest_pain",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Кеуде тұсым қатты ауыра бастады"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-022",
+        "language": "ru",
+        "target_trigger": "stroke",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Появилась слабость в правой руке"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-025",
+        "language": "ru",
+        "target_trigger": "stroke",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Угол рта опустился и рука ослабла"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-027",
+        "language": "kk",
+        "target_trigger": "stroke",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Оң қолым кенет әлсіреді"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-028",
+        "language": "kk",
+        "target_trigger": "stroke",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Сөзім түсініксіз болып қалды"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-029",
+        "language": "kk",
+        "target_trigger": "stroke",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Денемнің бір жағы ұйып қалды"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-030",
+        "language": "kk",
+        "target_trigger": "stroke",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Аузым қисайып, қолым көтерілмейді"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-045",
+        "language": "ru",
+        "target_trigger": "bleeding",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Кровь идёт и не останавливается"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-049",
+        "language": "kk",
+        "target_trigger": "bleeding",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Құсығымда қан бар"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-050",
+        "language": "kk",
+        "target_trigger": "bleeding",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Үлкен дәретімде қан көрдім"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-064",
+        "language": "ru",
+        "target_trigger": "thunderclap_headache",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Ощущение будто удар в голову"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-065",
+        "language": "ru",
+        "target_trigger": "thunderclap_headache",
+        "messages": [
+          {
+            "role": "user",
+            "content": "За секунду возникла невыносимая головная боль"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-067",
+        "language": "kk",
+        "target_trigger": "thunderclap_headache",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Кенет басым бұрын-соңды болмағандай қатты ауырды"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-068",
+        "language": "kk",
+        "target_trigger": "thunderclap_headache",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Басыма соққы тигендей бірден ауырды"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-069",
+        "language": "kk",
+        "target_trigger": "thunderclap_headache",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Өмірімдегі ең қатты бас ауруы кенет басталды"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-085",
+        "language": "ru",
+        "target_trigger": "consciousness",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Отключилась и ничего не помню"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-087",
+        "language": "kk",
+        "target_trigger": "consciousness",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Талып қалдым"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-088",
+        "language": "kk",
+        "target_trigger": "consciousness",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Денем құрысып қалды"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-089",
+        "language": "kk",
+        "target_trigger": "consciousness",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Не болғанын түсінбей, есім шатасты"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-090",
+        "language": "kk",
+        "target_trigger": "consciousness",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Бір сәтке есімді жоғалттым"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-102",
+        "language": "ru",
+        "target_trigger": "dyspnea_rest",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Не могу нормально дышать"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-104",
+        "language": "ru",
+        "target_trigger": "dyspnea_rest",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Воздуха не хватает без нагрузки"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-105",
+        "language": "ru",
+        "target_trigger": "dyspnea_rest",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Тяжело дышать даже в постели"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-108",
+        "language": "kk",
+        "target_trigger": "dyspnea_rest",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Тыныш отырсам да ауа жетпейді"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-109",
+        "language": "kk",
+        "target_trigger": "dyspnea_rest",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Жатқанда тыныс алу қиын"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-110",
+        "language": "kk",
+        "target_trigger": "dyspnea_rest",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Еш қимылдамасам да ентігемін"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-124",
+        "language": "ru",
+        "target_trigger": "suicidal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Хочу причинить себе вред"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-125",
+        "language": "ru",
+        "target_trigger": "suicidal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Есть мысли убить себя"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-127",
+        "language": "kk",
+        "target_trigger": "suicidal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Өмір сүргім келмейді"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-128",
+        "language": "kk",
+        "target_trigger": "suicidal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Өзімді өлтіру туралы ой бар"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-129",
+        "language": "kk",
+        "target_trigger": "suicidal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Өзіме зиян келтіргім келеді"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-130",
+        "language": "kk",
+        "target_trigger": "suicidal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Өмірмен қоштасуды ойлап жүрмін"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-148",
+        "language": "kk",
+        "target_trigger": "meningeal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Жарыққа қарай алмаймын, қызуым жоғары"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-149",
+        "language": "kk",
+        "target_trigger": "meningeal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Мойнымды бүгу қиын болып кетті"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-150",
+        "language": "kk",
+        "target_trigger": "meningeal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Дене қызуым 39, мойным сіресіп қалды"
+          }
+        ],
+        "expected_emergency": true,
+        "predicted_emergency": false,
+        "predicted_codes": [],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      }
+    ],
+    "false_positives": [
+      {
+        "id": "rf-014",
+        "language": "ru",
+        "target_trigger": "chest_pain",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Врач спросил про боль в груди, я ответил что её нет"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "chest_pain"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-015",
+        "language": "ru",
+        "target_trigger": "chest_pain",
+        "messages": [
+          {
+            "role": "user",
+            "content": "У брата болит в груди, а у меня жалоб нет"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "chest_pain"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-018",
+        "language": "kk",
+        "target_trigger": "chest_pain",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Бұрын кеудем ауырған, қазір бәрі өтті"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "chest_pain"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-019",
+        "language": "kk",
+        "target_trigger": "chest_pain",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Дәрігер кеуде ауыра ма деп сұрады, мен жоқ дедім"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "chest_pain"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-020",
+        "language": "kk",
+        "target_trigger": "chest_pain",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Әкемнің кеудесі ауырады, менде ондай белгі жоқ"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "chest_pain"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-035",
+        "language": "ru",
+        "target_trigger": "stroke",
+        "messages": [
+          {
+            "role": "user",
+            "content": "У мамы перекосило лицо, со мной всё нормально"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "stroke"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-040",
+        "language": "kk",
+        "target_trigger": "stroke",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Ағамның беті қисайды, менде белгі жоқ"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "stroke"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-054",
+        "language": "ru",
+        "target_trigger": "bleeding",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Кровотечение было после операции год назад и прекратилось"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "bleeding"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-055",
+        "language": "ru",
+        "target_trigger": "bleeding",
+        "messages": [
+          {
+            "role": "user",
+            "content": "У жены началось кровотечение, у меня ничего такого нет"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "bleeding"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-059",
+        "language": "kk",
+        "target_trigger": "bleeding",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Өткен жылы қан кеткен, қазір тоқтады"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "bleeding"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-060",
+        "language": "kk",
+        "target_trigger": "bleeding",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Жұбайымнан қан кетті, менде ондай белгі жоқ"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "bleeding"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-073",
+        "language": "ru",
+        "target_trigger": "thunderclap_headache",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Сильнейшая головная боль была пять лет назад и прошла"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "thunderclap_headache"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-074",
+        "language": "ru",
+        "target_trigger": "thunderclap_headache",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Фраза как удар в голову была в книге, у меня ничего не болит"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "thunderclap_headache"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-075",
+        "language": "ru",
+        "target_trigger": "thunderclap_headache",
+        "messages": [
+          {
+            "role": "user",
+            "content": "У сестры худшая головная боль, а я чувствую себя нормально"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "thunderclap_headache"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-093",
+        "language": "ru",
+        "target_trigger": "consciousness",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Обмороков никогда не случалось"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "consciousness"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-094",
+        "language": "ru",
+        "target_trigger": "consciousness",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Потеря сознания была два года назад, сейчас всё прошло"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "consciousness"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-095",
+        "language": "ru",
+        "target_trigger": "consciousness",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Друг упал в обморок, а я вызвал ему помощь"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "consciousness"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-099",
+        "language": "kk",
+        "target_trigger": "consciousness",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Екі жыл бұрын есімнен тандым, қазір ондай жоқ"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "consciousness"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-100",
+        "language": "kk",
+        "target_trigger": "consciousness",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Досым есінен танды, ал мен өзімді жақсы сезінемін"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "consciousness"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-115",
+        "language": "ru",
+        "target_trigger": "dyspnea_rest",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Муж задыхается, а у меня дыхание нормальное"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "dyspnea_rest"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-120",
+        "language": "kk",
+        "target_trigger": "dyspnea_rest",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Әкемнің демі жетпейді, мен қалыпты дем алып тұрмын"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "dyspnea_rest"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-133",
+        "language": "ru",
+        "target_trigger": "suicidal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Никогда не думал покончить с собой"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "suicidal"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-135",
+        "language": "ru",
+        "target_trigger": "suicidal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Герой фильма сказал не хочу жить, ко мне это не относится"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "suicidal"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-154",
+        "language": "ru",
+        "target_trigger": "meningeal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Шея не сгибалась неделю назад, сейчас всё прошло"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "meningeal"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-155",
+        "language": "ru",
+        "target_trigger": "meningeal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "У ребёнка шея не сгибается, у меня жалоб нет"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "meningeal"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-159",
+        "language": "kk",
+        "target_trigger": "meningeal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Өткен аптада мойным қатайған, қазір өтті"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "meningeal"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      },
+      {
+        "id": "rf-160",
+        "language": "kk",
+        "target_trigger": "meningeal",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Баланың мойны қатайып қалды, менде белгі жоқ"
+          }
+        ],
+        "expected_emergency": false,
+        "predicted_emergency": true,
+        "predicted_codes": [
+          "meningeal"
+        ],
+        "provenance": {
+          "kind": "synthetic_adversarial",
+          "source": "authored from the eight-rule taxonomy for this benchmark",
+          "clinician_validated": false,
+          "validation_status": "pending"
+        }
+      }
+    ]
+  },
+  "after_hardening": {
+    "false_negative_count": 0,
+    "false_positive_count": 0,
+    "false_negatives": [],
+    "false_positives": []
+  }
+}

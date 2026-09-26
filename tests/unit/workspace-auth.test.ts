@@ -13,6 +13,7 @@ import {
   workspaceConfigured,
   workspaceCookieName,
   workspaceEnabled,
+  workspaceAccessScope,
 } from "../../lib/workspace-auth";
 import { GET, POST, DELETE } from "../../app/api/workspace/auth/route";
 import { protectPatientAction, protectPatientStart } from "../../lib/patient-session";
@@ -77,14 +78,28 @@ describe("workspace identities and signed cookies", () => {
     const payload = await response.json();
     expect(payload).toEqual({ enabled: true, actor: {
       id, displayName: `Test ${id}`, role: id, organizationId: "clinic-a", organizationDisplayName: "Клиника А",
+      access: workspaceAccessScope(id as "doctor" | "owner" | "analyst"),
       ...(id === "doctor" ? { telegramChatId: "1234567" } : {}),
     } });
     expect(JSON.stringify(payload)).not.toContain(passwordHash);
     expect(payload.actor).not.toHaveProperty("sessionVersion");
     const persistedActor = { ...payload.actor };
     delete persistedActor.organizationDisplayName;
+    delete persistedActor.access;
     expect(await requireWorkspaceActor(request("GET", cookie))).toEqual(persistedActor);
     expect(await currentWorkspaceActor(id)).toEqual(persistedActor);
+  });
+
+  it("publishes disjoint personal and aggregate scopes for every role", () => {
+    expect(workspaceAccessScope("owner")).toEqual({
+      personalRecords: "organization", aggregateRecords: "organization", aggregatePrivacy: "direct",
+    });
+    expect(workspaceAccessScope("doctor")).toEqual({
+      personalRecords: "own", aggregateRecords: "own", aggregatePrivacy: "direct",
+    });
+    expect(workspaceAccessScope("analyst")).toEqual({
+      personalRecords: "none", aggregateRecords: "organization", aggregatePrivacy: "thresholded",
+    });
   });
 
   it("uses secure host-only HttpOnly cookies in production and clears them on logout", async () => {

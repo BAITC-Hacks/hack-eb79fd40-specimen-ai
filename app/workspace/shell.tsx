@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { ReferralActor } from "@/lib/referrals/types";
+import type { WorkspaceAccessScope } from "@/lib/workspace-auth";
 import { advanceWorkspaceAuthEpoch, ROLE_LABELS, workspaceRequest } from "./client";
 import { Icon } from "./ui";
 import styles from "./shell.module.css";
 
-export type AuthenticatedActor = ReferralActor & { organizationDisplayName: string };
+export type AuthenticatedActor = ReferralActor & { organizationDisplayName: string; access: WorkspaceAccessScope };
 const WorkspaceContext = createContext<{ actor: AuthenticatedActor; logout: () => Promise<void> } | null>(null);
 export function useWorkspaceContext() {
   const context = useContext(WorkspaceContext);
@@ -123,9 +124,10 @@ export default function WorkspaceShell({ children }: { children: ReactNode }) {
   </div>;
 
   const actor = auth.actor;
-  const navigation = NAV.filter((item) => actor.role !== "analyst" || !item.private);
+  const canReadPersonalRecords = actor.access.personalRecords !== "none";
+  const navigation = NAV.filter((item) => canReadPersonalRecords || !item.private);
   const section = NAV.find((item) => item.href === pathname) ?? NAV.find((item) => item.href !== "/workspace" && pathname.startsWith(`${item.href}/`));
-  const denied = forbiddenPath === pathname || (actor.role === "analyst" && NAV.some((item) => item.private && (pathname === item.href || pathname.startsWith(`${item.href}/`))));
+  const denied = forbiddenPath === pathname || (!canReadPersonalRecords && NAV.some((item) => item.private && (pathname === item.href || pathname.startsWith(`${item.href}/`))));
   const initials = actor.displayName.trim().split(/\s+/u).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
   return <div className={styles.theme}>
     <a className={styles.skipLink} href="#workspace-content">Перейти к содержимому</a>

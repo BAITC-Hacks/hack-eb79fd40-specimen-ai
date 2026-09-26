@@ -2,9 +2,38 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, PageSizes, rgb } from "pdf-lib";
-import type { PatientMemo } from "./referrals/types";
+import type { PatientMemo, ReferralDetail } from "./referrals/types";
 
-const LABELS = { present: "есть", missing: "отсутствует", expired: "срок истёк", unknown: "уточнить у врача", not_applicable: "не требуется" };
+const ACTIONS = {
+  present: "взять актуальный результат с собой",
+  missing: "получить результат и взять его с собой",
+  expired: "обновить результат и взять его с собой",
+  unknown: "уточнить у врача, нужен ли актуальный результат",
+  not_applicable: "не требуется по решению врача",
+} as const;
+const displayDate = (value: string) => value.split("-").reverse().join(".");
+
+// Both the download route and Telegram build the memo from the completeness
+// calculated against the referral's persisted requirementSnapshot. A newer
+// catalogue must not silently rewrite an existing episode package.
+export function patientMemoFromReferral(referral: ReferralDetail): PatientMemo {
+  const items = referral.completeness.entries.length > 0
+    ? referral.completeness.entries
+      .filter((entry) => entry.status !== "not_applicable")
+      .map(({ label, status, expiresOn }) => ({ label, status, expiresOn }))
+    : referral.examinations.map((record) => ({
+      label: record.label,
+      status: "unknown" as const,
+      expiresOn: record.expiresOn,
+    }));
+  return {
+    patientLabel: referral.patientLabel,
+    scheduledDate: referral.scheduledDate,
+    destinationOrganization: referral.destinationOrganization,
+    catalogueAvailable: referral.completeness.catalogueAvailable,
+    items,
+  };
+}
 
 // Patient-facing whitelist: no transcript, hypothesis, risk score or snapshot.
 export function renderPatientMemoText(memo: PatientMemo): string {
@@ -12,10 +41,14 @@ export function renderPatientMemoText(memo: PatientMemo): string {
     "Demeu · Памятка по подготовке",
     `Пациент: ${memo.patientLabel}`,
     `Организация: ${memo.destinationOrganization ?? "уточнить у врача"}`,
-    `Назначенная дата: ${memo.scheduledDate ?? "не указана"}`,
-    memo.catalogueAvailable ? "Проверьте обследования перед посещением:" : "Перечень обязательных обследований не проверен. Уточните состав пакета у врача.",
-    ...memo.items.map((item) => `${item.label}: ${LABELS[item.status]}${item.expiresOn ? `; действует до ${item.expiresOn}` : ""}`),
+    `Целевая дата госпитализации: ${memo.scheduledDate ? displayDate(memo.scheduledDate) : "не указана"}`,
+    memo.catalogueAvailable
+      ? "Что взять с собой к целевой дате:"
+      : "Справочник ещё не проверен врачом больницы. Состав пакета ниже не подтверждён; уточните его у врача.",
+    ...memo.items.map((item, index) => `${index + 1}. ${item.label} — ${ACTIONS[item.status]}${item.expiresOn ? `; срок действия до ${displayDate(item.expiresOn)}` : "; срок действия уточните у врача"}`),
     "Назначенная дата не подтверждает явку. При изменении планов свяжитесь с врачом.",
+    "Окончательный состав пакета и готовность подтверждает врач.",
+    "Demeu не отправляет данные в Портал бюро госпитализации.",
   ].join("\n");
 }
 
@@ -35,10 +68,17 @@ export async function renderPatientMemoPdf(memo: PatientMemo): Promise<Uint8Arra
     y -= 17;
   }
   for (const paragraph of text.split("\n")) {
+    if (!paragraph) { line(""); continue; }
     let current = "";
-    for (const char of paragraph) {
-      if (font.widthOfTextAtSize(current + char, size) > width && current) { line(current); current = ""; }
-      current += char;
+    for (const word of paragraph.split(/\s+/u)) {
+      const candidate = current ? `${current} ${word}` : word;
+      if (font.widthOfTextAtSize(candidate, size) <= width) { current = candidate; continue; }
+      if (current) { line(current); current = ""; }
+      if (font.widthOfTextAtSize(word, size) <= width) { current = word; continue; }
+      for (const char of word) {
+        if (font.widthOfTextAtSize(current + char, size) > width && current) { line(current); current = ""; }
+        current += char;
+      }
     }
     line(current);
   }

@@ -28,3 +28,14 @@ npx vitest run tests/unit/consent-hydration.test.tsx
 ```
 
 The repository uses jsdom for this narrow hydration gate. Playwright is not a repository dependency.
+
+## Automated revalidation — 2026-09-26
+
+The focused regression pass now also verifies:
+
+1. Two rapid clicks while the first start request is pending produce one request.
+2. A failed first request produces a safe alert with an enabled explicit retry action.
+3. The server-rendered bootstrap contains a loading state and no inert consent button; the first consent button rendered after hydration is enabled.
+4. The patient composer retains the IME guard, a multiline textarea, the message-length limit, retry state, 16 px mobile input text and a non-shrinking send button.
+
+These checks are local and synthetic. They do not assert production availability or external delivery.
