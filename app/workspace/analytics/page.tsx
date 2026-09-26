@@ -15,7 +15,7 @@ export default function AnalyticsPage() {
   const personal = actor.role !== "analyst";
   const scope = actor.role === "doctor" ? "Только ваши направления" : "В пределах вашей организации";
   const maximum = Math.max(0, ...aggregates?.groups.map((group) => group.count) ?? []);
-  const profiles = personal ? aggregates?.perProfile ?? [] : [];
+  const profiles = aggregates?.perProfile ?? [];
   const timeline = personal ? aggregates?.timeline ?? [] : [];
   const profileMaximum = Math.max(0, ...profiles.map((group) => group.count));
   const partial = aggregates?.suppressed ?? false;
@@ -44,7 +44,7 @@ export default function AnalyticsPage() {
             </>}
           </section>
           <section className={styles.card}>
-            {personal ? <><div className={styles.sectionHead}><div><h2>Очередь по профилям</h2><p className={styles.muted}>Только подтверждённый врачом этап ожидания в Demeu</p></div></div>{profiles.length ? <ul className={styles.bars}>{profiles.map((group) => <li key={group.profile}><div className={styles.barLabel}><span>{group.profile}</span><strong>{group.count}</strong></div><div className={styles.track} aria-hidden="true"><span className={styles.fill} style={{ width: barWidth(group.count, profileMaximum) }} /></div><p className={styles.muted}>В ожидании: {group.waitingCount} · среднее наблюдаемое время: {group.meanObservedWaitingDays === null ? "неизвестно" : `${group.meanObservedWaitingDays.toFixed(1)} дн.`} ({group.observedWaitingTimeCount} из {group.waitingCount})</p></li>)}</ul> : <EmptyState title="Профилей пока нет" description="Распределение появится вместе с направлениями." />}</> : <><Icon name="lock" size={24} /><h2>Только обезличенные агрегаты</h2><p className={styles.muted}>Роли аналитика доступны только группы, прошедшие порог публикации. Поля профилей и дневной динамики в ответе API недоступны этой роли и возвращаются пустыми; карточки пациентов не загружаются.</p></>}
+            <><div className={styles.sectionHead}><div><h2>Очередь по профилям</h2><p className={styles.muted}>{personal ? "Только подтверждённый врачом этап ожидания в Demeu" : "Только обезличенные группы, прошедшие порог публикации"}</p></div></div>{profiles.length ? <ul className={styles.bars}>{profiles.map((group) => <li key={group.profile}><div className={styles.barLabel}><span>{group.profile}</span><strong>{group.count}</strong></div><div className={styles.track} aria-hidden="true"><span className={styles.fill} style={{ width: barWidth(group.count, profileMaximum) }} /></div><p className={styles.muted}>В ожидании: {group.waitingCount === null ? "скрыто" : group.waitingCount} · среднее наблюдаемое время: {group.meanObservedWaitingDays === null ? "неизвестно или скрыто" : `${group.meanObservedWaitingDays.toFixed(1)} дн.`} ({group.observedWaitingTimeCount === null || group.waitingCount === null ? "покрытие скрыто" : `${group.observedWaitingTimeCount} из ${group.waitingCount}`})</p></li>)}</ul> : <EmptyState title={personal ? "Профилей пока нет" : "Профильные группы пока скрыты"} description={personal ? "Распределение появится вместе с направлениями." : "Показатели появятся, когда каждая публикуемая ячейка пройдёт порог приватности."} />}</>
           </section>
         </div>
         {personal && <section className={styles.card}>

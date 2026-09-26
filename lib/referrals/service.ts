@@ -545,19 +545,17 @@ export class ReferralService {
         groups.set(flow, { count: previous.count + 1,
           days: previous.days + (stageDays ?? 0),
           observedTimeCount: previous.observedTimeCount + (stageDays === null ? 0 : 1) });
-        if (actor.role !== "analyst") {
-          const profile = profileDisplayName(referral.profile);
-          const current = profiles.get(profile) ?? { count: 0, waitingCount: 0, waitingDays: 0, observedWaitingTimeCount: 0 };
-          current.count += 1;
-          if (flow === "waiting") {
-            current.waitingCount += 1;
-            if (stageDays !== null) {
-              current.waitingDays += stageDays;
-              current.observedWaitingTimeCount += 1;
-            }
+        const profile = profileDisplayName(referral.profile);
+        const current = profiles.get(profile) ?? { count: 0, waitingCount: 0, waitingDays: 0, observedWaitingTimeCount: 0 };
+        current.count += 1;
+        if (flow === "waiting") {
+          current.waitingCount += 1;
+          if (stageDays !== null) {
+            current.waitingDays += stageDays;
+            current.observedWaitingTimeCount += 1;
           }
-          profiles.set(profile, current);
         }
+        profiles.set(profile, current);
       }
       const periodEnd = analyst ? publicationAt : this.now();
       const to = localDate(periodEnd);
@@ -581,13 +579,20 @@ export class ReferralService {
         }
       }
       const hiddenGroups = analyst && [...groups.values()].some((group) => group.count < 5);
+      const hiddenProfiles = analyst && [...profiles.values()].some((profile) => profile.count < 5);
       // Когда часть ячеек скрыта, общий итог тоже скрывается: иначе их число
       // можно восстановить вычитанием из показанных ячеек.
       const smallTimeCell = (group: { count: number; observedTimeCount: number }) =>
         group.observedTimeCount > 0 && group.observedTimeCount < 5
         || group.count - group.observedTimeCount > 0 && group.count - group.observedTimeCount < 5;
-      const suppressed = analyst && (unpublishedChanges || referrals.length < 5 || hiddenGroups || [...groups.values()].some(smallTimeCell));
-      return { suppressed, total: analyst && (unpublishedChanges || hiddenGroups || referrals.length < 5) ? null : referrals.length,
+      const smallProfileCell = (profile: { count: number; waitingCount: number; observedWaitingTimeCount: number }) =>
+        profile.waitingCount > 0 && profile.waitingCount < 5
+        || profile.count - profile.waitingCount > 0 && profile.count - profile.waitingCount < 5
+        || profile.observedWaitingTimeCount > 0 && profile.observedWaitingTimeCount < 5
+        || profile.waitingCount - profile.observedWaitingTimeCount > 0 && profile.waitingCount - profile.observedWaitingTimeCount < 5;
+      const suppressed = analyst && (unpublishedChanges || referrals.length < 5 || hiddenGroups || hiddenProfiles
+        || [...groups.values()].some(smallTimeCell) || [...profiles.values()].some(smallProfileCell));
+      return { suppressed, total: analyst && (unpublishedChanges || hiddenGroups || hiddenProfiles || referrals.length < 5) ? null : referrals.length,
         groups: [...groups].filter(([, group]) => !analyst || group.count >= 5).map(([flow, group]) => {
           const hideTime = analyst && smallTimeCell(group);
           return { flow, count: group.count,
@@ -595,13 +600,19 @@ export class ReferralService {
             observedTimeCount: hideTime ? null : group.observedTimeCount };
         }),
         scope: actor.role === "doctor" ? "own" : "organization", dataSource: "doctor_confirmed_local_records", forecast: null,
-        perProfile: [...profiles].map(([profile, value]) => ({
-          profile,
-          count: value.count,
-          waitingCount: value.waitingCount,
-          meanObservedWaitingDays: value.observedWaitingTimeCount ? value.waitingDays / value.observedWaitingTimeCount : null,
-          observedWaitingTimeCount: value.observedWaitingTimeCount,
-        })),
+        perProfile: [...profiles].filter(([, value]) => !analyst || value.count >= 5).map(([profile, value]) => {
+          const hideWaiting = analyst && (value.waitingCount > 0 && value.waitingCount < 5
+            || value.count - value.waitingCount > 0 && value.count - value.waitingCount < 5);
+          const hideTime = hideWaiting || analyst && (value.observedWaitingTimeCount > 0 && value.observedWaitingTimeCount < 5
+            || value.waitingCount - value.observedWaitingTimeCount > 0 && value.waitingCount - value.observedWaitingTimeCount < 5);
+          return {
+            profile,
+            count: value.count,
+            waitingCount: hideWaiting ? null : value.waitingCount,
+            meanObservedWaitingDays: hideTime || !value.observedWaitingTimeCount ? null : value.waitingDays / value.observedWaitingTimeCount,
+            observedWaitingTimeCount: hideTime ? null : value.observedWaitingTimeCount,
+          };
+        }),
         period: { from, to }, timeline, timelineSource: "observed_snapshot",
         timelineUnavailableReason: actor.role === "analyst" ? "not_available_for_analyst" : null };
     });
