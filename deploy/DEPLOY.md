@@ -157,8 +157,8 @@ cost-authorized and is not required merely to prove the origin switch.
 
 ## Public smoke after deployment
 
-Both smoke levels are pinned to an explicit trusted production origin. The default is
-`https://109.123.248.16`; for a custom domain set
+Both smoke levels are pinned to an explicit trusted production origin. The current default is
+`https://84.247.161.211`; for a custom domain set
 `EXPECTED_PRODUCTION_ORIGIN=https://demo.example.kz`. `BASE_URL`, when supplied, must equal that
 origin exactly. HTTP, a different host, a port, path, redirect, certificate error, DNS error,
 timeout, non-JSON API response, or unexpected status fails closed. Accepted hosts use the same
@@ -200,7 +200,8 @@ always calls `POST /api/chat/finalize`, repeats finalize to prove replay equalit
 completed-session chat to return `409 SESSION_COMPLETED`. Scenario 1 must return emergency urgency,
 the chest-pain flag, verified quote evidence, and emergency/cardiology routing. Scenarios 2 and 3
 accept safe model abstention/fallback but still require a contract-valid summary. The client sends at
-most 22 HTTP requests and no retries; under the current server retry policy the conservative upper
+most 25 HTTP requests and no retries; authenticated intake reads verify clinician-only results without
+exposing them through patient endpoints. Under the current server retry policy the conservative upper
 bound is 24 Anthropic requests. A previous local scenario-1 run already spent two calls and is not
 repeated by this procedure.
 

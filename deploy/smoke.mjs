@@ -12,7 +12,7 @@ export const SCENARIO1_ONCE_OPT_IN = "I_AUTHORIZE_ONE_PRODUCTION_SCENARIO1_ONCE"
 
 const MAX_JSON_BYTES = 1_000_000;
 const L1_HTTP_CAP = 5;
-const L2_HTTP_CAP = 22;
+const L2_HTTP_CAP = 25;
 const SCENARIO1_HTTP_CAP = 8;
 const RESTRICTED_WORD = "\u0434\u0438\u0430\u0433\u043d\u043e\u0437";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -524,9 +524,9 @@ export async function runL2({
     must(Number.isInteger(start.turnsLeft), "start turnsLeft is missing");
 
     const messages = [{ role: "assistant", content: start.reply }];
-    let chatResult;
+    let chatClosing;
     for (const line of scenario.lines) {
-      if (chatResult) break;
+      if (chatClosing) break;
       messages.push({ role: "user", content: line });
       const turn = await client.request("/api/chat", {
         method: "POST",
@@ -538,8 +538,9 @@ export async function runL2({
       must(Number.isInteger(turn.turnsLeft), "chat turnsLeft is missing");
       messages.push({ role: "assistant", content: turn.reply });
       if (turn.done) {
-        must(isRecord(turn.result), "done chat response has no TriageResult");
-        chatResult = turn.result;
+        must(isRecord(turn.closing), "done chat response has no patient closing");
+        must(turn.result === undefined && turn.source === undefined, "done chat exposed clinician-only fields");
+        chatClosing = turn.closing;
       }
     }
 
@@ -548,9 +549,9 @@ export async function runL2({
       body: { sessionId: start.sessionId },
       timeoutMs: 750_000,
     });
-    must(isRecord(firstFinalize.result), "first finalize has no TriageResult");
-    must(firstFinalize.source === firstFinalize.result.source, "first finalize source mismatch");
-    if (chatResult) must(sameJson(chatResult, firstFinalize.result), "finalize changed chat result");
+    must(isRecord(firstFinalize.closing), "first finalize has no patient closing");
+    must(firstFinalize.result === undefined && firstFinalize.source === undefined, "first finalize exposed clinician-only fields");
+    if (chatClosing) must(sameJson(chatClosing, firstFinalize.closing), "finalize changed patient closing");
 
     const secondFinalize = await client.request("/api/chat/finalize", {
       method: "POST",
@@ -558,8 +559,8 @@ export async function runL2({
       timeoutMs: 30_000,
     });
     must(secondFinalize.replayed === true, "second finalize is not marked replayed");
-    must(secondFinalize.source === secondFinalize.result?.source, "second finalize source mismatch");
-    must(sameJson(firstFinalize.result, secondFinalize.result), "idempotent finalize changed TriageResult");
+    must(secondFinalize.result === undefined && secondFinalize.source === undefined, "second finalize exposed clinician-only fields");
+    must(sameJson(firstFinalize.closing, secondFinalize.closing), "idempotent finalize changed patient closing");
 
     const completed = await client.request("/api/chat", {
       method: "POST",
@@ -568,14 +569,20 @@ export async function runL2({
     });
     must(completed.code === "SESSION_COMPLETED", "completed session did not return SESSION_COMPLETED");
 
-    assertSmokeResult(firstFinalize.result, messages);
-    scenario.verify(firstFinalize.result);
+    const intake = await client.request(`/api/workspace/intakes/${encodeURIComponent(start.sessionId)}`, {
+      timeoutMs: 30_000,
+    });
+    must(isRecord(intake.intake) && isRecord(intake.intake.result), "workspace intake has no TriageResult");
+    const result = intake.intake.result;
+
+    assertSmokeResult(result, messages);
+    scenario.verify(result);
     summaries.push({
       scenario: scenario.id,
       ok: true,
-      urgency: firstFinalize.result.urgency,
-      source: firstFinalize.result.source,
-      red_flag_count: firstFinalize.result.red_flags.length,
+      urgency: result.urgency,
+      source: result.source,
+      red_flag_count: result.red_flags.length,
       evidence_verified: true,
       disclaimer_verified: true,
       finalize_replayed: true,

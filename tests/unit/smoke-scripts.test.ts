@@ -322,7 +322,7 @@ describe("production smoke scripts", () => {
         const reply = fixtures[session.index].messages[session.turn * 2].content;
         if (session.index === 0) {
           session.completed = true;
-          return json({ reply, done: true, turnsLeft: 19, result: fixtures[0].result });
+          return json({ reply, done: true, turnsLeft: 19, closing: { emergency: true, text: "Ответы переданы врачу." } });
         }
         return json({ reply, done: false, turnsLeft: 20 - session.turn });
       }
@@ -330,8 +330,12 @@ describe("production smoke scripts", () => {
         const session = sessions.get(body.sessionId)!;
         const replayed = session.completed;
         session.completed = true;
-        const result = fixtures[session.index].result;
-        return json({ result, source: result.source, replayed });
+        return json({ closing: { emergency: session.index === 0, text: "Ответы переданы врачу." }, replayed });
+      }
+      if (path.startsWith("/api/workspace/intakes/")) {
+        const sessionId = decodeURIComponent(path.slice("/api/workspace/intakes/".length));
+        const session = sessions.get(sessionId)!;
+        return json({ intake: { result: fixtures[session.index].result } });
       }
       throw new Error(`unexpected path ${path}`);
     };
