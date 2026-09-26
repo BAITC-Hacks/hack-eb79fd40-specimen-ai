@@ -222,6 +222,10 @@ describe("D6a patient and referral journey", () => {
       expect(await service.aggregates(doctor)).toMatchObject({
         total: 1,
         groups: [{ flow: "waiting", count: 1, meanObservedDays: 3, observedTimeCount: 1 }],
+        perProfile: [{
+          profile: "Хирургический", count: 1, waitingCount: 1,
+          meanObservedWaitingDays: 3, observedWaitingTimeCount: 1,
+        }],
       });
 
       const operationalSource = await readFile(join(process.cwd(), "app/workspace/operational-delay.ts"), "utf8");

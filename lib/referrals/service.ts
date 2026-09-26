@@ -536,7 +536,7 @@ export class ReferralService {
         unpublishedChanges = changedReferrals.size > 0;
       }
       const groups = new Map<ReferralFlow, { count: number; days: number; observedTimeCount: number }>();
-      const profiles = new Map<string, number>();
+      const profiles = new Map<string, { count: number; waitingCount: number; waitingDays: number; observedWaitingTimeCount: number }>();
       for (const referral of referrals) {
         const { flow, observedStageDays: stageDays } = analyst
           ? this.decorate(referral, publicationAt, this.requirementSnapshot(referral.profile))
@@ -547,7 +547,16 @@ export class ReferralService {
           observedTimeCount: previous.observedTimeCount + (stageDays === null ? 0 : 1) });
         if (actor.role !== "analyst") {
           const profile = profileDisplayName(referral.profile);
-          profiles.set(profile, (profiles.get(profile) ?? 0) + 1);
+          const current = profiles.get(profile) ?? { count: 0, waitingCount: 0, waitingDays: 0, observedWaitingTimeCount: 0 };
+          current.count += 1;
+          if (flow === "waiting") {
+            current.waitingCount += 1;
+            if (stageDays !== null) {
+              current.waitingDays += stageDays;
+              current.observedWaitingTimeCount += 1;
+            }
+          }
+          profiles.set(profile, current);
         }
       }
       const periodEnd = analyst ? publicationAt : this.now();
@@ -586,7 +595,13 @@ export class ReferralService {
             observedTimeCount: hideTime ? null : group.observedTimeCount };
         }),
         scope: actor.role === "doctor" ? "own" : "organization", dataSource: "doctor_confirmed_local_records", forecast: null,
-        perProfile: [...profiles].map(([profile, count]) => ({ profile, count })),
+        perProfile: [...profiles].map(([profile, value]) => ({
+          profile,
+          count: value.count,
+          waitingCount: value.waitingCount,
+          meanObservedWaitingDays: value.observedWaitingTimeCount ? value.waitingDays / value.observedWaitingTimeCount : null,
+          observedWaitingTimeCount: value.observedWaitingTimeCount,
+        })),
         period: { from, to }, timeline, timelineSource: "observed_snapshot",
         timelineUnavailableReason: actor.role === "analyst" ? "not_available_for_analyst" : null };
     });

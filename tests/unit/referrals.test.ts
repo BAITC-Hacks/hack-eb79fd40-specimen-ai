@@ -161,7 +161,10 @@ describe("правки по смоуку 14.09", () => {
     const first = await service.create(doctor, { patientLabel: "Эпизод А", profile: "хирургический", icd10Code: "i20.9", idempotencyKey: "code-a" });
     await service.create(doctor, { patientLabel: "Эпизод Б", profile: "Хирургический", idempotencyKey: "code-b" });
     expect(first).toMatchObject({ profile: "Хирургический", icd10Code: "I20.9" });
-    expect((await service.aggregates(doctor)).perProfile).toEqual([{ profile: "Хирургический", count: 2 }]);
+    expect((await service.aggregates(doctor)).perProfile).toEqual([{
+      profile: "Хирургический", count: 2, waitingCount: 0,
+      meanObservedWaitingDays: null, observedWaitingTimeCount: 0,
+    }]);
     expect(canonicalProfile("кардиология")).toBe("Кардиология");
     await expect(service.create(doctor, { patientLabel: "Иной", profile: "Несогласованный", idempotencyKey: "unknown-profile" }))
       .rejects.toMatchObject({ status: 400 });
@@ -351,7 +354,10 @@ describe("агрегаты и устойчивость", () => {
       { date: "2026-09-15", createdCount: 0, totalCount: 1, waitingCount: 0 },
     ]);
     expect(result.timelineSource).toBe("observed_snapshot");
-    expect(result.perProfile).toEqual([{ profile: "Хирургический", count: 1 }]);
+    expect(result.perProfile).toEqual([{
+      profile: "Хирургический", count: 1, waitingCount: 0,
+      meanObservedWaitingDays: null, observedWaitingTimeCount: 0,
+    }]);
     const restricted = await service.aggregates(analyst);
     expect(restricted.timeline).toEqual([]);
     expect(restricted.perProfile).toEqual([]);

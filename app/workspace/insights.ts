@@ -108,6 +108,26 @@ export function barWidth(value: number, maximum: number): string {
   return `${maximum > 0 ? Math.min(100, Math.max(0, value / maximum * 100)) : 0}%`;
 }
 
+export function bottleneckNotes(
+  value: InsightAggregate,
+  flowLabel: (flow: ReferralAggregates["groups"][number]["flow"]) => string = (flow) => flow,
+): string[] {
+  if (value.groups.length === 0) return [];
+  const notes: string[] = [];
+  const largest = value.groups.reduce((left, right) => right.count > left.count ? right : left);
+  notes.push(`Больше всего записей сейчас на этапе «${flowLabel(largest.flow)}»: ${largest.count}.`);
+  const timed = value.groups.filter((group) => group.meanObservedDays !== null && (group.observedTimeCount ?? 0) > 0);
+  if (timed.length > 0) {
+    const longest = timed.reduce((left, right) => (right.meanObservedDays ?? 0) > (left.meanObservedDays ?? 0) ? right : left);
+    notes.push(`Наибольшее наблюдаемое среднее время у этапа «${flowLabel(longest.flow)}»: ${longest.meanObservedDays!.toFixed(1)} дн. по ${longest.observedTimeCount} записям.`);
+  }
+  const coverage = aggregateCoverage(value);
+  if (coverage && coverage.knownTime < coverage.total) {
+    notes.push(`Время этапа известно для ${coverage.knownTime} из ${coverage.total} записей; остальные не включены в среднее.`);
+  }
+  return notes;
+}
+
 export function timelinePoints(rows: ReferralAggregates["timeline"], field: "totalCount" | "waitingCount"): string {
   const maximum = Math.max(0, ...rows.map((row) => Math.max(row.totalCount, row.waitingCount)));
   return rows.map((row, index) => `${32 + index * 656 / Math.max(1, rows.length - 1)},${174 - (maximum ? row[field] / maximum * 146 : 0)}`).join(" ");

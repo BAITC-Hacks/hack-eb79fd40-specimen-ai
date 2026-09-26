@@ -177,7 +177,13 @@ export interface ReferralAggregates {
   scope: "organization" | "own";
   dataSource: "doctor_confirmed_local_records";
   forecast: null;
-  perProfile: { profile: string; count: number }[];
+  perProfile: {
+    profile: string;
+    count: number;
+    waitingCount: number;
+    meanObservedWaitingDays: number | null;
+    observedWaitingTimeCount: number;
+  }[];
   period: { from: string; to: string };
   timeline: { date: string; createdCount: number; totalCount: number; waitingCount: number }[];
   timelineSource: "observed_snapshot";

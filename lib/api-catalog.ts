@@ -394,7 +394,7 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     description: "Возвращает только агрегаты. Analyst физически не получает персональные поля и не задаёт произвольные фильтры.",
     auth: workspace,
     request: { contentType: "none", fields: [], example: null, note: "Любая query-строка отклоняется: подавление малых групп контролирует сервер." },
-    success: { status: 200, description: "Область доступа и агрегаты организации или собственного потока.", example: { access: { personalRecords: "none", aggregateRecords: "organization", aggregatePrivacy: "thresholded" }, aggregates: { suppressed: false, total: 24, scope: "organization", dataSource: "doctor_confirmed_local_records", forecast: null, groups: [{ flow: "preparing", count: 6, meanObservedDays: 3.2, observedTimeCount: 5 }], perProfile: [{ profile: "хирургический", count: 9 }], period: { from: "2026-09-01", to: "2026-09-26" } } } },
+    success: { status: 200, description: "Область доступа и агрегаты организации или собственного потока.", example: { access: { personalRecords: "none", aggregateRecords: "organization", aggregatePrivacy: "thresholded" }, aggregates: { suppressed: false, total: 24, scope: "organization", dataSource: "doctor_confirmed_local_records", forecast: null, groups: [{ flow: "preparing", count: 6, meanObservedDays: 3.2, observedTimeCount: 5 }], perProfile: [], period: { from: "2026-09-01", to: "2026-09-26" } } } },
     errors: [error(400, "BAD_REQUEST", "Query-параметры запрещены."), error(401, "UNAUTHORIZED", "Нет сессии рабочего пространства."), error(503, "WORKSPACE_UNAVAILABLE", "Агрегаты недоступны.")],
     notes: ["forecast: null означает, что проверенный прогноз ещё не подключён.", "При малой группе числовые значения подавляются сервером."],
   },

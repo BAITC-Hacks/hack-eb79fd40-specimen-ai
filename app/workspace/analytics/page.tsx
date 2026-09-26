@@ -3,7 +3,7 @@
 import { calendarDate, FLOW_LABELS } from "../client";
 import { useWorkspaceContext } from "../shell";
 import { EmptyState, Icon, KpiCard, PageHeading } from "../ui";
-import { aggregateCoverage, barWidth, DEMO_ORGANIZATION_COMPARISON, insightEndpoint, MODEL_EVIDENCE, timelinePoints, type InsightAggregate } from "../insights";
+import { aggregateCoverage, barWidth, bottleneckNotes, DEMO_ORGANIZATION_COMPARISON, insightEndpoint, MODEL_EVIDENCE, timelinePoints, type InsightAggregate } from "../insights";
 import { useInsightData } from "../insights-client";
 import styles from "../insights.module.css";
 
@@ -20,6 +20,7 @@ export default function AnalyticsPage() {
   const profileMaximum = Math.max(0, ...profiles.map((group) => group.count));
   const partial = aggregates?.suppressed ?? false;
   const hiddenGroups = aggregates?.total === null;
+  const bottlenecks = aggregates ? bottleneckNotes(aggregates, (flow) => FLOW_LABELS[flow]) : [];
 
   return <div className={styles.stack}>
     <PageHeading eyebrow="Аналитика и данные" title="Аналитика направлений" description="Движение направлений по записям врачей. Без предположений о внешней очереди." actions={<button className={styles.button} disabled={loading} onClick={refresh}><Icon name="refresh" size={16} />Обновить</button>} />
@@ -43,7 +44,7 @@ export default function AnalyticsPage() {
             </>}
           </section>
           <section className={styles.card}>
-            {personal ? <><div className={styles.sectionHead}><div><h2>По профилям</h2><p className={styles.muted}>Профили, указанные при создании направлений</p></div></div>{profiles.length ? <ul className={styles.bars}>{profiles.map((group) => <li key={group.profile}><div className={styles.barLabel}><span>{group.profile}</span><strong>{group.count}</strong></div><div className={styles.track} aria-hidden="true"><span className={styles.fill} style={{ width: barWidth(group.count, profileMaximum) }} /></div></li>)}</ul> : <EmptyState title="Профилей пока нет" description="Распределение появится вместе с направлениями." />}</> : <><Icon name="lock" size={24} /><h2>Только обезличенные агрегаты</h2><p className={styles.muted}>Роли аналитика доступны только группы, прошедшие порог публикации. Поля профилей и дневной динамики в ответе API недоступны этой роли и возвращаются пустыми; карточки пациентов не загружаются.</p></>}
+            {personal ? <><div className={styles.sectionHead}><div><h2>Очередь по профилям</h2><p className={styles.muted}>Только подтверждённый врачом этап ожидания в Demeu</p></div></div>{profiles.length ? <ul className={styles.bars}>{profiles.map((group) => <li key={group.profile}><div className={styles.barLabel}><span>{group.profile}</span><strong>{group.count}</strong></div><div className={styles.track} aria-hidden="true"><span className={styles.fill} style={{ width: barWidth(group.count, profileMaximum) }} /></div><p className={styles.muted}>В ожидании: {group.waitingCount} · среднее наблюдаемое время: {group.meanObservedWaitingDays === null ? "неизвестно" : `${group.meanObservedWaitingDays.toFixed(1)} дн.`} ({group.observedWaitingTimeCount} из {group.waitingCount})</p></li>)}</ul> : <EmptyState title="Профилей пока нет" description="Распределение появится вместе с направлениями." />}</> : <><Icon name="lock" size={24} /><h2>Только обезличенные агрегаты</h2><p className={styles.muted}>Роли аналитика доступны только группы, прошедшие порог публикации. Поля профилей и дневной динамики в ответе API недоступны этой роли и возвращаются пустыми; карточки пациентов не загружаются.</p></>}
           </section>
         </div>
         {personal && <section className={styles.card}>
@@ -62,6 +63,10 @@ export default function AnalyticsPage() {
           </> : <EmptyState title="История пока недоступна" description="Данные для ежедневной динамики ещё не получены." />}
         </section>}
       </>}
+      <section className={styles.card}>
+        <div className={styles.sectionHead}><div><h2>Наблюдаемые узкие места</h2><p className={styles.muted}>Объяснение текущего среза, не причинный вывод и не прогноз</p></div><span className={styles.tag}>По локальным фактам</span></div>
+        {bottlenecks.length ? <ul className={styles.permissions}>{bottlenecks.map((note) => <li key={note}>{note}</li>)}</ul> : <EmptyState title="Недостаточно наблюдений" description="Подсказки появятся после накопления подтверждённых записей и времени этапов." />}
+      </section>
     </>}
     <section className={`${styles.card} ${styles.demoCard}`} data-data-origin="synthetic-demo">
       <div className={styles.sectionHead}><div><h2>Демонстрационное сравнение двух организаций</h2><p className={styles.muted}>Fallback для показа макета, пока в кабинете нет проверенного среза по двум реальным организациям.</p></div><span className={styles.demoTag}>Синтетический пример</span></div>

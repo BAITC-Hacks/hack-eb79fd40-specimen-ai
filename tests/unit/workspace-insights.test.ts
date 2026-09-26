@@ -5,7 +5,7 @@ import type { ReferralAggregates, ReferralDetail } from "../../lib/referrals/typ
 import waitTimeReport from "../../reports/wait-time-baseline-v0.json";
 import refusalReport from "../../reports/referral-refusal-baseline-v0.json";
 import labLoadReport from "../../reports/lab-load-v1.json";
-import { aggregateCoverage, barWidth, DEMO_ORGANIZATION_COMPARISON, insightEndpoint, MODEL_EVIDENCE, referralQuality, timelinePoints } from "../../app/workspace/insights";
+import { aggregateCoverage, barWidth, bottleneckNotes, DEMO_ORGANIZATION_COMPARISON, insightEndpoint, MODEL_EVIDENCE, referralQuality, timelinePoints } from "../../app/workspace/insights";
 
 const aggregate = (patch: Partial<ReferralAggregates> = {}): ReferralAggregates => ({
   suppressed: false, total: 10,
@@ -56,6 +56,20 @@ describe("workspace insights: scoped data and honest quantities", () => {
     expect(timelinePoints(rows, "waitingCount")).toBe("32,101");
     expect(timelinePoints([], "totalCount")).toBe("");
     expect(timelinePoints([{ ...rows[0], totalCount: 0, waitingCount: 0 }], "totalCount")).toBe("32,174");
+  });
+  it("explains observed bottlenecks without claiming a forecast", () => {
+    expect(bottleneckNotes(aggregate({
+      total: 12,
+      groups: [
+        { flow: "waiting", count: 7, meanObservedDays: 4, observedTimeCount: 5 },
+        { flow: "preparing", count: 5, meanObservedDays: 2, observedTimeCount: 4 },
+      ],
+    }))).toEqual([
+      "Больше всего записей сейчас на этапе «waiting»: 7.",
+      "Наибольшее наблюдаемое среднее время у этапа «waiting»: 4.0 дн. по 5 записям.",
+      "Время этапа известно для 9 из 12 записей; остальные не включены в среднее.",
+    ]);
+    expect(bottleneckNotes(aggregate({ total: 0, groups: [] }))).toEqual([]);
   });
 
   it("shows only honest research evidence with status, held-out error, baseline and period", () => {
