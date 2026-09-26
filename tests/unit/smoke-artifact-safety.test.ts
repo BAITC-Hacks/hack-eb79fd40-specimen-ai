@@ -55,7 +55,7 @@ globalThis.fetch = async (input) => {
   const json = (value, status = 200) => new Response(JSON.stringify(value), {
     status, headers: { "content-type": "application/json" },
   });
-  if (route === "/" || route.startsWith("/c/")) {
+  if (route === "/workspace" || route.startsWith("/c/")) {
     return new Response("<!doctype html>", { headers: { "content-type": "text/html" } });
   }
   if (route === "/api/healthz") return json({

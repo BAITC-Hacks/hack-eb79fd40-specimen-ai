@@ -57,6 +57,7 @@ function makeRoot(): string {
 function successfulFetch(calls: Array<{ path: string; init?: RequestInit }>) {
   const token = "1234567890abcdef";
   const sessionId = "session-private-sentinel";
+  const closing = { emergency: true, text: "Ваши ответы переданы врачу." };
   let chatCalls = 0;
 
   return async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
@@ -81,15 +82,16 @@ function successfulFetch(calls: Array<{ path: string; init?: RequestInit }>) {
           reply: fixture.messages[2].content,
           done: true,
           turnsLeft: 19,
-          result: fixture.result,
+          closing,
         });
       }
       return json({ code: "SESSION_COMPLETED" }, 409);
     }
     if (path === "/api/chat/finalize") {
       expect(body).toEqual({ sessionId });
-      return json({ result: fixture.result, source: fixture.result.source, replayed: true });
+      return json({ closing, replayed: true });
     }
+    if (path === `/api/workspace/intakes/${sessionId}`) return json({ intake: { result: fixture.result } });
     throw new Error(`unexpected test path ${path}`);
   };
 }
@@ -119,7 +121,7 @@ describe("production scenario 1 one-shot evidence harness", () => {
     expect(readFileSync(marker, "utf8")).toBe("owner\n");
   });
 
-  it("runs the fixed seven-request sequence once and writes only the sanitized schema", async () => {
+  it("runs the fixed eight-request privacy-safe sequence once and writes only the sanitized schema", async () => {
     const root = makeRoot();
     const calls: Array<{ path: string; init?: RequestInit }> = [];
     const outcome = await executeScenario1Once({
@@ -138,8 +140,9 @@ describe("production scenario 1 one-shot evidence harness", () => {
       "/api/chat/finalize",
       "/api/chat/finalize",
       "/api/chat",
+      "/api/workspace/intakes/session-private-sentinel",
     ]);
-    expect(calls).toHaveLength(7);
+    expect(calls).toHaveLength(8);
     expect(calls.every(({ init }) => init?.redirect === "error")).toBe(true);
 
     const raw = readFileSync(outcome.artifactPath, "utf8");
@@ -170,8 +173,8 @@ describe("production scenario 1 one-shot evidence harness", () => {
       production_origin: CANONICAL_BASE,
       expected_origin_verified: true,
       health_commit: EXPECTED_COMMIT,
-      http_requests: 7,
-      http_cap: 7,
+      http_requests: 8,
+      http_cap: 8,
       client_retries: 0,
       scenario: { number: 1, patient_lines: 1 },
       result: {
@@ -213,7 +216,7 @@ describe("production scenario 1 one-shot evidence harness", () => {
 
     expect(outcome.artifactPath).toBe(customArtifactPath(root, expectedOrigin));
     expect(outcome.payload.production_origin).toBe(expectedOrigin);
-    expect(calls).toHaveLength(7);
+    expect(calls).toHaveLength(8);
   });
 
   it("reserves the historical marker name only for the sslip rollback origin", async () => {
@@ -232,7 +235,7 @@ describe("production scenario 1 one-shot evidence harness", () => {
       join(root, `prod-s1-${EXPECTED_COMMIT}-once.json`),
     );
     expect(outcome.artifactPath).not.toBe(artifactPath(root));
-    expect(calls).toHaveLength(7);
+    expect(calls).toHaveLength(8);
   });
 
   it("uses the origin SHA-256 to separate colliding slugs and blocks only the same origin", async () => {
@@ -267,8 +270,8 @@ describe("production scenario 1 one-shot evidence harness", () => {
     expect(first.artifactPath).not.toBe(second.artifactPath);
     expect(basename(first.artifactPath)).toMatch(/^[a-z0-9.-]+\.json$/u);
     expect(basename(first.artifactPath).length).toBeLessThanOrEqual(160);
-    expect(firstCalls).toHaveLength(7);
-    expect(secondCalls).toHaveLength(7);
+    expect(firstCalls).toHaveLength(8);
+    expect(secondCalls).toHaveLength(8);
 
     let rerunCalls = 0;
     await expect(executeScenario1Once({
@@ -331,7 +334,7 @@ describe("production scenario 1 one-shot evidence harness", () => {
       production_origin: CANONICAL_BASE,
       health_commit: EXPECTED_COMMIT,
       error: "HTTP_STATUS_UNEXPECTED",
-      http_cap: 7,
+      http_cap: 8,
       client_retries: 0,
       one_shot_guard: "fixed_commit_marker_reserved_before_fetch",
       telegram_delivery: "not observable from the public API; no delivery claim",

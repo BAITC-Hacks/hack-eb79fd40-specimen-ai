@@ -179,7 +179,7 @@ nor against a root process; either already has filesystem authority. The determi
 still matters: after the final path `lstat`, the descriptor is `fstat`-checked for one link before the
 immediate write, and the pinned root/parent identities are rechecked after `realpath` before `open`.
 
-L1 makes exactly five no-key requests: TLS/hostname plus `/`, exact `/api/healthz`, `/api/link`, a
+L1 makes exactly five no-key requests: TLS/hostname plus `/workspace`, exact `/api/healthz`, `/api/link`, a
 well-formed unknown token returning `404`, and the patient page returning HTML. The current
 `/api/chat/start` returns a static greeting and does not contact Anthropic, so calling it cannot prove
 LLM readiness and is deliberately not counted as the sixth check.
@@ -189,6 +189,10 @@ EXPECTED_PRODUCTION_ORIGIN="https://${DEMEU_DOMAIN}" \
 DEMEU_SMOKE_LIVE=I_ACCEPT_PRODUCTION_SMOKE \
   bash deploy/smoke-l1.sh
 ```
+
+When workspace auth is enabled, set `DEMEU_WORKSPACE_COOKIE` to a short-lived doctor
+session cookie through the process environment. The harness keeps it out of artifacts
+and carries the patient capability cookie returned by `/api/chat/start` automatically.
 
 Run L2 only after L1 is green, health reports `llm_ok:true`, the three production credentials are
 configured, and the operator explicitly authorizes cost. It sends the three frozen SPINE scenarios,
@@ -215,9 +219,10 @@ result identifiers proves API acceptance, not that a person read the summary.
 
 ### One-shot scenario 1 evidence harness
 
-For a newly deployed commit, `deploy/smoke-scenario1-once.sh` persists the exact seven-request
-scenario-1 sequence: health, link, start, one chat line, finalize, finalize replay, and completed-chat
-`409`. It requires an explicit trusted production origin, an exact seven-character lowercase
+For a newly deployed commit, `deploy/smoke-scenario1-once.sh` persists the exact eight-request
+scenario-1 sequence: health, link, start, one chat line, finalize, finalize replay, completed-chat
+`409`, and the authenticated clinician intake used to verify the result without exposing it to the
+patient API. It requires an explicit trusted production origin, an exact seven-character lowercase
 `EXPECTED_COMMIT`, and a separate production opt-in. Only the historical sslip origin retains
 `reports/live-e2e/prod-s1-<commit>-once.json`; the new IP and every other origin are bound into the marker name as
 `prod-s1-<commit>-<bounded-hostname-slug>-<origin-sha256>-once.json`. The full SHA-256 prevents two

@@ -60,7 +60,7 @@ describe("production smoke scripts", () => {
       const url = String(input);
       calls.push({ url, init });
       const path = new URL(url).pathname;
-      if (path === "/") return html();
+      if (path === "/workspace") return html();
       if (path === "/api/healthz") return json(health);
       if (path === "/api/link") return json({ token });
       if (path === "/api/chat/start") return json({ code: "TOKEN_NOT_FOUND" }, 404);
@@ -80,6 +80,30 @@ describe("production smoke scripts", () => {
     expect(calls.some(({ url }) => url.includes("-k"))).toBe(false);
   });
 
+  it("carries a workspace cookie and same-origin header without exposing either", async () => {
+    const calls: FetchCall[] = [];
+    const token = "1234567890abcdef";
+    const workspaceCookie = "__Host-demeu_workspace=private-cookie-value";
+    const fetchImpl = async (input: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(input), init });
+      const path = new URL(String(input)).pathname;
+      if (path === "/workspace") return html();
+      if (path === "/api/healthz") return json(health);
+      if (path === "/api/link") return json({ token });
+      if (path === "/api/chat/start") return json({ code: "TOKEN_NOT_FOUND" }, 404);
+      if (path === `/c/${token}`) return html();
+      throw new Error("unexpected path");
+    };
+
+    const result = await runL1({ baseUrl: CANONICAL_BASE, fetchImpl, workspaceCookie });
+
+    expect(result.ok).toBe(true);
+    const link = calls.find(({ url }) => new URL(url).pathname === "/api/link");
+    expect(new Headers(link?.init?.headers).get("cookie")).toBe(workspaceCookie);
+    expect(new Headers(link?.init?.headers).get("origin")).toBe(CANONICAL_BASE);
+    expect(JSON.stringify(result)).not.toContain("private-cookie-value");
+  });
+
   it("binds every custom-domain L1 request to the explicit trusted origin", async () => {
     const expectedOrigin = "https://demo.example.kz";
     const token = "1234567890abcdef";
@@ -88,7 +112,7 @@ describe("production smoke scripts", () => {
       const url = String(input);
       calls.push(url);
       const path = new URL(url).pathname;
-      if (path === "/" || path === `/c/${token}`) return html();
+      if (path === "/workspace" || path === `/c/${token}`) return html();
       if (path === "/api/healthz") return json(health);
       if (path === "/api/link") return json({ token });
       if (path === "/api/chat/start") return json({ code: "TOKEN_NOT_FOUND" }, 404);
@@ -211,6 +235,7 @@ describe("production smoke scripts", () => {
     CANONICAL_BASE,
     "https://109-123-248-16.sslip.io",
     "https://109-123-248-16.nip.io",
+    "https://109.123.248.16",
   ])("accepts a normalized trusted production origin: %s", (origin) => {
     expect(validateProductionOrigin(origin)).toBe(origin);
   });
@@ -493,7 +518,7 @@ globalThis.fetch = async (input) => {
     status,
     headers: { "content-type": "application/json" },
   });
-  if (path === "/" || path.startsWith("/c/")) {
+  if (path === "/workspace" || path.startsWith("/c/")) {
     return new Response("<!doctype html>", { headers: { "content-type": "text/html" } });
   }
   if (path === "/api/healthz") {
@@ -581,7 +606,7 @@ globalThis.fetch = async (input) => {
     status,
     headers: { "content-type": "application/json" },
   });
-  if (path === "/" || path.startsWith("/c/")) {
+  if (path === "/workspace" || path.startsWith("/c/")) {
     return new Response("<!doctype html>", { headers: { "content-type": "text/html" } });
   }
   if (path === "/api/healthz") {
@@ -606,7 +631,7 @@ globalThis.fetch = async (input) => {
         encoding: "utf8",
       });
 
-      expect(result.status).toBe(0);
+      expect(result.status, `${result.stdout}${result.stderr}`).toBe(0);
       expect(existsSync(join(root, "reports/live-e2e"))).toBe(true);
     } finally {
       rmSync(root, { recursive: true, force: true });

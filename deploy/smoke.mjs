@@ -4,7 +4,7 @@ import { lstat, mkdir, open, realpath } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-export const CANONICAL_BASE = "https://109.123.248.16";
+export const CANONICAL_BASE = "https://84.247.161.211";
 export const LEGACY_PRODUCTION_ORIGIN = "https://109-123-248-16.sslip.io";
 export const L1_OPT_IN = "I_ACCEPT_PRODUCTION_SMOKE";
 export const L2_OPT_IN = "I_AUTHORIZE_3_SCENARIOS_AND_UP_TO_24_ANTHROPIC_REQUESTS";
@@ -13,7 +13,7 @@ export const SCENARIO1_ONCE_OPT_IN = "I_AUTHORIZE_ONE_PRODUCTION_SCENARIO1_ONCE"
 const MAX_JSON_BYTES = 1_000_000;
 const L1_HTTP_CAP = 5;
 const L2_HTTP_CAP = 22;
-const SCENARIO1_HTTP_CAP = 7;
+const SCENARIO1_HTTP_CAP = 8;
 const RESTRICTED_WORD = "\u0434\u0438\u0430\u0433\u043d\u043e\u0437";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_ARTIFACT_ROOT = resolve(ROOT, "reports/live-e2e");
@@ -82,7 +82,7 @@ function isRecord(value) {
 }
 
 function validateProductionHostname(hostname) {
-  if (hostname === "109.123.248.16") return hostname;
+  if (["84.247.161.211", "109.123.248.16"].includes(hostname)) return hostname;
   must(
     typeof hostname === "string" &&
       hostname.length <= 253 &&
@@ -159,9 +159,27 @@ function createClient({
   expectedOrigin = CANONICAL_BASE,
   fetchImpl = globalThis.fetch,
   cap,
+  initialCookieHeader = "",
 }) {
   const origin = validateBase(baseUrl, expectedOrigin);
   let count = 0;
+  const cookies = new Map();
+
+  function mergeCookiePair(value) {
+    if (typeof value !== "string" || /[\r\n]/u.test(value)) return;
+    const pair = value.split(";", 1)[0];
+    const separator = pair.indexOf("=");
+    if (separator <= 0) return;
+    const name = pair.slice(0, separator).trim();
+    const cookieValue = pair.slice(separator + 1).trim();
+    if (!/^[A-Za-z0-9_-]+$/u.test(name)) return;
+    if (cookieValue) cookies.set(name, cookieValue);
+    else cookies.delete(name);
+  }
+
+  if (typeof initialCookieHeader === "string" && !/[\r\n]/u.test(initialCookieHeader)) {
+    for (const pair of initialCookieHeader.split(/;\s*/u)) mergeCookiePair(pair);
+  }
 
   async function request(path, {
     method = "GET",
@@ -181,16 +199,18 @@ function createClient({
 
     let response;
     try {
+      const headers = {};
+      if (body !== undefined) headers["content-type"] = "application/json";
+      if (method !== "GET") headers.origin = origin;
+      if (cookies.size > 0) {
+        headers.cookie = [...cookies].map(([name, value]) => `${name}=${value}`).join("; ");
+      }
       response = await fetchImpl(`${origin}${path}`, {
         method,
         redirect: "error",
         signal: AbortSignal.timeout(timeoutMs),
-        ...(body === undefined
-          ? {}
-          : {
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify(body),
-            }),
+        ...(Object.keys(headers).length > 0 ? { headers } : {}),
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
     } catch (error) {
       const timedOut = error instanceof Error && ["AbortError", "TimeoutError"].includes(error.name);
@@ -205,6 +225,10 @@ function createClient({
       `${label} -> unexpected HTTP ${response.status}`,
       "HTTP_STATUS_UNEXPECTED",
     );
+    const setCookies = typeof response.headers.getSetCookie === "function"
+      ? response.headers.getSetCookie()
+      : [response.headers.get("set-cookie")].filter(Boolean);
+    for (const setCookie of setCookies) mergeCookiePair(setCookie);
     const text = await response.text();
     must(
       Buffer.byteLength(text, "utf8") <= MAX_JSON_BYTES,
@@ -417,13 +441,14 @@ export async function runL1({
   baseUrl = CANONICAL_BASE,
   expectedOrigin = CANONICAL_BASE,
   fetchImpl = globalThis.fetch,
+  workspaceCookie = "",
 } = {}) {
-  const client = createClient({ baseUrl, expectedOrigin, fetchImpl, cap: L1_HTTP_CAP });
+  const client = createClient({ baseUrl, expectedOrigin, fetchImpl, cap: L1_HTTP_CAP, initialCookieHeader: workspaceCookie });
   const checks = [];
 
-  const root = await client.request("/", { expectJson: false, timeoutMs: 15_000 });
-  must(/text\/html/iu.test(root.contentType), "root is not HTML");
-  checks.push("tls_hostname_and_root");
+  const workspace = await client.request("/workspace", { expectJson: false, timeoutMs: 15_000 });
+  must(/text\/html/iu.test(workspace.contentType), "workspace is not HTML");
+  checks.push("tls_hostname_and_workspace");
 
   const health = await client.request("/api/healthz", { timeoutMs: 15_000 });
   assertExactHealth(health);
@@ -476,8 +501,9 @@ export async function runL2({
   baseUrl = CANONICAL_BASE,
   expectedOrigin = CANONICAL_BASE,
   fetchImpl = globalThis.fetch,
+  workspaceCookie = "",
 } = {}) {
-  const client = createClient({ baseUrl, expectedOrigin, fetchImpl, cap: L2_HTTP_CAP });
+  const client = createClient({ baseUrl, expectedOrigin, fetchImpl, cap: L2_HTTP_CAP, initialCookieHeader: workspaceCookie });
   const health = await client.request("/api/healthz", { timeoutMs: 15_000 });
   assertExactHealth(health);
   must(
@@ -579,6 +605,7 @@ async function runScenario1Once({
   expectedOrigin = CANONICAL_BASE,
   expectedCommit = "",
   fetchImpl = globalThis.fetch,
+  workspaceCookie = "",
 } = {}) {
   must(
     typeof expectedCommit === "string" && /^[0-9a-f]{7}$/.test(expectedCommit),
@@ -590,6 +617,7 @@ async function runScenario1Once({
     expectedOrigin,
     fetchImpl,
     cap: SCENARIO1_HTTP_CAP,
+    initialCookieHeader: workspaceCookie,
   });
   const scenario = SCENARIOS[0];
   must(scenario.lines.length === 1, "scenario 1 must contain exactly one patient line");
@@ -626,16 +654,19 @@ async function runScenario1Once({
   must(typeof turn.done === "boolean", "chat done is missing");
   must(Number.isInteger(turn.turnsLeft), "chat turnsLeft is missing");
   messages.push({ role: "assistant", content: turn.reply });
-  if (turn.done) must(isRecord(turn.result), "done chat response has no TriageResult");
+  if (turn.done) {
+    must(isRecord(turn.closing), "done chat response has no patient closing");
+    must(turn.result === undefined && turn.source === undefined, "done chat exposed clinician-only fields");
+  }
 
   const firstFinalize = await client.request("/api/chat/finalize", {
     method: "POST",
     body: { sessionId: start.sessionId },
     timeoutMs: 750_000,
   });
-  must(isRecord(firstFinalize.result), "first finalize has no TriageResult");
-  must(firstFinalize.source === firstFinalize.result.source, "first finalize source mismatch");
-  if (turn.done) must(sameJson(turn.result, firstFinalize.result), "finalize changed chat result");
+  must(isRecord(firstFinalize.closing), "first finalize has no patient closing");
+  must(firstFinalize.result === undefined && firstFinalize.source === undefined, "first finalize exposed clinician-only fields");
+  if (turn.done) must(firstFinalize.replayed === true, "completed chat finalize is not replayed");
 
   const secondFinalize = await client.request("/api/chat/finalize", {
     method: "POST",
@@ -643,8 +674,8 @@ async function runScenario1Once({
     timeoutMs: 30_000,
   });
   must(secondFinalize.replayed === true, "second finalize is not marked replayed");
-  must(secondFinalize.source === secondFinalize.result?.source, "second finalize source mismatch");
-  must(sameJson(firstFinalize.result, secondFinalize.result), "idempotent finalize changed TriageResult");
+  must(secondFinalize.result === undefined && secondFinalize.source === undefined, "second finalize exposed clinician-only fields");
+  must(sameJson(firstFinalize.closing, secondFinalize.closing), "idempotent finalize changed patient closing");
 
   const completed = await client.request("/api/chat", {
     method: "POST",
@@ -653,11 +684,17 @@ async function runScenario1Once({
   });
   must(completed.code === "SESSION_COMPLETED", "completed session did not return SESSION_COMPLETED");
 
-  assertSmokeResult(firstFinalize.result, messages);
-  scenario.verify(firstFinalize.result);
-  must(client.count() === SCENARIO1_HTTP_CAP, "scenario 1 did not execute exactly seven HTTP requests");
+  const intake = await client.request(`/api/workspace/intakes/${encodeURIComponent(start.sessionId)}`, {
+    timeoutMs: 30_000,
+  });
+  must(isRecord(intake.intake) && isRecord(intake.intake.result), "workspace intake has no TriageResult");
+  const result = intake.intake.result;
 
-  const model = firstFinalize.result.model;
+  assertSmokeResult(result, messages);
+  scenario.verify(result);
+  must(client.count() === SCENARIO1_HTTP_CAP, "scenario 1 did not execute exactly eight HTTP requests");
+
+  const model = result.model;
   return {
     schema_version: 1,
     level: "PROD_E2E_SCENARIO_1",
@@ -676,8 +713,8 @@ async function runScenario1Once({
       patient_lines: scenario.lines.length,
     },
     result: {
-      urgency: firstFinalize.result.urgency,
-      source: firstFinalize.result.source,
+      urgency: result.urgency,
+      source: result.source,
       emergency_chest_pain: true,
       routing_verified: true,
       evidence_verified: true,
@@ -902,6 +939,7 @@ export async function executeScenario1Once({
   optIn = "",
   artifactRoot = DEFAULT_ARTIFACT_ROOT,
   fetchImpl = globalThis.fetch,
+  workspaceCookie = process.env.DEMEU_WORKSPACE_COOKIE ?? "",
   tlsRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED,
 } = {}) {
   must(optIn === SCENARIO1_ONCE_OPT_IN, "live scenario 1 one-shot opt-in is missing");
@@ -936,6 +974,7 @@ export async function executeScenario1Once({
       expectedOrigin: productionOrigin,
       expectedCommit,
       fetchImpl,
+      workspaceCookie,
     });
   } catch (error) {
     failure = error;
@@ -1015,8 +1054,8 @@ async function main() {
   let exitCode = 0;
   try {
     payload = level === "l1"
-      ? await runL1({ baseUrl, expectedOrigin })
-      : await runL2({ baseUrl, expectedOrigin });
+      ? await runL1({ baseUrl, expectedOrigin, workspaceCookie: process.env.DEMEU_WORKSPACE_COOKIE ?? "" })
+      : await runL2({ baseUrl, expectedOrigin, workspaceCookie: process.env.DEMEU_WORKSPACE_COOKIE ?? "" });
   } catch (error) {
     payload = { level: level.toUpperCase(), ok: false, error: safeError(error) };
     exitCode = 1;
