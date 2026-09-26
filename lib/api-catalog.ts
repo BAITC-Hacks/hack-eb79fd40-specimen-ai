@@ -235,7 +235,7 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     path: "/api/workspace/auth",
     summary: "Прочитать текущую роль",
     description: "Используется shell рабочего пространства до показа персональных разделов.",
-    auth: anon,
+    auth: { kind: "conditional", label: "Cookie опциональна", detail: "Без cookie actor равен null; с workspace-cookie возвращается текущая роль и область доступа." },
     request: { contentType: "none", fields: [], example: null },
     success: { status: 200, description: "Состояние конфигурации и текущий actor либо null.", example: { enabled: true, actor: { id: "doctor-demo", displayName: "Дежурный врач", role: "doctor", organizationId: "test-neuro", organizationDisplayName: "Test Neuro", access: doctorAccess } } },
     errors: [error(500, "INTERNAL", "Непредвиденная ошибка чтения состояния.")],
@@ -447,14 +447,66 @@ function endpointUrl(endpoint: ApiEndpoint): string {
     : path;
 }
 
+const WORKSPACE_COOKIE_JAR = "./demeu-workspace.cookies";
+const PATIENT_COOKIE_JAR = "./demeu-patient.cookies";
+
 function curlAuth(endpoint: ApiEndpoint, baseUrl: string): string[] {
-  if (endpoint.id === "create-link") return ['  --cookie "<workspace-session-cookie>" \\\n'];
-  if (endpoint.auth.kind === "workspace") return ['  --cookie "<workspace-session-cookie>" \\\n'];
-  if (endpoint.auth.kind === "patient") return ['  --cookie "<patient-capability-cookie>" \\\n', `  -H "Origin: ${baseUrl}" \\\n`];
-  if (endpoint.id === "chat-start" || endpoint.id === "auth-login" || endpoint.id === "auth-logout") {
-    return [`  -H "Origin: ${baseUrl}" \\\n`];
+  if (endpoint.id === "auth-state") {
+    return [`  --cookie "${WORKSPACE_COOKIE_JAR}" \\\n`];
+  }
+  if (endpoint.id === "auth-login") {
+    return [
+      `  --cookie-jar "${WORKSPACE_COOKIE_JAR}" \\\n`,
+      `  -H "Origin: ${baseUrl}" \\\n`,
+    ];
+  }
+  if (endpoint.id === "auth-logout") {
+    return [
+      `  --cookie "${WORKSPACE_COOKIE_JAR}" \\\n`,
+      `  --cookie-jar "${WORKSPACE_COOKIE_JAR}" \\\n`,
+      `  -H "Origin: ${baseUrl}" \\\n`,
+    ];
+  }
+  if (endpoint.id === "create-link") {
+    return [
+      `  --cookie "${WORKSPACE_COOKIE_JAR}" \\\n`,
+      `  -H "Origin: ${baseUrl}" \\\n`,
+    ];
+  }
+  if (endpoint.id === "chat-start") {
+    return [
+      `  --cookie-jar "${PATIENT_COOKIE_JAR}" \\\n`,
+      `  -H "Origin: ${baseUrl}" \\\n`,
+    ];
+  }
+  if (endpoint.auth.kind === "workspace") {
+    return [
+      `  --cookie "${WORKSPACE_COOKIE_JAR}" \\\n`,
+      ...(endpoint.method === "GET" ? [] : [`  -H "Origin: ${baseUrl}" \\\n`]),
+    ];
+  }
+  if (endpoint.auth.kind === "patient") {
+    return [
+      `  --cookie "${PATIENT_COOKIE_JAR}" \\\n`,
+      `  -H "Origin: ${baseUrl}" \\\n`,
+    ];
   }
   return [];
+}
+
+function curlPreamble(endpoint: ApiEndpoint): string {
+  if (endpoint.id === "auth-login") {
+    return `# Cookie рабочего пространства будет сохранена в ${WORKSPACE_COOKIE_JAR}\n`;
+  }
+  if (endpoint.id === "create-link") {
+    return "# Production: сначала выполните POST /api/workspace/auth.\n" +
+      "# Только legacy-режим без workspace: замените --cookie на\n" +
+      "#   -H \"x-doctor-code: <doctor-access-code>\"\n";
+  }
+  if (endpoint.id === "chat-start") {
+    return `# Capability-cookie пациента будет сохранена в ${PATIENT_COOKIE_JAR}\n`;
+  }
+  return "";
 }
 
 export function codeExample(endpoint: ApiEndpoint, language: CodeLanguage, baseUrl = "http://localhost:3000"): string {
@@ -462,7 +514,7 @@ export function codeExample(endpoint: ApiEndpoint, language: CodeLanguage, baseU
   const url = `${origin}${endpointUrl(endpoint)}`;
   const body = endpoint.request.example === null ? null : JSON.stringify(endpoint.request.example, null, 2);
   if (language === "curl") {
-    const lines = [`curl --request ${endpoint.method} \\\n`, `  --url "${url}" \\\n`, ...curlAuth(endpoint, origin)];
+    const lines = [curlPreamble(endpoint), `curl --request ${endpoint.method} \\\n`, `  --url "${url}" \\\n`, ...curlAuth(endpoint, origin)];
     if (body !== null) {
       lines.push('  -H "Content-Type: application/json" \\\n');
       lines.push(`  --data '${body}'`);

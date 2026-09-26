@@ -184,12 +184,23 @@ const NASAL_BREATHING_CONTEXT =
   /дышать\s+нос\p{L}*[^.!?]*(?:насморк\p{L}*|залож\p{L}*)/iu;
 const MENINGEAL_META_CONTEXT =
   /(?:в\s+(?:статье|выписке|книге)|термин|слово)\p{L}*/iu;
+const SELF_REPORT_CLAUSE = /(?:^|\s)(?:у\s+меня|менде)(?!\p{L})/iu;
+const CURRENT_CLAUSE_START =
+  /^\s*(?:(?:но|а)\s+)?(?:сейчас|теперь|сегодня|қазір)(?!\p{L})/iu;
+const META_EXPLANATORY_CLAUSE =
+  /(?:счита(?:ется|ются)|обсужда\p{L}*|явля\p{L}*|талқыла\p{L}*|деген\s+белгі)/iu;
 const MENINGEAL_BENIGN_CONTEXT =
   /(?:при\s+мигрен\p{L}*[^.!?]*без\s+температур\p{L}*|после\s+сна)/iu;
 const MENINGEAL_LEXICAL_PATTERNS = new Set([
   "meningeal.ru_neck",
   "meningeal.ru_photophobia",
 ]);
+
+function isExplicitCurrentClause(clause: string): boolean {
+  return SELF_REPORT_CLAUSE.test(clause) || (
+    CURRENT_CLAUSE_START.test(clause) && !META_EXPLANATORY_CLAUSE.test(clause)
+  );
+}
 
 function isNonCurrentMatch(clause: string, followUp: string): boolean {
   const context = `${clause} ${followUp}`;
@@ -204,8 +215,10 @@ function isNonCurrentMatch(clause: string, followUp: string): boolean {
 }
 
 function isNonEmergencyMeaning(
-  text: string,
   clause: string,
+  previousClause: string,
+  previousContext: string,
+  boundaryBefore: string,
   rule: Rule,
   patternId: string,
 ): boolean {
@@ -215,27 +228,39 @@ function isNonEmergencyMeaning(
   }
   if (
     rule.code === "meningeal" &&
-    (MENINGEAL_BENIGN_CONTEXT.test(clause) || (
-      MENINGEAL_LEXICAL_PATTERNS.has(patternId) &&
-      MENINGEAL_META_CONTEXT.test(text)
-    ))
+    (MENINGEAL_BENIGN_CONTEXT.test(clause) ||
+      (/^[:;]$/u.test(boundaryBefore) && MENINGEAL_META_CONTEXT.test(previousClause)) || (
+        MENINGEAL_META_CONTEXT.test(previousContext) &&
+        META_EXPLANATORY_CLAUSE.test(clause) &&
+        !SELF_REPORT_CLAUSE.test(clause)
+      ) || (
+        MENINGEAL_LEXICAL_PATTERNS.has(patternId) &&
+        (MENINGEAL_META_CONTEXT.test(clause) || (
+          MENINGEAL_META_CONTEXT.test(previousContext) &&
+          !isExplicitCurrentClause(previousClause) &&
+          !CURRENT_RECURRENCE.test(clause) &&
+          !isExplicitCurrentClause(clause)
+        ))
+      ))
   ) {
     return true;
   }
   return false;
 }
 
-function clauses(text: string): string[] {
-  const result: string[] = [];
+function clauses(text: string): { text: string; boundaryBefore: string }[] {
+  const result: { text: string; boundaryBefore: string }[] = [];
   let last = 0;
+  let boundaryBefore = "";
   CLAUSE_BOUNDARY.lastIndex = 0;
   let boundary: RegExpExecArray | null;
 
   while ((boundary = CLAUSE_BOUNDARY.exec(text))) {
-    result.push(text.slice(last, boundary.index));
+    result.push({ text: text.slice(last, boundary.index), boundaryBefore });
+    boundaryBefore = boundary[0];
     last = boundary.index + boundary[0].length;
   }
-  result.push(text.slice(last));
+  result.push({ text: text.slice(last), boundaryBefore });
   return result;
 }
 
@@ -253,12 +278,21 @@ function matchRule(
 ): string | undefined {
   const textClauses = clauses(text);
   for (let clauseIndex = 0; clauseIndex < textClauses.length; clauseIndex += 1) {
-    const clause = textClauses[clauseIndex];
+    const { text: clause, boundaryBefore } = textClauses[clauseIndex];
+    const precedingClauses = textClauses
+      .slice(0, clauseIndex)
+      .map((candidate) => candidate.text)
+      .filter((candidate) => candidate.trim().length > 0);
+    const previousClause = precedingClauses.at(-1) ?? "";
+    const previousContext = precedingClauses
+      .slice(-2)
+      .join(" ");
     // Resolution/ownership qualifiers often occupy their own short clause. Keep
     // this window local to the matched report so a later, unrelated emergency
     // remains detectable (for example historical chest pain + current dyspnea).
     const followUp = textClauses
       .slice(clauseIndex + 1)
+      .map((candidate) => candidate.text)
       .filter((candidate) => candidate.trim().length > 0)
       .slice(0, 2)
       .join(" ");
@@ -268,7 +302,7 @@ function matchRule(
         match?.index !== undefined &&
         !isNegated(clause, match.index, match.index + match[0].length) &&
         (includeResolvedHistory || CURRENT_RECURRENCE.test(text) || !isNonCurrentMatch(clause, followUp)) &&
-        !isNonEmergencyMeaning(text, clause, rule, id)
+        !isNonEmergencyMeaning(clause, previousClause, previousContext, boundaryBefore, rule, id)
       ) {
         return match[0];
       }

@@ -9,6 +9,7 @@ import { describe, expect, it, vi } from "vitest";
 import ApiDocsPage, { dynamic as apiDocsRenderingMode } from "../../app/api-docs/page";
 import { ApiDocsPortal } from "../../app/api-docs/portal";
 import { apiEndpoints, apiGroups, codeExample, endpointOperation, flowStories } from "../../lib/api-catalog";
+import { apiDocsBaseUrl } from "../../lib/api-docs-origin";
 
 const doctorAccessForTest = {
   personalRecords: "own",
@@ -45,6 +46,9 @@ describe("Demeu API portal", () => {
 
     try {
       expect(renderToStaticMarkup(<ApiDocsPage />)).toContain("https://api.example.test");
+      expect(apiDocsBaseUrl("https://api.example.test/deploy/path?ignored=true")).toBe("https://api.example.test");
+      expect(apiDocsBaseUrl("https://user:secret@api.example.test")).toBe("http://localhost:3000");
+      expect(apiDocsBaseUrl("not a URL")).toBe("http://localhost:3000");
     } finally {
       vi.unstubAllEnvs();
     }
@@ -106,11 +110,21 @@ describe("Demeu API portal", () => {
       "400 BAD_REQUEST", "401 UNAUTHORIZED", "403 FORBIDDEN", "500 INTERNAL",
       "503 WORKSPACE_UNAVAILABLE",
     ].sort());
-    expect(errorPairs("referral-create")).toContain("400 SOURCE_SESSION_REQUIRED");
-    expect(errorPairs("referral-event")).toEqual(expect.arrayContaining([
-      "400 ATTENDANCE_DATE_INVALID", "400 SOURCE_SESSION_REQUIRED", "409 REFERRAL_CANCELLED",
-    ]));
-    expect(errorPairs("referral-examination")).toContain("409 DUPLICATE_EXAMINATION");
+    const sharedReferralErrors = [
+      "400 BAD_REQUEST", "401 UNAUTHORIZED", "403 FORBIDDEN", "404 NOT_FOUND",
+      "409 IDEMPOTENCY_CONFLICT", "409 REVISION_CONFLICT", "413 BODY_TOO_LARGE",
+      "503 WORKSPACE_UNAVAILABLE",
+    ];
+    expect(errorPairs("referral-create")).toEqual([
+      ...sharedReferralErrors, "400 SOURCE_SESSION_REQUIRED", "409 SOURCE_SESSION_NOT_COMPLETED",
+    ].sort());
+    expect(errorPairs("referral-event")).toEqual([
+      ...sharedReferralErrors, "400 ATTENDANCE_DATE_INVALID", "400 REASON_REQUIRED",
+      "400 SOURCE_SESSION_REQUIRED", "409 REFERRAL_CANCELLED",
+    ].sort());
+    expect(errorPairs("referral-examination")).toEqual([
+      ...sharedReferralErrors, "409 DUPLICATE_EXAMINATION",
+    ].sort());
     for (const endpointId of ["chat-start", "chat-turn", "chat-finalize"]) {
       expect(errorPairs(endpointId)).not.toContain("429 RATE_LIMITED");
     }
@@ -137,20 +151,60 @@ describe("Demeu API portal", () => {
     expect(referralsList?.request.note).toContain("400 BAD_REQUEST");
     expect(referralsList && codeExample(referralsList, "curl")).toContain("?state=preparing&profile=");
     const createLink = apiEndpoints.find((endpoint) => endpoint.id === "create-link");
-    expect(createLink && codeExample(createLink, "curl", "https://84.247.161.211"))
-      .toContain('--cookie "<workspace-session-cookie>"');
-    expect(createLink && codeExample(createLink, "curl", "https://84.247.161.211"))
-      .toContain("https://84.247.161.211/api/link");
-    expect(codeExample(apiEndpoints.find((endpoint) => endpoint.id === "chat-start")!, "curl", "https://84.247.161.211"))
-      .toContain('Origin: https://84.247.161.211');
-    expect(apiEndpoints.find((endpoint) => endpoint.id === "auth-state")?.success.example)
-      .toMatchObject({ actor: { access: doctorAccessForTest } });
-    expect(apiEndpoints.find((endpoint) => endpoint.id === "aggregates")?.success.example)
-      .toMatchObject({ access: { personalRecords: "none", aggregatePrivacy: "thresholded" } });
+    const productionOrigin = "https://84.247.161.211";
+    for (const endpoint of apiEndpoints) {
+      const curl = codeExample(endpoint, "curl", productionOrigin);
+      expect(curl).not.toContain("demeu.example");
+      if (endpoint.auth.kind === "workspace") {
+        expect(curl).toContain('--cookie "./demeu-workspace.cookies"');
+        if (endpoint.method !== "GET") expect(curl).toContain(`Origin: ${productionOrigin}`);
+      }
+    }
+    const createLinkCurl = codeExample(createLink!, "curl", productionOrigin);
+    expect(createLinkCurl).toContain('--cookie "./demeu-workspace.cookies"');
+    expect(createLinkCurl).toContain(`Origin: ${productionOrigin}`);
+    expect(createLinkCurl).toContain('x-doctor-code: <doctor-access-code>');
+    expect(createLinkCurl).toContain(`${productionOrigin}/api/link`);
+    expect(createLinkCurl).not.toContain("<workspace-session-cookie>");
+
+    const loginCurl = codeExample(apiEndpoints.find((endpoint) => endpoint.id === "auth-login")!, "curl", productionOrigin);
+    expect(loginCurl).toContain('--cookie-jar "./demeu-workspace.cookies"');
+    expect(loginCurl).toContain(`Origin: ${productionOrigin}`);
+    const authStateCurl = codeExample(apiEndpoints.find((endpoint) => endpoint.id === "auth-state")!, "curl", productionOrigin);
+    expect(authStateCurl).toContain('--cookie "./demeu-workspace.cookies"');
+    const chatStartCurl = codeExample(apiEndpoints.find((endpoint) => endpoint.id === "chat-start")!, "curl", productionOrigin);
+    expect(chatStartCurl).toContain('--cookie-jar "./demeu-patient.cookies"');
+    expect(chatStartCurl).toContain(`Origin: ${productionOrigin}`);
+    const chatTurnCurl = codeExample(apiEndpoints.find((endpoint) => endpoint.id === "chat-turn")!, "curl", productionOrigin);
+    expect(chatTurnCurl).toContain('--cookie "./demeu-patient.cookies"');
+    expect(chatTurnCurl).toContain(`Origin: ${productionOrigin}`);
+    expect(chatTurnCurl).not.toContain("<patient-capability-cookie>");
+    const referralCreateCurl = codeExample(apiEndpoints.find((endpoint) => endpoint.id === "referral-create")!, "curl", productionOrigin);
+    expect(referralCreateCurl).toContain('--cookie "./demeu-workspace.cookies"');
+    expect(referralCreateCurl).toContain(`Origin: ${productionOrigin}`);
+
+    const authStateExample = apiEndpoints.find((endpoint) => endpoint.id === "auth-state")?.success.example as {
+      actor: Record<string, unknown>;
+      enabled: boolean;
+    };
+    expect(Object.keys(authStateExample).sort()).toEqual(["actor", "enabled"]);
+    expect(Object.keys(authStateExample.actor).sort()).toEqual([
+      "access", "displayName", "id", "organizationDisplayName", "organizationId", "role",
+    ]);
+    expect(authStateExample.actor.access).toEqual(doctorAccessForTest);
+    const authLoginExample = apiEndpoints.find((endpoint) => endpoint.id === "auth-login")?.success.example as {
+      actor: Record<string, unknown>;
+    };
+    expect(authLoginExample.actor.access).toEqual(doctorAccessForTest);
+    const aggregateExample = apiEndpoints.find((endpoint) => endpoint.id === "aggregates")?.success.example as Record<string, unknown>;
+    expect(Object.keys(aggregateExample).sort()).toEqual(["access", "aggregates"]);
+    expect(aggregateExample.access).toEqual({
+      personalRecords: "none", aggregateRecords: "organization", aggregatePrivacy: "thresholded",
+    });
     expect(apiEndpoints.find((endpoint) => endpoint.id === "chat-resume")?.request.fields.map((item) => item.name))
       .toEqual(["sessionId", "token", "requestId"]);
 
-    const html = renderToStaticMarkup(<ApiDocsPortal />);
+    const html = renderToStaticMarkup(<ApiDocsPortal baseUrl={productionOrigin} />);
     expect(html).toContain('type="search"');
     expect(html).toContain('aria-label="Навигация по API"');
     expect(html).toContain('role="tablist"');
@@ -184,7 +238,7 @@ describe("Demeu API portal", () => {
     const root = createRoot(container);
 
     try {
-      await act(async () => root.render(<ApiDocsPortal />));
+      await act(async () => root.render(<ApiDocsPortal baseUrl={productionOrigin} />));
 
       const mobileLinks = Array.from(container.querySelectorAll<HTMLAnchorElement>("[data-mobile-endpoint-link]"));
       const accessibleNames = mobileLinks.map((link) => link.getAttribute("aria-label"));

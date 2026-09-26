@@ -140,7 +140,7 @@ function EndpointCard({ endpoint, language, baseUrl }: { endpoint: ApiEndpoint; 
   );
 }
 
-export function ApiDocsPortal({ baseUrl = "http://localhost:3000" }: { baseUrl?: string }) {
+export function ApiDocsPortal({ baseUrl }: { baseUrl: string }) {
   const [query, setQuery] = useState("");
   const [language, setLanguage] = useState<CodeLanguage>("curl");
   const normalized = query.trim().toLocaleLowerCase("ru");

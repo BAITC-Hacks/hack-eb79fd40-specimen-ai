@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { apiDocsBaseUrl } from "@/lib/api-docs-origin";
 import { ApiDocsPortal } from "./portal";
 
 export const metadata: Metadata = {
@@ -11,6 +12,5 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default function ApiDocsPage() {
-  const baseUrl = (process.env.APP_BASE_URL ?? "http://localhost:3000").replace(/\/$/u, "");
-  return <ApiDocsPortal baseUrl={baseUrl} />;
+  return <ApiDocsPortal baseUrl={apiDocsBaseUrl()} />;
 }

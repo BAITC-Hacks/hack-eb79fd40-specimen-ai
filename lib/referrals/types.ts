@@ -180,9 +180,9 @@ export interface ReferralAggregates {
   perProfile: {
     profile: string;
     count: number;
-    waitingCount: number | null;
+    waitingCount: number;
     meanObservedWaitingDays: number | null;
-    observedWaitingTimeCount: number | null;
+    observedWaitingTimeCount: number;
   }[];
   period: { from: string; to: string };
   timeline: { date: string; createdCount: number; totalCount: number; waitingCount: number }[];

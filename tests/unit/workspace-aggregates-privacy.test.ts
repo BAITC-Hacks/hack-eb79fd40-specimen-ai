@@ -65,16 +65,10 @@ describe("workspace aggregate boundary", () => {
 
     expect(analystPayload.access).toEqual({ personalRecords: "none", aggregateRecords: "organization", aggregatePrivacy: "thresholded" });
     expect(analystPayload.aggregates).toMatchObject({ suppressed: false, total: 10, scope: "organization" });
-    expect(analystPayload.aggregates.perProfile).toEqual([{
-      profile: "Хирургический",
-      count: 10,
-      waitingCount: 0,
-      meanObservedWaitingDays: null,
-      observedWaitingTimeCount: 0,
-    }]);
+    expect(analystPayload.aggregates.perProfile).toEqual([]);
     expect(analystPayload.aggregates.timeline).toEqual([]);
     const aggregateJson = JSON.stringify(analystPayload);
-    for (const privateText of ["patientLabel", "doctorId", "private-id-", "Секретный пациент", "Пациент другой организации"]) {
+    for (const privateText of ["patientLabel", "doctorId", "private-id-", "Секретный пациент", "Пациент другой организации", "Хирургический"]) {
       expect(aggregateJson).not.toContain(privateText);
     }
 
@@ -173,4 +167,5 @@ describe("workspace aggregate boundary", () => {
       scheduled: 14,
     });
   });
+
 });
