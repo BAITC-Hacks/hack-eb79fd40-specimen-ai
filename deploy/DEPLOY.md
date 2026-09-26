@@ -110,7 +110,10 @@ DEMEU_DEEP_PROBE=I_AUTHORIZE_ONE_STRUCTURED_EXTRACTION \
 ```
 
 The rsync filter protects and excludes every `.env*` file, raw/processed datasets, offline Python,
-tests, eval outputs, caches, binary weights, and archives. Runtime JSON artifacts remain included.
+tests, per-case eval outputs, caches, binary weights, and archives. It allowlists only the aggregate
+runtime evidence consumed by the model API (`eval/report.json`, the red-flag benchmark, wait-time,
+referral-refusal, and laboratory-load reports); all other `eval/` and `reports/` files remain excluded.
+Runtime JSON artifacts remain included.
 The server runs the same guarded activation after transfer. A failed candidate therefore keeps the
 last green container active in either mode.
 

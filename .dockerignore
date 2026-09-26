@@ -30,8 +30,14 @@ models/*.bin
 models/*.pkl
 models/*.joblib
 
-eval/
-reports/
+eval/**
+!eval/report.json
+reports/**
+!reports/redflags/
+!reports/redflags/redflags-benchmark-v1.json
+!reports/referral-refusal-baseline-v0.json
+!reports/wait-time-baseline-v0.json
+!reports/lab-load-v1.json
 tests/
 README.md
 HANDOFF.md

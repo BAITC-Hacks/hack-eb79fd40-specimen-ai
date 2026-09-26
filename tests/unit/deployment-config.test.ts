@@ -55,5 +55,21 @@ describe("offline deployment configuration", () => {
     expect(dockerignore).not.toMatch(/^assets\//mu);
     expect(dockerignore).not.toMatch(/^models\/$/mu);
     expect(dockerignore).not.toMatch(/^data\/$/mu);
+    expect(dockerignore).toContain("eval/**");
+    expect(dockerignore).toContain("!eval/report.json");
+    expect(dockerignore).toContain("reports/**");
+    for (const runtimeEvidence of [
+      "!reports/redflags/redflags-benchmark-v1.json",
+      "!reports/referral-refusal-baseline-v0.json",
+      "!reports/wait-time-baseline-v0.json",
+      "!reports/lab-load-v1.json",
+    ]) {
+      expect(dockerignore).toContain(runtimeEvidence);
+    }
+    expect(dockerignore.indexOf("eval/**")).toBeLessThan(dockerignore.indexOf("!eval/report.json"));
+    expect(dockerignore.indexOf("reports/**")).toBeLessThan(dockerignore.indexOf("!reports/redflags/"));
+    expect(dockerignore.indexOf("!reports/redflags/")).toBeLessThan(
+      dockerignore.indexOf("!reports/redflags/redflags-benchmark-v1.json"),
+    );
   });
 });

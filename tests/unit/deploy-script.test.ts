@@ -807,8 +807,25 @@ describe("deploy/deploy.sh", () => {
     expect(commands).toContain("--exclude=data/processed/");
     expect(commands).toContain("--exclude=scripts/");
     expect(commands).toContain("--exclude=tests/");
-    expect(commands).toContain("--exclude=eval/");
-    expect(commands).toContain("--exclude=reports/");
+    expect(commands).toContain("--include=/eval/report.json");
+    expect(commands).toContain("--exclude=/eval/***");
+    expect(commands).toContain("--include=/reports/redflags/redflags-benchmark-v1.json");
+    expect(commands).toContain("--include=/reports/referral-refusal-baseline-v0.json");
+    expect(commands).toContain("--include=/reports/wait-time-baseline-v0.json");
+    expect(commands).toContain("--include=/reports/lab-load-v1.json");
+    expect(commands).toContain("--exclude=/reports/***");
+    expect(commands.indexOf("--include=/eval/")).toBeLessThan(commands.indexOf("--include=/eval/report.json"));
+    expect(commands.indexOf("--include=/eval/report.json")).toBeLessThan(commands.indexOf("--exclude=/eval/***"));
+    expect(commands.indexOf("--include=/reports/")).toBeLessThan(commands.indexOf("--include=/reports/redflags/"));
+    expect(commands.indexOf("--include=/reports/redflags/")).toBeLessThan(commands.indexOf("--include=/reports/redflags/redflags-benchmark-v1.json"));
+    for (const allowedReport of [
+      "--include=/reports/redflags/redflags-benchmark-v1.json",
+      "--include=/reports/referral-refusal-baseline-v0.json",
+      "--include=/reports/wait-time-baseline-v0.json",
+      "--include=/reports/lab-load-v1.json",
+    ]) {
+      expect(commands.indexOf(allowedReport)).toBeLessThan(commands.indexOf("--exclude=/reports/***"));
+    }
     expect(commands).toContain("--exclude=.venv/");
     expect(commands).toContain("--exclude=*.csv");
     expect(commands).toContain("--exclude=*.parquet");

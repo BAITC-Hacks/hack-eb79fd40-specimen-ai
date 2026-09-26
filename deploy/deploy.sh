@@ -664,7 +664,13 @@ run_rsync_mode() {
     --exclude='.deploy_prev_sha' --exclude='.deploy_green_sha' \
     --exclude='.git/' --exclude='.next/' --exclude='node_modules/' \
     --exclude='.orchestrator/' --exclude='.worktrees/' --exclude='.venv/' \
-    --exclude='scripts/' --exclude='tests/' --exclude='eval/' --exclude='reports/' \
+    --exclude='scripts/' --exclude='tests/' \
+    --include='/eval/' --include='/eval/report.json' --exclude='/eval/***' \
+    --include='/reports/' --include='/reports/redflags/' \
+    --include='/reports/redflags/redflags-benchmark-v1.json' \
+    --include='/reports/referral-refusal-baseline-v0.json' \
+    --include='/reports/wait-time-baseline-v0.json' \
+    --include='/reports/lab-load-v1.json' --exclude='/reports/***' \
     --exclude='data/raw/' --exclude='data/processed/' \
     --exclude='*.csv' --exclude='*.parquet' --exclude='*.zip' \
     --exclude='*.npy' --exclude='*.npz' --exclude='*.pkl' \
