@@ -105,11 +105,21 @@ Brier или полей выбора. Нестабильные между сер
 
 ## Воспроизведение
 
+Входной файл — `referrals_features.parquet`. Зафиксированная копия (SHA-256 `c9386df3…`, 13 МБ) передана 19.09 и проверяется тренерами по хэшу. Пересобрать его из открытых данных:
+
+```bash
+bash scripts/case1_analytics/download.sh data/raw/case1
+.venv/bin/python -m scripts.case1_analytics.build_features \
+  --raw data/raw/case1 --out data/raw/case1/referrals_features.parquet
+```
+
+Пересборка совпадает с зафиксированной копией по всем 17 колонкам, которые берутся из набора направлений; четыре колонки из листа ожидания отличаются примерно в 0,3 % строк, модели их не используют. Хэш при этом другой, поэтому для хэш-проверки нужна зафиксированная копия. Ниже `$HANDOFF` — путь к ней.
+
 ```bash
 uv venv --python 3.12 .venv
 uv pip install --python .venv/bin/python -r scripts/referral_ml/requirements.txt
 .venv/bin/python -m scripts.referral_ml.train_refusal \
-  --input '/home/almaz/Downloads/Telegram Desktop/demeu-data-handoff-2026-09-19/referrals_features.parquet' \
+  --input "$HANDOFF/referrals_features.parquet" \
   --report reports/referral-refusal-baseline-v0.json \
   --model-output data/processed/referral-refusal-baseline-v0.joblib
 .venv/bin/python -m scripts.referral_ml.verify_refusal_report \

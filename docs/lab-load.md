@@ -68,10 +68,12 @@ D2 заблокирован по данным. Handoff от 19.09 содержи
 
 ## Воспроизведение
 
+`$HANDOFF` — каталог и архив передачи данных от 19.09; как пересобрать parquet из открытых данных, см. [referral-ml.md](referral-ml.md).
+
 ```bash
 .venv/bin/python -m scripts.lab_load.audit \
-  --input '/home/almaz/Downloads/Telegram Desktop/demeu-data-handoff-2026-09-19/referrals_features.parquet' \
-  --archive '/home/almaz/Downloads/Telegram Desktop/demeu-data-handoff-2026-09-19.zip' \
+  --input "$HANDOFF/referrals_features.parquet" \
+  --archive "$HANDOFF.zip" \
   --output reports/lab-load-data-audit.json
 .venv/bin/python -m scripts.lab_load.verify_audit reports/lab-load-data-audit.json
 .venv/bin/python -m scripts.lab_load.build_blocker_report \

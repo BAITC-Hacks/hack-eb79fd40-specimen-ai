@@ -298,7 +298,7 @@ def build(raw: Path) -> dict[str, Any]:
 
     # Hospitals with enough volume
     counts = df["hospital_mo"].value_counts()
-    big = counts[counts >= MIN_HOSPITAL_REFERRALS].index.tolist()
+    big = sorted(counts[counts >= MIN_HOSPITAL_REFERRALS].index.tolist())
     refusal_oe = standardized(df, "refused", ["profile", "referral_purpose", "self_referral"])
     hosp = df[df["hospitalized"]].assign(long=lambda d: d["wait_days"] > 30)
     wait_oe = standardized(hosp, "long", ["profile", "referral_purpose", "self_referral"])
@@ -320,7 +320,9 @@ def build(raw: Path) -> dict[str, Any]:
             "from_other_regions_pct": pct(g["inter_region"].mean()),
             "day_stay_pct": pct(g["day_stay"].mean()),
             "top_profiles": [
-                {"profile": p, "referrals": int(n)} for p, n in g["profile"].value_counts().head(3).items() if n >= MIN_CELL
+                {"profile": p, "referrals": int(n)}
+                for p, n in sorted(g["profile"].value_counts().items(), key=lambda t: (-t[1], t[0]))[:3]
+                if n >= MIN_CELL
             ],
             "refusal_vs_expected": {
                 "observed": int(ro["observed"]),
@@ -349,7 +351,7 @@ def build(raw: Path) -> dict[str, Any]:
             signals.append("long_wait_above_expected")
         entry["signals"] = signals
         hospitals.append(entry)
-    hospitals.sort(key=lambda h: h["referrals"], reverse=True)
+    hospitals.sort(key=lambda h: (-h["referrals"], h["name"]))
 
     profiles = []
     for p, g in df.groupby("profile"):
@@ -358,7 +360,7 @@ def build(raw: Path) -> dict[str, Any]:
         block = outcome_block(g)
         block["profile"] = p
         profiles.append(block)
-    profiles.sort(key=lambda b: b["referrals"], reverse=True)
+    profiles.sort(key=lambda b: (-b["referrals"], b["profile"]))
 
     weekly = df.groupby(df["registration_dt"].dt.to_period("W-SUN")).agg(
         referrals=("refused", "size"), refused=("refused", "sum"))
@@ -401,7 +403,7 @@ def build(raw: Path) -> dict[str, Any]:
         ],
         "national": {**outcome_block(df), "hospitals_total": int(df["hospital_mo"].nunique()), "treated_in_other_region_pct": pct(df["inter_region"].mean())},
         "weekly": weekly_series,
-        "regions": sorted(regions, key=lambda r: r["referrals"], reverse=True),
+        "regions": sorted(regions, key=lambda r: (-r["referrals"], r["code"])),
         "profiles": profiles,
         "factors": factors(df),
         "forecast": fc,
@@ -413,7 +415,7 @@ def build(raw: Path) -> dict[str, Any]:
             "both": sum(len(h["signals"]) == 2 for h in hospitals),
             "top_by_excess_refusals": [
                 {"name": h["name"], "region": h["region"], "excess_refusals": h["refusal_vs_expected"]["excess"], "signals": h["signals"]}
-                for h in sorted(flagged, key=lambda h: -h["refusal_vs_expected"]["excess"])[:15]
+                for h in sorted(flagged, key=lambda h: (-h["refusal_vs_expected"]["excess"], h["name"]))[:15]
             ],
         },
     }

@@ -16,7 +16,9 @@ python -m scripts.case1_analytics.build_aggregates --raw data/raw/case1
 # -> data/case1/aggregates.json, ~15 секунд
 ```
 
-Нужны `pandas` и `numpy` из `scripts/requirements.txt`. Хэши входных файлов пишутся в `source.inputs`: при другой выгрузке портала результат будет отличаться, и это видно.
+Зависимости — `scripts/case1_analytics/requirements.txt`; проверено на pandas 2.2.2 и 3.0.6, результат одинаковый. Повторный запуск даёт тот же JSON, кроме `generated_at`. Хэши входных файлов пишутся в `source.inputs`: при другой выгрузке портала результат будет отличаться, и это видно.
+
+Таблица признаков для моделей B3 и D1 (`scripts/referral_ml`) собирается из тех же открытых данных плюс набора «Ожидающие»: `python -m scripts.case1_analytics.build_features`. Что совпадает с зафиксированной передачей от 19.09, а что нет — в docstring скрипта и в [referral-ml.md](referral-ml.md).
 
 ## Что считается
 

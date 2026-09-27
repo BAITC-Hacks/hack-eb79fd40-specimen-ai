@@ -1,7 +1,7 @@
 {
  "schema_version": 1,
  "status": "offline_snapshot",
- "generated_at": "2026-09-27T18:16:33+00:00",
+ "generated_at": "2026-09-27T18:25:19+00:00",
  "source": {
   "name": "ИС «Бюро госпитализации»: Направления на плановую госпитализацию в стационары",
   "publisher": "Ashyq Data (data.gov.kz), открытые данные МЗ РК",
@@ -4095,7 +4095,7 @@
      "referrals": 807
     },
     {
-     "profile": "Терапевтические",
+     "profile": "Дневной стационар (профиль койки не указан)",
      "referrals": 176
     }
    ],
@@ -4824,70 +4824,6 @@
    "signals": []
   },
   {
-   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Отрарская центральная районная больница\" управления здравоохранения Туркестанской области",
-   "region_code": "61",
-   "region": "Туркестанская область",
-   "referrals": 2522,
-   "refusal_pct": 3.4,
-   "hospitalized": 2435,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 3.0,
-   "wait_over_30_pct": 0.1,
-   "self_referral_pct": 99.6,
-   "external_24h": {
-    "referrals": 11,
-    "refusal_pct": 27.3,
-    "hospitalized": 7,
-    "wait_median_days": 0.0,
-    "wait_p90_days": 0.0,
-    "wait_over_30_pct": 0.0
-   },
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 65.9,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 1663
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 339
-    },
-    {
-     "profile": "Для беременных и рожениц (кроме патологии беременности)",
-     "referrals": 119
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 86,
-    "expected": 145.7,
-    "ratio": 0.59,
-    "ci95": [
-     0.47,
-     0.73
-    ],
-    "excess": -59.7
-   },
-   "long_wait_vs_expected": {
-    "observed": 2,
-    "expected": 26.6,
-    "ratio": 0.08,
-    "ci95": [
-     0.01,
-     0.27
-    ]
-   },
-   "march_forecast": {
-    "forecast": 703,
-    "naive": 698,
-    "actual": 658,
-    "pending_at_cutoff": 50,
-    "from_pending": 32,
-    "from_new": 676
-   },
-   "signals": []
-  },
-  {
    "name": "Государственное коммунальное предприятие \"Актюбинская областная многопрофильная больница\" на праве хозяйственного ведения государственного учреждения \"Управление здравоохранения Актюбинской области\"",
    "region_code": "15",
    "region": "Актюбинская область",
@@ -4948,6 +4884,70 @@
     "pending_at_cutoff": 513,
     "from_pending": 283,
     "from_new": 338
+   },
+   "signals": []
+  },
+  {
+   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Отрарская центральная районная больница\" управления здравоохранения Туркестанской области",
+   "region_code": "61",
+   "region": "Туркестанская область",
+   "referrals": 2522,
+   "refusal_pct": 3.4,
+   "hospitalized": 2435,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 3.0,
+   "wait_over_30_pct": 0.1,
+   "self_referral_pct": 99.6,
+   "external_24h": {
+    "referrals": 11,
+    "refusal_pct": 27.3,
+    "hospitalized": 7,
+    "wait_median_days": 0.0,
+    "wait_p90_days": 0.0,
+    "wait_over_30_pct": 0.0
+   },
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 65.9,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 1663
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 339
+    },
+    {
+     "profile": "Для беременных и рожениц (кроме патологии беременности)",
+     "referrals": 119
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 86,
+    "expected": 145.7,
+    "ratio": 0.59,
+    "ci95": [
+     0.47,
+     0.73
+    ],
+    "excess": -59.7
+   },
+   "long_wait_vs_expected": {
+    "observed": 2,
+    "expected": 26.6,
+    "ratio": 0.08,
+    "ci95": [
+     0.01,
+     0.27
+    ]
+   },
+   "march_forecast": {
+    "forecast": 703,
+    "naive": 698,
+    "actual": 658,
+    "pending_at_cutoff": 50,
+    "from_pending": 32,
+    "from_new": 676
    },
    "signals": []
   },
@@ -6116,7 +6116,7 @@
      "referrals": 763
     },
     {
-     "profile": "Хирургические для взрослых",
+     "profile": "Паллиативной помощи",
      "referrals": 100
     }
    ],
@@ -9589,70 +9589,6 @@
    "signals": []
   },
   {
-   "name": "государственное коммунальное предприятие на праве хозяйственного ведения \"Мактааральская районная больница \"Мырзакент\" управления здравоохранения Туркестанской области",
-   "region_code": "61",
-   "region": "Туркестанская область",
-   "referrals": 1507,
-   "refusal_pct": 4.8,
-   "hospitalized": 1434,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 2.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 96.6,
-   "external_24h": {
-    "referrals": 50,
-    "refusal_pct": 46.0,
-    "hospitalized": 27,
-    "wait_median_days": 1.0,
-    "wait_p90_days": 8.200000000000006,
-    "wait_over_30_pct": 0.0
-   },
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 55.5,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 836
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 238
-    },
-    {
-     "profile": "Педиатрические ",
-     "referrals": 103
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 73,
-    "expected": 93.4,
-    "ratio": 0.78,
-    "ci95": [
-     0.61,
-     0.98
-    ],
-    "excess": -20.4
-   },
-   "long_wait_vs_expected": {
-    "observed": 0,
-    "expected": 11.3,
-    "ratio": 0.0,
-    "ci95": [
-     0.0,
-     0.33
-    ]
-   },
-   "march_forecast": {
-    "forecast": 491,
-    "naive": 492,
-    "actual": 456,
-    "pending_at_cutoff": 37,
-    "from_pending": 22,
-    "from_new": 468
-   },
-   "signals": []
-  },
-  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Многопрофильная городская больница скорой медицинской помощи\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
    "region_code": "59",
    "region": "Северо-Казахстанская область",
@@ -9717,6 +9653,70 @@
    "signals": [
     "long_wait_above_expected"
    ]
+  },
+  {
+   "name": "государственное коммунальное предприятие на праве хозяйственного ведения \"Мактааральская районная больница \"Мырзакент\" управления здравоохранения Туркестанской области",
+   "region_code": "61",
+   "region": "Туркестанская область",
+   "referrals": 1507,
+   "refusal_pct": 4.8,
+   "hospitalized": 1434,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 2.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 96.6,
+   "external_24h": {
+    "referrals": 50,
+    "refusal_pct": 46.0,
+    "hospitalized": 27,
+    "wait_median_days": 1.0,
+    "wait_p90_days": 8.200000000000006,
+    "wait_over_30_pct": 0.0
+   },
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 55.5,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 836
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 238
+    },
+    {
+     "profile": "Педиатрические ",
+     "referrals": 103
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 73,
+    "expected": 93.4,
+    "ratio": 0.78,
+    "ci95": [
+     0.61,
+     0.98
+    ],
+    "excess": -20.4
+   },
+   "long_wait_vs_expected": {
+    "observed": 0,
+    "expected": 11.3,
+    "ratio": 0.0,
+    "ci95": [
+     0.0,
+     0.33
+    ]
+   },
+   "march_forecast": {
+    "forecast": 491,
+    "naive": 492,
+    "actual": 456,
+    "pending_at_cutoff": 37,
+    "from_pending": 22,
+    "from_new": 468
+   },
+   "signals": []
   },
   {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Городская больница №3\" управления здравоохранения города Шымкент",
@@ -11899,7 +11899,7 @@
      "referrals": 200
     },
     {
-     "profile": "Терапевтические",
+     "profile": "Патология новорожденных и выхаживания недоношенных",
      "referrals": 58
     }
    ],
@@ -13327,46 +13327,6 @@
    "signals": []
   },
   {
-   "name": "Республиканское государственное предприятие на праве хозяйственного ведения \"Республиканский центр первичной медико-санитарной помощи\" Министерства здравоохранения Республики Казахстан",
-   "region_code": "71",
-   "region": "г. Астана",
-   "referrals": 1118,
-   "refusal_pct": 3.0,
-   "hospitalized": 1083,
-   "wait_median_days": -1.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 99.6,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 1118
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 34,
-    "expected": 50.2,
-    "ratio": 0.68,
-    "ci95": [
-     0.47,
-     0.95
-    ],
-    "excess": -16.2
-   },
-   "march_forecast": {
-    "forecast": 260,
-    "naive": 262,
-    "actual": 383,
-    "pending_at_cutoff": 3,
-    "from_pending": 1,
-    "from_new": 256
-   },
-   "signals": []
-  },
-  {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Бурлинская районная больница\" управления здравоохранения акимата Западно-Казахстанской области",
    "region_code": "27",
    "region": "Западно-Казахстанская область",
@@ -13427,6 +13387,46 @@
     "pending_at_cutoff": 39,
     "from_pending": 24,
     "from_new": 266
+   },
+   "signals": []
+  },
+  {
+   "name": "Республиканское государственное предприятие на праве хозяйственного ведения \"Республиканский центр первичной медико-санитарной помощи\" Министерства здравоохранения Республики Казахстан",
+   "region_code": "71",
+   "region": "г. Астана",
+   "referrals": 1118,
+   "refusal_pct": 3.0,
+   "hospitalized": 1083,
+   "wait_median_days": -1.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 99.6,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 1118
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 34,
+    "expected": 50.2,
+    "ratio": 0.68,
+    "ci95": [
+     0.47,
+     0.95
+    ],
+    "excess": -16.2
+   },
+   "march_forecast": {
+    "forecast": 260,
+    "naive": 262,
+    "actual": 383,
+    "pending_at_cutoff": 3,
+    "from_pending": 1,
+    "from_new": 256
    },
    "signals": []
   },
@@ -15726,48 +15726,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"InLife\"",
-   "region_code": "35",
-   "region": "Карагандинская область",
-   "referrals": 940,
-   "refusal_pct": 20.3,
-   "hospitalized": 724,
-   "wait_median_days": 4.0,
-   "wait_p90_days": 11.0,
-   "wait_over_30_pct": 1.8,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 940
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 191,
-    "expected": 51.8,
-    "ratio": 3.69,
-    "ci95": [
-     3.18,
-     4.25
-    ],
-    "excess": 139.2
-   },
-   "march_forecast": {
-    "forecast": 203,
-    "naive": 189,
-    "actual": 213,
-    "pending_at_cutoff": 119,
-    "from_pending": 56,
-    "from_new": 162
-   },
-   "signals": [
-    "refusal_above_expected"
-   ]
-  },
-  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Тайыншинская многопрофильная межрайонная больница\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
    "region_code": "59",
    "region": "Северо-Казахстанская область",
@@ -15823,6 +15781,48 @@
     "from_new": 313
    },
    "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"InLife\"",
+   "region_code": "35",
+   "region": "Карагандинская область",
+   "referrals": 940,
+   "refusal_pct": 20.3,
+   "hospitalized": 724,
+   "wait_median_days": 4.0,
+   "wait_p90_days": 11.0,
+   "wait_over_30_pct": 1.8,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 940
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 191,
+    "expected": 51.8,
+    "ratio": 3.69,
+    "ci95": [
+     3.18,
+     4.25
+    ],
+    "excess": 139.2
+   },
+   "march_forecast": {
+    "forecast": 203,
+    "naive": 189,
+    "actual": 213,
+    "pending_at_cutoff": 119,
+    "from_pending": 56,
+    "from_new": 162
+   },
+   "signals": [
+    "refusal_above_expected"
+   ]
   },
   {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Таскалинская районная больница\" Управления здравоохранения акимата Западно-Казахстанской области",
@@ -16120,62 +16120,6 @@
    "signals": []
   },
   {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городской центр паллиативной помощи\" Управления общественного здравоохранения города Алматы",
-   "region_code": "75",
-   "region": "г. Алматы",
-   "referrals": 911,
-   "refusal_pct": 7.9,
-   "hospitalized": 839,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 2.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 49.5,
-   "external_24h": {
-    "referrals": 460,
-    "refusal_pct": 14.1,
-    "hospitalized": 395,
-    "wait_median_days": 0.0,
-    "wait_p90_days": 3.0,
-    "wait_over_30_pct": 0.0
-   },
-   "from_other_regions_pct": 0.3,
-   "day_stay_pct": 0.0,
-   "top_profiles": [
-    {
-     "profile": "Паллиативной помощи",
-     "referrals": 911
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 72,
-    "expected": 72.3,
-    "ratio": 1.0,
-    "ci95": [
-     0.78,
-     1.25
-    ],
-    "excess": -0.3
-   },
-   "long_wait_vs_expected": {
-    "observed": 0,
-    "expected": 5.0,
-    "ratio": 0.0,
-    "ci95": [
-     0.0,
-     0.73
-    ]
-   },
-   "march_forecast": {
-    "forecast": 234,
-    "naive": 237,
-    "actual": 280,
-    "pending_at_cutoff": 20,
-    "from_pending": 10,
-    "from_new": 221
-   },
-   "signals": []
-  },
-  {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Областной перинатальный центр\" государственного учреждения \"Управление здравоохранения области Жетісу\"",
    "region_code": "33",
    "region": "область Жетісу",
@@ -16236,6 +16180,62 @@
     "pending_at_cutoff": 129,
     "from_pending": 92,
     "from_new": 109
+   },
+   "signals": []
+  },
+  {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городской центр паллиативной помощи\" Управления общественного здравоохранения города Алматы",
+   "region_code": "75",
+   "region": "г. Алматы",
+   "referrals": 911,
+   "refusal_pct": 7.9,
+   "hospitalized": 839,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 2.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 49.5,
+   "external_24h": {
+    "referrals": 460,
+    "refusal_pct": 14.1,
+    "hospitalized": 395,
+    "wait_median_days": 0.0,
+    "wait_p90_days": 3.0,
+    "wait_over_30_pct": 0.0
+   },
+   "from_other_regions_pct": 0.3,
+   "day_stay_pct": 0.0,
+   "top_profiles": [
+    {
+     "profile": "Паллиативной помощи",
+     "referrals": 911
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 72,
+    "expected": 72.3,
+    "ratio": 1.0,
+    "ci95": [
+     0.78,
+     1.25
+    ],
+    "excess": -0.3
+   },
+   "long_wait_vs_expected": {
+    "observed": 0,
+    "expected": 5.0,
+    "ratio": 0.0,
+    "ci95": [
+     0.0,
+     0.73
+    ]
+   },
+   "march_forecast": {
+    "forecast": 234,
+    "naive": 237,
+    "actual": 280,
+    "pending_at_cutoff": 20,
+    "from_pending": 10,
+    "from_new": 221
    },
    "signals": []
   },
@@ -17184,6 +17184,105 @@
    "signals": []
   },
   {
+   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Больница района Бәйтерек\" управления здравоохранения акимата Западно-Казахстанской области",
+   "region_code": "27",
+   "region": "Западно-Казахстанская область",
+   "referrals": 843,
+   "refusal_pct": 0.5,
+   "hospitalized": 839,
+   "wait_median_days": -1.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 86.4,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 728
+    },
+    {
+     "profile": "Неврологические для взрослых",
+     "referrals": 25
+    },
+    {
+     "profile": "Для восстановительного лечения и медицинской реабилитации: общие для детей",
+     "referrals": 16
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 4,
+    "expected": 46.2,
+    "ratio": 0.09,
+    "ci95": [
+     0.02,
+     0.22
+    ],
+    "excess": -42.2
+   },
+   "long_wait_vs_expected": {
+    "observed": 0,
+    "expected": 8.1,
+    "ratio": 0.0,
+    "ci95": [
+     0.0,
+     0.45
+    ]
+   },
+   "march_forecast": {
+    "forecast": 258,
+    "naive": 261,
+    "actual": 215,
+    "pending_at_cutoff": 1,
+    "from_pending": 1,
+    "from_new": 254
+   },
+   "signals": []
+  },
+  {
+   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Городская поликлиника № 4\" акимата города Астана",
+   "region_code": "71",
+   "region": "г. Астана",
+   "referrals": 843,
+   "refusal_pct": 22.7,
+   "hospitalized": 652,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 5.0,
+   "wait_over_30_pct": 0.6,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 843
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 191,
+    "expected": 46.8,
+    "ratio": 4.08,
+    "ci95": [
+     3.52,
+     4.7
+    ],
+    "excess": 144.2
+   },
+   "march_forecast": {
+    "forecast": 192,
+    "naive": 189,
+    "actual": 233,
+    "pending_at_cutoff": 65,
+    "from_pending": 33,
+    "from_new": 162
+   },
+   "signals": [
+    "refusal_above_expected"
+   ]
+  },
+  {
    "name": "Частный Благотворительный Фонд \"Адал Ниет Астана\"",
    "region_code": "71",
    "region": "г. Астана",
@@ -17244,105 +17343,6 @@
     "pending_at_cutoff": 173,
     "from_pending": 116,
     "from_new": 91
-   },
-   "signals": []
-  },
-  {
-   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Городская поликлиника № 4\" акимата города Астана",
-   "region_code": "71",
-   "region": "г. Астана",
-   "referrals": 843,
-   "refusal_pct": 22.7,
-   "hospitalized": 652,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 5.0,
-   "wait_over_30_pct": 0.6,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 843
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 191,
-    "expected": 46.8,
-    "ratio": 4.08,
-    "ci95": [
-     3.52,
-     4.7
-    ],
-    "excess": 144.2
-   },
-   "march_forecast": {
-    "forecast": 192,
-    "naive": 189,
-    "actual": 233,
-    "pending_at_cutoff": 65,
-    "from_pending": 33,
-    "from_new": 162
-   },
-   "signals": [
-    "refusal_above_expected"
-   ]
-  },
-  {
-   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Больница района Бәйтерек\" управления здравоохранения акимата Западно-Казахстанской области",
-   "region_code": "27",
-   "region": "Западно-Казахстанская область",
-   "referrals": 843,
-   "refusal_pct": 0.5,
-   "hospitalized": 839,
-   "wait_median_days": -1.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 86.4,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 728
-    },
-    {
-     "profile": "Неврологические для взрослых",
-     "referrals": 25
-    },
-    {
-     "profile": "Для восстановительного лечения и медицинской реабилитации: общие для детей",
-     "referrals": 16
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 4,
-    "expected": 46.2,
-    "ratio": 0.09,
-    "ci95": [
-     0.02,
-     0.22
-    ],
-    "excess": -42.2
-   },
-   "long_wait_vs_expected": {
-    "observed": 0,
-    "expected": 8.1,
-    "ratio": 0.0,
-    "ci95": [
-     0.0,
-     0.45
-    ]
-   },
-   "march_forecast": {
-    "forecast": 258,
-    "naive": 261,
-    "actual": 215,
-    "pending_at_cutoff": 1,
-    "from_pending": 1,
-    "from_new": 254
    },
    "signals": []
   },
@@ -18019,54 +18019,6 @@
    "signals": []
   },
   {
-   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Аршалынская районная больница\" при управлении здравоохранения Акмолинской области",
-   "region_code": "11",
-   "region": "Акмолинская область",
-   "referrals": 805,
-   "refusal_pct": 1.9,
-   "hospitalized": 790,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 77.4,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 623
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 67
-    },
-    {
-     "profile": "Педиатрические ",
-     "referrals": 37
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 15,
-    "expected": 44.8,
-    "ratio": 0.33,
-    "ci95": [
-     0.19,
-     0.55
-    ],
-    "excess": -29.8
-   },
-   "march_forecast": {
-    "forecast": 214,
-    "naive": 215,
-    "actual": 232,
-    "pending_at_cutoff": 3,
-    "from_pending": 2,
-    "from_new": 211
-   },
-   "signals": []
-  },
-  {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \" Коксуская центральная районная больница\" государственного учреждения \"Управление здравоохранения области Жетісу\" акимата области Жетісу",
    "region_code": "33",
    "region": "область Жетісу",
@@ -18120,6 +18072,54 @@
     "pending_at_cutoff": 34,
     "from_pending": 20,
     "from_new": 243
+   },
+   "signals": []
+  },
+  {
+   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Аршалынская районная больница\" при управлении здравоохранения Акмолинской области",
+   "region_code": "11",
+   "region": "Акмолинская область",
+   "referrals": 805,
+   "refusal_pct": 1.9,
+   "hospitalized": 790,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 77.4,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 623
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 67
+    },
+    {
+     "profile": "Педиатрические ",
+     "referrals": 37
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 15,
+    "expected": 44.8,
+    "ratio": 0.33,
+    "ci95": [
+     0.19,
+     0.55
+    ],
+    "excess": -29.8
+   },
+   "march_forecast": {
+    "forecast": 214,
+    "naive": 215,
+    "actual": 232,
+    "pending_at_cutoff": 3,
+    "from_pending": 2,
+    "from_new": 211
    },
    "signals": []
   },
@@ -18278,59 +18278,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"Клиника микрохирургии глаза\" ",
-   "region_code": "63",
-   "region": "Восточно-Казахстанская область",
-   "referrals": 793,
-   "refusal_pct": 5.7,
-   "hospitalized": 746,
-   "wait_median_days": 4.0,
-   "wait_p90_days": 13.0,
-   "wait_over_30_pct": 0.7,
-   "self_referral_pct": 53.3,
-   "external_24h": null,
-   "from_other_regions_pct": 0.8,
-   "day_stay_pct": 78.1,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 619
-    },
-    {
-     "profile": "Офтальмологические для взрослых",
-     "referrals": 174
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 45,
-    "expected": 73.0,
-    "ratio": 0.62,
-    "ci95": [
-     0.45,
-     0.83
-    ],
-    "excess": -28.0
-   },
-   "long_wait_vs_expected": {
-    "observed": 5,
-    "expected": 41.4,
-    "ratio": 0.12,
-    "ci95": [
-     0.04,
-     0.28
-    ]
-   },
-   "march_forecast": {
-    "forecast": 213,
-    "naive": 212,
-    "actual": 249,
-    "pending_at_cutoff": 58,
-    "from_pending": 49,
-    "from_new": 164
-   },
-   "signals": []
-  },
-  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Больница города Абая\" управления здравоохранения Карагандинской области",
    "region_code": "35",
    "region": "Карагандинская область",
@@ -18424,6 +18371,59 @@
     "pending_at_cutoff": 0,
     "from_pending": 0,
     "from_new": 223
+   },
+   "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"Клиника микрохирургии глаза\" ",
+   "region_code": "63",
+   "region": "Восточно-Казахстанская область",
+   "referrals": 793,
+   "refusal_pct": 5.7,
+   "hospitalized": 746,
+   "wait_median_days": 4.0,
+   "wait_p90_days": 13.0,
+   "wait_over_30_pct": 0.7,
+   "self_referral_pct": 53.3,
+   "external_24h": null,
+   "from_other_regions_pct": 0.8,
+   "day_stay_pct": 78.1,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 619
+    },
+    {
+     "profile": "Офтальмологические для взрослых",
+     "referrals": 174
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 45,
+    "expected": 73.0,
+    "ratio": 0.62,
+    "ci95": [
+     0.45,
+     0.83
+    ],
+    "excess": -28.0
+   },
+   "long_wait_vs_expected": {
+    "observed": 5,
+    "expected": 41.4,
+    "ratio": 0.12,
+    "ci95": [
+     0.04,
+     0.28
+    ]
+   },
+   "march_forecast": {
+    "forecast": 213,
+    "naive": 212,
+    "actual": 249,
+    "pending_at_cutoff": 58,
+    "from_pending": 49,
+    "from_new": 164
    },
    "signals": []
   },
@@ -18565,6 +18565,88 @@
    "signals": []
   },
   {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Атырауская городская поликлиника №3\" Управления здравоохранения Атырауской области",
+   "region_code": "23",
+   "region": "Атырауская область",
+   "referrals": 782,
+   "refusal_pct": 1.4,
+   "hospitalized": 771,
+   "wait_median_days": -1.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.1,
+   "self_referral_pct": 98.8,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 782
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 11,
+    "expected": 44.2,
+    "ratio": 0.25,
+    "ci95": [
+     0.12,
+     0.44
+    ],
+    "excess": -33.2
+   },
+   "march_forecast": {
+    "forecast": 205,
+    "naive": 207,
+    "actual": 249,
+    "pending_at_cutoff": 5,
+    "from_pending": 2,
+    "from_new": 202
+   },
+   "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"Clinic Miras\"",
+   "region_code": "35",
+   "region": "Карагандинская область",
+   "referrals": 782,
+   "refusal_pct": 15.9,
+   "hospitalized": 658,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 4.300000000000068,
+   "wait_over_30_pct": 0.2,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 782
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 124,
+    "expected": 42.6,
+    "ratio": 2.91,
+    "ci95": [
+     2.42,
+     3.47
+    ],
+    "excess": 81.4
+   },
+   "march_forecast": {
+    "forecast": 194,
+    "naive": 190,
+    "actual": 178,
+    "pending_at_cutoff": 35,
+    "from_pending": 20,
+    "from_new": 178
+   },
+   "signals": [
+    "refusal_above_expected"
+   ]
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"Семейская железнодорожная больница\"",
    "region_code": "10",
    "region": "область Абай",
@@ -18629,128 +18711,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"Clinic Miras\"",
-   "region_code": "35",
-   "region": "Карагандинская область",
-   "referrals": 782,
-   "refusal_pct": 15.9,
-   "hospitalized": 658,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 4.300000000000068,
-   "wait_over_30_pct": 0.2,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 782
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 124,
-    "expected": 42.6,
-    "ratio": 2.91,
-    "ci95": [
-     2.42,
-     3.47
-    ],
-    "excess": 81.4
-   },
-   "march_forecast": {
-    "forecast": 194,
-    "naive": 190,
-    "actual": 178,
-    "pending_at_cutoff": 35,
-    "from_pending": 20,
-    "from_new": 178
-   },
-   "signals": [
-    "refusal_above_expected"
-   ]
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Атырауская городская поликлиника №3\" Управления здравоохранения Атырауской области",
-   "region_code": "23",
-   "region": "Атырауская область",
-   "referrals": 782,
-   "refusal_pct": 1.4,
-   "hospitalized": 771,
-   "wait_median_days": -1.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.1,
-   "self_referral_pct": 98.8,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 782
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 11,
-    "expected": 44.2,
-    "ratio": 0.25,
-    "ci95": [
-     0.12,
-     0.44
-    ],
-    "excess": -33.2
-   },
-   "march_forecast": {
-    "forecast": 205,
-    "naive": 207,
-    "actual": 249,
-    "pending_at_cutoff": 5,
-    "from_pending": 2,
-    "from_new": 202
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Поликлиника №1 города Семей\" управления здравоохранения области Абай",
-   "region_code": "10",
-   "region": "область Абай",
-   "referrals": 780,
-   "refusal_pct": 0.1,
-   "hospitalized": 779,
-   "wait_median_days": -1.0,
-   "wait_p90_days": -1.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 99.9,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 780
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 1,
-    "expected": 43.4,
-    "ratio": 0.02,
-    "ci95": [
-     0.0,
-     0.13
-    ],
-    "excess": -42.4
-   },
-   "march_forecast": {
-    "forecast": 176,
-    "naive": 178,
-    "actual": 228,
-    "pending_at_cutoff": 0,
-    "from_pending": 0,
-    "from_new": 173
-   },
-   "signals": []
-  },
-  {
    "name": "Государственное коммунальное предприятие \"Уилская районная больница\" на праве хозяйственного ведения государственного учреждения \"Управление здравоохранения Актюбинской области\"",
    "region_code": "15",
    "region": "Актюбинская область",
@@ -18808,46 +18768,42 @@
    "signals": []
   },
   {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Абайская районная больница\" управления здравоохранения области Абай",
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Поликлиника №1 города Семей\" управления здравоохранения области Абай",
    "region_code": "10",
    "region": "область Абай",
-   "referrals": 778,
-   "refusal_pct": 3.2,
-   "hospitalized": 752,
+   "referrals": 780,
+   "refusal_pct": 0.1,
+   "hospitalized": 779,
    "wait_median_days": -1.0,
-   "wait_p90_days": 0.0,
+   "wait_p90_days": -1.0,
    "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
+   "self_referral_pct": 99.9,
    "external_24h": null,
    "from_other_regions_pct": 0.0,
-   "day_stay_pct": 87.5,
+   "day_stay_pct": 100.0,
    "top_profiles": [
     {
      "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 681
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 81
+     "referrals": 780
     }
    ],
    "refusal_vs_expected": {
-    "observed": 25,
-    "expected": 44.1,
-    "ratio": 0.57,
+    "observed": 1,
+    "expected": 43.4,
+    "ratio": 0.02,
     "ci95": [
-     0.37,
-     0.84
+     0.0,
+     0.13
     ],
-    "excess": -19.1
+    "excess": -42.4
    },
    "march_forecast": {
-    "forecast": 227,
-    "naive": 230,
-    "actual": 213,
-    "pending_at_cutoff": 3,
-    "from_pending": 1,
-    "from_new": 224
+    "forecast": 176,
+    "naive": 178,
+    "actual": 228,
+    "pending_at_cutoff": 0,
+    "from_pending": 0,
+    "from_new": 173
    },
    "signals": []
   },
@@ -18908,6 +18864,50 @@
     "pending_at_cutoff": 159,
     "from_pending": 92,
     "from_new": 152
+   },
+   "signals": []
+  },
+  {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Абайская районная больница\" управления здравоохранения области Абай",
+   "region_code": "10",
+   "region": "область Абай",
+   "referrals": 778,
+   "refusal_pct": 3.2,
+   "hospitalized": 752,
+   "wait_median_days": -1.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 87.5,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 681
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 81
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 25,
+    "expected": 44.1,
+    "ratio": 0.57,
+    "ci95": [
+     0.37,
+     0.84
+    ],
+    "excess": -19.1
+   },
+   "march_forecast": {
+    "forecast": 227,
+    "naive": 230,
+    "actual": 213,
+    "pending_at_cutoff": 3,
+    "from_pending": 1,
+    "from_new": 224
    },
    "signals": []
   },
@@ -19035,70 +19035,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"Центр гематологии\" Карагандинская область",
-   "region_code": "35",
-   "region": "Карагандинская область",
-   "referrals": 774,
-   "refusal_pct": 17.7,
-   "hospitalized": 637,
-   "wait_median_days": 4.0,
-   "wait_p90_days": 11.0,
-   "wait_over_30_pct": 0.6,
-   "self_referral_pct": 1.2,
-   "external_24h": {
-    "referrals": 144,
-    "refusal_pct": 19.4,
-    "hospitalized": 116,
-    "wait_median_days": 3.0,
-    "wait_p90_days": 7.0,
-    "wait_over_30_pct": 0.0
-   },
-   "from_other_regions_pct": 4.8,
-   "day_stay_pct": 80.7,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 625
-    },
-    {
-     "profile": "Гематологические для взрослых",
-     "referrals": 131
-    },
-    {
-     "profile": "Паллиативной помощи",
-     "referrals": 18
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 137,
-    "expected": 107.7,
-    "ratio": 1.27,
-    "ci95": [
-     1.07,
-     1.5
-    ],
-    "excess": 29.3
-   },
-   "long_wait_vs_expected": {
-    "observed": 4,
-    "expected": 28.2,
-    "ratio": 0.14,
-    "ci95": [
-     0.04,
-     0.36
-    ]
-   },
-   "march_forecast": {
-    "forecast": 181,
-    "naive": 176,
-    "actual": 189,
-    "pending_at_cutoff": 67,
-    "from_pending": 40,
-    "from_new": 145
-   },
-   "signals": []
-  },
-  {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Талдыкорганская городская поликлиника №2\" государственного учреждения \"Управление здравоохранения области Жетісу\"",
    "region_code": "33",
    "region": "область Жетісу",
@@ -19175,6 +19111,70 @@
     "pending_at_cutoff": 102,
     "from_pending": 69,
     "from_new": 157
+   },
+   "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"Центр гематологии\" Карагандинская область",
+   "region_code": "35",
+   "region": "Карагандинская область",
+   "referrals": 774,
+   "refusal_pct": 17.7,
+   "hospitalized": 637,
+   "wait_median_days": 4.0,
+   "wait_p90_days": 11.0,
+   "wait_over_30_pct": 0.6,
+   "self_referral_pct": 1.2,
+   "external_24h": {
+    "referrals": 144,
+    "refusal_pct": 19.4,
+    "hospitalized": 116,
+    "wait_median_days": 3.0,
+    "wait_p90_days": 7.0,
+    "wait_over_30_pct": 0.0
+   },
+   "from_other_regions_pct": 4.8,
+   "day_stay_pct": 80.7,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 625
+    },
+    {
+     "profile": "Гематологические для взрослых",
+     "referrals": 131
+    },
+    {
+     "profile": "Паллиативной помощи",
+     "referrals": 18
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 137,
+    "expected": 107.7,
+    "ratio": 1.27,
+    "ci95": [
+     1.07,
+     1.5
+    ],
+    "excess": 29.3
+   },
+   "long_wait_vs_expected": {
+    "observed": 4,
+    "expected": 28.2,
+    "ratio": 0.14,
+    "ci95": [
+     0.04,
+     0.36
+    ]
+   },
+   "march_forecast": {
+    "forecast": 181,
+    "naive": 176,
+    "actual": 189,
+    "pending_at_cutoff": 67,
+    "from_pending": 40,
+    "from_new": 145
    },
    "signals": []
   },
@@ -20109,70 +20109,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"Региональный Диагностический Центр\"",
-   "region_code": "75",
-   "region": "г. Алматы",
-   "referrals": 739,
-   "refusal_pct": 10.4,
-   "hospitalized": 661,
-   "wait_median_days": 8.0,
-   "wait_p90_days": 25.0,
-   "wait_over_30_pct": 4.5,
-   "self_referral_pct": 18.3,
-   "external_24h": {
-    "referrals": 413,
-    "refusal_pct": 10.4,
-    "hospitalized": 369,
-    "wait_median_days": 10.0,
-    "wait_p90_days": 25.5,
-    "wait_over_30_pct": 5.1
-   },
-   "from_other_regions_pct": 19.5,
-   "day_stay_pct": 36.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 266
-    },
-    {
-     "profile": "Урологические для взрослых",
-     "referrals": 132
-    },
-    {
-     "profile": "Хирургические для взрослых",
-     "referrals": 78
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 77,
-    "expected": 122.3,
-    "ratio": 0.63,
-    "ci95": [
-     0.5,
-     0.79
-    ],
-    "excess": -45.3
-   },
-   "long_wait_vs_expected": {
-    "observed": 30,
-    "expected": 99.6,
-    "ratio": 0.3,
-    "ci95": [
-     0.2,
-     0.43
-    ]
-   },
-   "march_forecast": {
-    "forecast": 184,
-    "naive": 175,
-    "actual": 196,
-    "pending_at_cutoff": 90,
-    "from_pending": 70,
-    "from_new": 124
-   },
-   "signals": []
-  },
-  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Областной перинатальный центр\" управления здравоохранения Кызылординской области\"",
    "region_code": "43",
    "region": "Кызылординская область",
@@ -20233,6 +20169,70 @@
     "pending_at_cutoff": 20,
     "from_pending": 12,
     "from_new": 206
+   },
+   "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"Региональный Диагностический Центр\"",
+   "region_code": "75",
+   "region": "г. Алматы",
+   "referrals": 739,
+   "refusal_pct": 10.4,
+   "hospitalized": 661,
+   "wait_median_days": 8.0,
+   "wait_p90_days": 25.0,
+   "wait_over_30_pct": 4.5,
+   "self_referral_pct": 18.3,
+   "external_24h": {
+    "referrals": 413,
+    "refusal_pct": 10.4,
+    "hospitalized": 369,
+    "wait_median_days": 10.0,
+    "wait_p90_days": 25.5,
+    "wait_over_30_pct": 5.1
+   },
+   "from_other_regions_pct": 19.5,
+   "day_stay_pct": 36.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 266
+    },
+    {
+     "profile": "Урологические для взрослых",
+     "referrals": 132
+    },
+    {
+     "profile": "Хирургические для взрослых",
+     "referrals": 78
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 77,
+    "expected": 122.3,
+    "ratio": 0.63,
+    "ci95": [
+     0.5,
+     0.79
+    ],
+    "excess": -45.3
+   },
+   "long_wait_vs_expected": {
+    "observed": 30,
+    "expected": 99.6,
+    "ratio": 0.3,
+    "ci95": [
+     0.2,
+     0.43
+    ]
+   },
+   "march_forecast": {
+    "forecast": 184,
+    "naive": 175,
+    "actual": 196,
+    "pending_at_cutoff": 90,
+    "from_pending": 70,
+    "from_new": 124
    },
    "signals": []
   },
@@ -20988,70 +20988,6 @@
    "signals": []
   },
   {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городской перинатальный центр\" Управления общественного здравоохранения города Алматы",
-   "region_code": "75",
-   "region": "г. Алматы",
-   "referrals": 714,
-   "refusal_pct": 20.7,
-   "hospitalized": 562,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 7.0,
-   "wait_over_30_pct": 0.5,
-   "self_referral_pct": 27.5,
-   "external_24h": {
-    "referrals": 518,
-    "refusal_pct": 26.6,
-    "hospitalized": 376,
-    "wait_median_days": 0.0,
-    "wait_p90_days": 11.0,
-    "wait_over_30_pct": 0.5
-   },
-   "from_other_regions_pct": 2.7,
-   "day_stay_pct": 0.0,
-   "top_profiles": [
-    {
-     "profile": "Патологии беременности",
-     "referrals": 412
-    },
-    {
-     "profile": "Для беременных и рожениц (кроме патологии беременности)",
-     "referrals": 206
-    },
-    {
-     "profile": "Патология новорожденных и выхаживания недоношенных",
-     "referrals": 47
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 148,
-    "expected": 123.7,
-    "ratio": 1.2,
-    "ci95": [
-     1.01,
-     1.41
-    ],
-    "excess": 24.3
-   },
-   "long_wait_vs_expected": {
-    "observed": 3,
-    "expected": 7.6,
-    "ratio": 0.39,
-    "ci95": [
-     0.08,
-     1.15
-    ]
-   },
-   "march_forecast": {
-    "forecast": 159,
-    "naive": 155,
-    "actual": 204,
-    "pending_at_cutoff": 46,
-    "from_pending": 18,
-    "from_new": 145
-   },
-   "signals": []
-  },
-  {
    "name": "Государственное коммунальное предприятие «Городская поликлиника №6» на праве хозяйственного ведения государственного учреждения «Управление здравоохранения Актюбинской области»",
    "region_code": "15",
    "region": "Актюбинская область",
@@ -21147,6 +21083,70 @@
     "pending_at_cutoff": 1,
     "from_pending": 1,
     "from_new": 180
+   },
+   "signals": []
+  },
+  {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городской перинатальный центр\" Управления общественного здравоохранения города Алматы",
+   "region_code": "75",
+   "region": "г. Алматы",
+   "referrals": 714,
+   "refusal_pct": 20.7,
+   "hospitalized": 562,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 7.0,
+   "wait_over_30_pct": 0.5,
+   "self_referral_pct": 27.5,
+   "external_24h": {
+    "referrals": 518,
+    "refusal_pct": 26.6,
+    "hospitalized": 376,
+    "wait_median_days": 0.0,
+    "wait_p90_days": 11.0,
+    "wait_over_30_pct": 0.5
+   },
+   "from_other_regions_pct": 2.7,
+   "day_stay_pct": 0.0,
+   "top_profiles": [
+    {
+     "profile": "Патологии беременности",
+     "referrals": 412
+    },
+    {
+     "profile": "Для беременных и рожениц (кроме патологии беременности)",
+     "referrals": 206
+    },
+    {
+     "profile": "Патология новорожденных и выхаживания недоношенных",
+     "referrals": 47
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 148,
+    "expected": 123.7,
+    "ratio": 1.2,
+    "ci95": [
+     1.01,
+     1.41
+    ],
+    "excess": 24.3
+   },
+   "long_wait_vs_expected": {
+    "observed": 3,
+    "expected": 7.6,
+    "ratio": 0.39,
+    "ci95": [
+     0.08,
+     1.15
+    ]
+   },
+   "march_forecast": {
+    "forecast": 159,
+    "naive": 155,
+    "actual": 204,
+    "pending_at_cutoff": 46,
+    "from_pending": 18,
+    "from_new": 145
    },
    "signals": []
   },
@@ -21472,6 +21472,46 @@
    "signals": []
   },
   {
+   "name": "Товарищество с ограниченной ответственностью \"Врачебная амбулатория Денсаулық\"",
+   "region_code": "63",
+   "region": "Восточно-Казахстанская область",
+   "referrals": 688,
+   "refusal_pct": 3.6,
+   "hospitalized": 654,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 7.0,
+   "wait_over_30_pct": 0.5,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 688
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 25,
+    "expected": 37.5,
+    "ratio": 0.67,
+    "ci95": [
+     0.43,
+     0.98
+    ],
+    "excess": -12.5
+   },
+   "march_forecast": {
+    "forecast": 165,
+    "naive": 165,
+    "actual": 252,
+    "pending_at_cutoff": 27,
+    "from_pending": 19,
+    "from_new": 145
+   },
+   "signals": []
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"Костанайская железнодорожная больница\"",
    "region_code": "39",
    "region": "Костанайская область",
@@ -21532,46 +21572,6 @@
     "pending_at_cutoff": 44,
     "from_pending": 32,
     "from_new": 116
-   },
-   "signals": []
-  },
-  {
-   "name": "Товарищество с ограниченной ответственностью \"Врачебная амбулатория Денсаулық\"",
-   "region_code": "63",
-   "region": "Восточно-Казахстанская область",
-   "referrals": 688,
-   "refusal_pct": 3.6,
-   "hospitalized": 654,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 7.0,
-   "wait_over_30_pct": 0.5,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 688
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 25,
-    "expected": 37.5,
-    "ratio": 0.67,
-    "ci95": [
-     0.43,
-     0.98
-    ],
-    "excess": -12.5
-   },
-   "march_forecast": {
-    "forecast": 165,
-    "naive": 165,
-    "actual": 252,
-    "pending_at_cutoff": 27,
-    "from_pending": 19,
-    "from_new": 145
    },
    "signals": []
   },
@@ -21721,6 +21721,54 @@
    "signals": []
   },
   {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Айыртауская районная больница\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
+   "region_code": "59",
+   "region": "Северо-Казахстанская область",
+   "referrals": 681,
+   "refusal_pct": 1.0,
+   "hospitalized": 674,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 83.7,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 570
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 83
+    },
+    {
+     "profile": "Хирургические для взрослых",
+     "referrals": 16
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 7,
+    "expected": 37.6,
+    "ratio": 0.19,
+    "ci95": [
+     0.07,
+     0.38
+    ],
+    "excess": -30.6
+   },
+   "march_forecast": {
+    "forecast": 223,
+    "naive": 224,
+    "actual": 243,
+    "pending_at_cutoff": 3,
+    "from_pending": 2,
+    "from_new": 220
+   },
+   "signals": []
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"Еркемед\"",
    "region_code": "47",
    "region": "Мангистауская область",
@@ -21781,54 +21829,6 @@
     "pending_at_cutoff": 47,
     "from_pending": 28,
     "from_new": 131
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Айыртауская районная больница\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
-   "region_code": "59",
-   "region": "Северо-Казахстанская область",
-   "referrals": 681,
-   "refusal_pct": 1.0,
-   "hospitalized": 674,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 83.7,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 570
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 83
-    },
-    {
-     "profile": "Хирургические для взрослых",
-     "referrals": 16
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 7,
-    "expected": 37.6,
-    "ratio": 0.19,
-    "ci95": [
-     0.07,
-     0.38
-    ],
-    "excess": -30.6
-   },
-   "march_forecast": {
-    "forecast": 223,
-    "naive": 224,
-    "actual": 243,
-    "pending_at_cutoff": 3,
-    "from_pending": 2,
-    "from_new": 220
    },
    "signals": []
   },
@@ -22128,57 +22128,6 @@
    "signals": []
   },
   {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Реабилитационный центр \"Алау\" Управления здравоохранения города Алматы",
-   "region_code": "75",
-   "region": "г. Алматы",
-   "referrals": 675,
-   "refusal_pct": 4.7,
-   "hospitalized": 642,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 4.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 0.0,
-   "external_24h": {
-    "referrals": 674,
-    "refusal_pct": 4.6,
-    "hospitalized": 642,
-    "wait_median_days": 0.0,
-    "wait_p90_days": 4.0,
-    "wait_over_30_pct": 0.0
-   },
-   "from_other_regions_pct": 0.3,
-   "day_stay_pct": 0.1,
-   "top_profiles": [
-    {
-     "profile": "Для восстановительного лечения и медицинской реабилитации: общие для детей",
-     "referrals": 654
-    },
-    {
-     "profile": "Для восстановительного лечения и медицинской реабилитации: пульмонологические для детей",
-     "referrals": 20
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 32,
-    "expected": 67.6,
-    "ratio": 0.47,
-    "ci95": [
-     0.32,
-     0.67
-    ],
-    "excess": -35.6
-   },
-   "march_forecast": {
-    "forecast": 179,
-    "naive": 184,
-    "actual": 205,
-    "pending_at_cutoff": 8,
-    "from_pending": 6,
-    "from_new": 168
-   },
-   "signals": []
-  },
-  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Больница города Сарани\" управления здравоохранения Карагандинской области",
    "region_code": "35",
    "region": "Карагандинская область",
@@ -22236,6 +22185,57 @@
    "signals": [
     "refusal_above_expected"
    ]
+  },
+  {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Реабилитационный центр \"Алау\" Управления здравоохранения города Алматы",
+   "region_code": "75",
+   "region": "г. Алматы",
+   "referrals": 675,
+   "refusal_pct": 4.7,
+   "hospitalized": 642,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 4.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 0.0,
+   "external_24h": {
+    "referrals": 674,
+    "refusal_pct": 4.6,
+    "hospitalized": 642,
+    "wait_median_days": 0.0,
+    "wait_p90_days": 4.0,
+    "wait_over_30_pct": 0.0
+   },
+   "from_other_regions_pct": 0.3,
+   "day_stay_pct": 0.1,
+   "top_profiles": [
+    {
+     "profile": "Для восстановительного лечения и медицинской реабилитации: общие для детей",
+     "referrals": 654
+    },
+    {
+     "profile": "Для восстановительного лечения и медицинской реабилитации: пульмонологические для детей",
+     "referrals": 20
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 32,
+    "expected": 67.6,
+    "ratio": 0.47,
+    "ci95": [
+     0.32,
+     0.67
+    ],
+    "excess": -35.6
+   },
+   "march_forecast": {
+    "forecast": 179,
+    "naive": 184,
+    "actual": 205,
+    "pending_at_cutoff": 8,
+    "from_pending": 6,
+    "from_new": 168
+   },
+   "signals": []
   },
   {
    "name": "Некоммерческое акционерное общество «Национальный центр гигиены труда и профессиональных заболеваний»",
@@ -22973,6 +22973,70 @@
    "signals": []
   },
   {
+   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Областной перинатальный центр\" управления здравоохранения акимата Западно-Казахстанской области",
+   "region_code": "27",
+   "region": "Западно-Казахстанская область",
+   "referrals": 641,
+   "refusal_pct": 26.5,
+   "hospitalized": 471,
+   "wait_median_days": -1.0,
+   "wait_p90_days": 4.0,
+   "wait_over_30_pct": 0.2,
+   "self_referral_pct": 3.1,
+   "external_24h": {
+    "referrals": 325,
+    "refusal_pct": 51.4,
+    "hospitalized": 158,
+    "wait_median_days": 0.0,
+    "wait_p90_days": 16.600000000000023,
+    "wait_over_30_pct": 0.6
+   },
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 48.8,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 313
+    },
+    {
+     "profile": "Патологии беременности",
+     "referrals": 212
+    },
+    {
+     "profile": "Гинекологические для взрослых, включая для производства абортов",
+     "referrals": 112
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 170,
+    "expected": 114.0,
+    "ratio": 1.49,
+    "ci95": [
+     1.27,
+     1.73
+    ],
+    "excess": 56.0
+   },
+   "long_wait_vs_expected": {
+    "observed": 1,
+    "expected": 38.9,
+    "ratio": 0.03,
+    "ci95": [
+     0.0,
+     0.14
+    ]
+   },
+   "march_forecast": {
+    "forecast": 149,
+    "naive": 146,
+    "actual": 153,
+    "pending_at_cutoff": 48,
+    "from_pending": 17,
+    "from_new": 135
+   },
+   "signals": []
+  },
+  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Реабилитационный детский центр \"Балдаурен\" Управления общественного здравоохранения города Алматы",
    "region_code": "75",
    "region": "г. Алматы",
@@ -23080,70 +23144,6 @@
     "pending_at_cutoff": 13,
     "from_pending": 7,
     "from_new": 153
-   },
-   "signals": []
-  },
-  {
-   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Областной перинатальный центр\" управления здравоохранения акимата Западно-Казахстанской области",
-   "region_code": "27",
-   "region": "Западно-Казахстанская область",
-   "referrals": 641,
-   "refusal_pct": 26.5,
-   "hospitalized": 471,
-   "wait_median_days": -1.0,
-   "wait_p90_days": 4.0,
-   "wait_over_30_pct": 0.2,
-   "self_referral_pct": 3.1,
-   "external_24h": {
-    "referrals": 325,
-    "refusal_pct": 51.4,
-    "hospitalized": 158,
-    "wait_median_days": 0.0,
-    "wait_p90_days": 16.600000000000023,
-    "wait_over_30_pct": 0.6
-   },
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 48.8,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 313
-    },
-    {
-     "profile": "Патологии беременности",
-     "referrals": 212
-    },
-    {
-     "profile": "Гинекологические для взрослых, включая для производства абортов",
-     "referrals": 112
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 170,
-    "expected": 114.0,
-    "ratio": 1.49,
-    "ci95": [
-     1.27,
-     1.73
-    ],
-    "excess": 56.0
-   },
-   "long_wait_vs_expected": {
-    "observed": 1,
-    "expected": 38.9,
-    "ratio": 0.03,
-    "ci95": [
-     0.0,
-     0.14
-    ]
-   },
-   "march_forecast": {
-    "forecast": 149,
-    "naive": 146,
-    "actual": 153,
-    "pending_at_cutoff": 48,
-    "from_pending": 17,
-    "from_new": 135
    },
    "signals": []
   },
@@ -23398,6 +23398,64 @@
    ]
   },
   {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Реабилитационный центр \"Каменское плато\" Управления общественного здравоохранения города Алматы",
+   "region_code": "75",
+   "region": "г. Алматы",
+   "referrals": 627,
+   "refusal_pct": 16.7,
+   "hospitalized": 521,
+   "wait_median_days": 18.0,
+   "wait_p90_days": 35.0,
+   "wait_over_30_pct": 19.4,
+   "self_referral_pct": 9.9,
+   "external_24h": {
+    "referrals": 565,
+    "refusal_pct": 18.6,
+    "hospitalized": 459,
+    "wait_median_days": 20.0,
+    "wait_p90_days": 37.30000000000001,
+    "wait_over_30_pct": 22.0
+   },
+   "from_other_regions_pct": 1.0,
+   "day_stay_pct": 0.0,
+   "top_profiles": [
+    {
+     "profile": "Для восстановительного лечения и медицинской реабилитации: общие для взрослых",
+     "referrals": 627
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 105,
+    "expected": 86.9,
+    "ratio": 1.21,
+    "ci95": [
+     0.99,
+     1.46
+    ],
+    "excess": 18.1
+   },
+   "long_wait_vs_expected": {
+    "observed": 101,
+    "expected": 45.6,
+    "ratio": 2.21,
+    "ci95": [
+     1.8,
+     2.69
+    ]
+   },
+   "march_forecast": {
+    "forecast": 141,
+    "naive": 127,
+    "actual": 109,
+    "pending_at_cutoff": 130,
+    "from_pending": 97,
+    "from_new": 58
+   },
+   "signals": [
+    "long_wait_above_expected"
+   ]
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"Burc Medical\" (Бурч Медикал)",
    "region_code": "75",
    "region": "г. Алматы",
@@ -23458,64 +23516,6 @@
     "pending_at_cutoff": 208,
     "from_pending": 112,
     "from_new": 65
-   },
-   "signals": [
-    "long_wait_above_expected"
-   ]
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Реабилитационный центр \"Каменское плато\" Управления общественного здравоохранения города Алматы",
-   "region_code": "75",
-   "region": "г. Алматы",
-   "referrals": 627,
-   "refusal_pct": 16.7,
-   "hospitalized": 521,
-   "wait_median_days": 18.0,
-   "wait_p90_days": 35.0,
-   "wait_over_30_pct": 19.4,
-   "self_referral_pct": 9.9,
-   "external_24h": {
-    "referrals": 565,
-    "refusal_pct": 18.6,
-    "hospitalized": 459,
-    "wait_median_days": 20.0,
-    "wait_p90_days": 37.30000000000001,
-    "wait_over_30_pct": 22.0
-   },
-   "from_other_regions_pct": 1.0,
-   "day_stay_pct": 0.0,
-   "top_profiles": [
-    {
-     "profile": "Для восстановительного лечения и медицинской реабилитации: общие для взрослых",
-     "referrals": 627
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 105,
-    "expected": 86.9,
-    "ratio": 1.21,
-    "ci95": [
-     0.99,
-     1.46
-    ],
-    "excess": 18.1
-   },
-   "long_wait_vs_expected": {
-    "observed": 101,
-    "expected": 45.6,
-    "ratio": 2.21,
-    "ci95": [
-     1.8,
-     2.69
-    ]
-   },
-   "march_forecast": {
-    "forecast": 141,
-    "naive": 127,
-    "actual": 109,
-    "pending_at_cutoff": 130,
-    "from_pending": 97,
-    "from_new": 58
    },
    "signals": [
     "long_wait_above_expected"
@@ -23632,6 +23632,50 @@
    ]
   },
   {
+   "name": "Государственное коммунальное предприятие \"Кобдинская районная больница\" на праве хозяйственного ведения Государственное учреждение Управление здравоохранения Актюбинской области",
+   "region_code": "15",
+   "region": "Актюбинская область",
+   "referrals": 621,
+   "refusal_pct": 5.8,
+   "hospitalized": 585,
+   "wait_median_days": -1.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 92.4,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 574
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 19
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 36,
+    "expected": 34.7,
+    "ratio": 1.04,
+    "ci95": [
+     0.73,
+     1.44
+    ],
+    "excess": 1.3
+   },
+   "march_forecast": {
+    "forecast": 205,
+    "naive": 203,
+    "actual": 168,
+    "pending_at_cutoff": 16,
+    "from_pending": 6,
+    "from_new": 200
+   },
+   "signals": []
+  },
+  {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения «Ерейментауская районная больница» при управлении здравоохранения Акмолинской области",
    "region_code": "11",
    "region": "Акмолинская область",
@@ -23680,46 +23724,50 @@
    "signals": []
   },
   {
-   "name": "Государственное коммунальное предприятие \"Кобдинская районная больница\" на праве хозяйственного ведения Государственное учреждение Управление здравоохранения Актюбинской области",
-   "region_code": "15",
-   "region": "Актюбинская область",
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Районная больница Бухар-Жырауского района\" управления здравоохранения Карагандинской области",
+   "region_code": "35",
+   "region": "Карагандинская область",
    "referrals": 621,
-   "refusal_pct": 5.8,
-   "hospitalized": 585,
-   "wait_median_days": -1.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
+   "refusal_pct": 9.3,
+   "hospitalized": 563,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 3.0,
+   "wait_over_30_pct": 0.9,
    "self_referral_pct": 100.0,
    "external_24h": null,
    "from_other_regions_pct": 0.0,
-   "day_stay_pct": 92.4,
+   "day_stay_pct": 62.2,
    "top_profiles": [
     {
      "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 574
+     "referrals": 386
     },
     {
      "profile": "Терапевтические",
-     "referrals": 19
+     "referrals": 199
+    },
+    {
+     "profile": "Хирургические для взрослых",
+     "referrals": 16
     }
    ],
    "refusal_vs_expected": {
-    "observed": 36,
-    "expected": 34.7,
-    "ratio": 1.04,
+    "observed": 58,
+    "expected": 35.4,
+    "ratio": 1.64,
     "ci95": [
-     0.73,
-     1.44
+     1.24,
+     2.12
     ],
-    "excess": 1.3
+    "excess": 22.6
    },
    "march_forecast": {
-    "forecast": 205,
-    "naive": 203,
-    "actual": 168,
-    "pending_at_cutoff": 16,
-    "from_pending": 6,
-    "from_new": 200
+    "forecast": 201,
+    "naive": 201,
+    "actual": 154,
+    "pending_at_cutoff": 18,
+    "from_pending": 9,
+    "from_new": 192
    },
    "signals": []
   },
@@ -23777,54 +23825,6 @@
     "pending_at_cutoff": 34,
     "from_pending": 12,
     "from_new": 183
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Районная больница Бухар-Жырауского района\" управления здравоохранения Карагандинской области",
-   "region_code": "35",
-   "region": "Карагандинская область",
-   "referrals": 621,
-   "refusal_pct": 9.3,
-   "hospitalized": 563,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 3.0,
-   "wait_over_30_pct": 0.9,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 62.2,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 386
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 199
-    },
-    {
-     "profile": "Хирургические для взрослых",
-     "referrals": 16
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 58,
-    "expected": 35.4,
-    "ratio": 1.64,
-    "ci95": [
-     1.24,
-     2.12
-    ],
-    "excess": 22.6
-   },
-   "march_forecast": {
-    "forecast": 201,
-    "naive": 201,
-    "actual": 154,
-    "pending_at_cutoff": 18,
-    "from_pending": 9,
-    "from_new": 192
    },
    "signals": []
   },
@@ -24230,46 +24230,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"Медицинский центр \"Яссин\"",
-   "region_code": "61",
-   "region": "Туркестанская область",
-   "referrals": 601,
-   "refusal_pct": 5.7,
-   "hospitalized": 552,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 5.0,
-   "wait_over_30_pct": 1.6,
-   "self_referral_pct": 99.2,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 601
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 34,
-    "expected": 32.9,
-    "ratio": 1.03,
-    "ci95": [
-     0.72,
-     1.44
-    ],
-    "excess": 1.1
-   },
-   "march_forecast": {
-    "forecast": 138,
-    "naive": 131,
-    "actual": 161,
-    "pending_at_cutoff": 52,
-    "from_pending": 28,
-    "from_new": 117
-   },
-   "signals": []
-  },
-  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения «Кызылординский областной кожно-венерологический диспансер» управления здравоохранения Кызылординской области",
    "region_code": "43",
    "region": "Кызылординская область",
@@ -24321,6 +24281,46 @@
     "pending_at_cutoff": 2,
     "from_pending": 1,
     "from_new": 175
+   },
+   "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"Медицинский центр \"Яссин\"",
+   "region_code": "61",
+   "region": "Туркестанская область",
+   "referrals": 601,
+   "refusal_pct": 5.7,
+   "hospitalized": 552,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 5.0,
+   "wait_over_30_pct": 1.6,
+   "self_referral_pct": 99.2,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 601
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 34,
+    "expected": 32.9,
+    "ratio": 1.03,
+    "ci95": [
+     0.72,
+     1.44
+    ],
+    "excess": 1.1
+   },
+   "march_forecast": {
+    "forecast": 138,
+    "naive": 131,
+    "actual": 161,
+    "pending_at_cutoff": 52,
+    "from_pending": 28,
+    "from_new": 117
    },
    "signals": []
   },
@@ -24389,48 +24389,6 @@
    "signals": []
   },
   {
-   "name": "Коммунальное государственное предприятие «Поликлиника № 4 города Темиртау» управления здравоохранения Карагандинской области",
-   "region_code": "35",
-   "region": "Карагандинская область",
-   "referrals": 599,
-   "refusal_pct": 22.4,
-   "hospitalized": 465,
-   "wait_median_days": 3.0,
-   "wait_p90_days": 6.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 99.3,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 599
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 134,
-    "expected": 32.7,
-    "ratio": 4.1,
-    "ci95": [
-     3.44,
-     4.86
-    ],
-    "excess": 101.3
-   },
-   "march_forecast": {
-    "forecast": 146,
-    "naive": 150,
-    "actual": 130,
-    "pending_at_cutoff": 23,
-    "from_pending": 11,
-    "from_new": 131
-   },
-   "signals": [
-    "refusal_above_expected"
-   ]
-  },
-  {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Жетыбайская сельская больница\" Управления здравоохранения Мангистауской области",
    "region_code": "47",
    "region": "Мангистауская область",
@@ -24493,6 +24451,48 @@
     "from_new": 141
    },
    "signals": []
+  },
+  {
+   "name": "Коммунальное государственное предприятие «Поликлиника № 4 города Темиртау» управления здравоохранения Карагандинской области",
+   "region_code": "35",
+   "region": "Карагандинская область",
+   "referrals": 599,
+   "refusal_pct": 22.4,
+   "hospitalized": 465,
+   "wait_median_days": 3.0,
+   "wait_p90_days": 6.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 99.3,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 599
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 134,
+    "expected": 32.7,
+    "ratio": 4.1,
+    "ci95": [
+     3.44,
+     4.86
+    ],
+    "excess": 101.3
+   },
+   "march_forecast": {
+    "forecast": 146,
+    "naive": 150,
+    "actual": 130,
+    "pending_at_cutoff": 23,
+    "from_pending": 11,
+    "from_new": 131
+   },
+   "signals": [
+    "refusal_above_expected"
+   ]
   },
   {
    "name": "Товарищество с ограниченной ответственностью \"Медицинский центр \"ЯСИН\"\"",
@@ -25490,6 +25490,70 @@
    "signals": []
   },
   {
+   "name": "Коммунальное государственное предприятие \"Аулиекольская районная больница\" Управления здравоохранения акимата Костанайской области",
+   "region_code": "39",
+   "region": "Костанайская область",
+   "referrals": 570,
+   "refusal_pct": 0.7,
+   "hospitalized": 566,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 98.1,
+   "external_24h": {
+    "referrals": 11,
+    "refusal_pct": 18.2,
+    "hospitalized": 9,
+    "wait_median_days": 6.0,
+    "wait_p90_days": 20.8,
+    "wait_over_30_pct": 0.0
+   },
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 70.7,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 403
+    },
+    {
+     "profile": "Паллиативной помощи",
+     "referrals": 71
+    },
+    {
+     "profile": "Хирургические для взрослых",
+     "referrals": 38
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 4,
+    "expected": 33.7,
+    "ratio": 0.12,
+    "ci95": [
+     0.03,
+     0.3
+    ],
+    "excess": -29.7
+   },
+   "long_wait_vs_expected": {
+    "observed": 0,
+    "expected": 5.7,
+    "ratio": 0.0,
+    "ci95": [
+     0.0,
+     0.64
+    ]
+   },
+   "march_forecast": {
+    "forecast": 167,
+    "naive": 170,
+    "actual": 175,
+    "pending_at_cutoff": 1,
+    "from_pending": 1,
+    "from_new": 164
+   },
+   "signals": []
+  },
+  {
    "name": "Некоммерческое акционерное общество \"Карагандинский медицинский университет\"",
    "region_code": "35",
    "region": "Карагандинская область",
@@ -25554,70 +25618,6 @@
    "signals": [
     "refusal_above_expected"
    ]
-  },
-  {
-   "name": "Коммунальное государственное предприятие \"Аулиекольская районная больница\" Управления здравоохранения акимата Костанайской области",
-   "region_code": "39",
-   "region": "Костанайская область",
-   "referrals": 570,
-   "refusal_pct": 0.7,
-   "hospitalized": 566,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 98.1,
-   "external_24h": {
-    "referrals": 11,
-    "refusal_pct": 18.2,
-    "hospitalized": 9,
-    "wait_median_days": 6.0,
-    "wait_p90_days": 20.8,
-    "wait_over_30_pct": 0.0
-   },
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 70.7,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 403
-    },
-    {
-     "profile": "Паллиативной помощи",
-     "referrals": 71
-    },
-    {
-     "profile": "Хирургические для взрослых",
-     "referrals": 38
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 4,
-    "expected": 33.7,
-    "ratio": 0.12,
-    "ci95": [
-     0.03,
-     0.3
-    ],
-    "excess": -29.7
-   },
-   "long_wait_vs_expected": {
-    "observed": 0,
-    "expected": 5.7,
-    "ratio": 0.0,
-    "ci95": [
-     0.0,
-     0.64
-    ]
-   },
-   "march_forecast": {
-    "forecast": 167,
-    "naive": 170,
-    "actual": 175,
-    "pending_at_cutoff": 1,
-    "from_pending": 1,
-    "from_new": 164
-   },
-   "signals": []
   },
   {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Атырауский городской родильный дом\" Управления здравоохранения Атырауской области",
@@ -25796,53 +25796,6 @@
    "signals": []
   },
   {
-   "name": "Республиканское государственное предприятие на праве хозяйственного ведения \"Детский клинический санаторий \"Алатау\" Министерства здравоохранения Республики Казахстан",
-   "region_code": "19",
-   "region": "Алматинская область",
-   "referrals": 563,
-   "refusal_pct": 8.9,
-   "hospitalized": 511,
-   "wait_median_days": 4.0,
-   "wait_p90_days": 8.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 0.0,
-   "external_24h": {
-    "referrals": 562,
-    "refusal_pct": 8.7,
-    "hospitalized": 511,
-    "wait_median_days": 4.0,
-    "wait_p90_days": 8.0,
-    "wait_over_30_pct": 0.0
-   },
-   "from_other_regions_pct": 74.4,
-   "day_stay_pct": 0.2,
-   "top_profiles": [
-    {
-     "profile": "Для восстановительного лечения и медицинской реабилитации: общие для детей",
-     "referrals": 562
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 50,
-    "expected": 53.8,
-    "ratio": 0.93,
-    "ci95": [
-     0.69,
-     1.23
-    ],
-    "excess": -3.8
-   },
-   "march_forecast": {
-    "forecast": 121,
-    "naive": 121,
-    "actual": 141,
-    "pending_at_cutoff": 7,
-    "from_pending": 3,
-    "from_new": 118
-   },
-   "signals": []
-  },
-  {
    "name": "Государственное коммунальное казенное предприятие \"Реабилитационный центр \"Мейрим\" управления здравоохранения города Шымкент",
    "region_code": "79",
    "region": "г. Шымкент",
@@ -25899,6 +25852,53 @@
     "pending_at_cutoff": 52,
     "from_pending": 44,
     "from_new": 83
+   },
+   "signals": []
+  },
+  {
+   "name": "Республиканское государственное предприятие на праве хозяйственного ведения \"Детский клинический санаторий \"Алатау\" Министерства здравоохранения Республики Казахстан",
+   "region_code": "19",
+   "region": "Алматинская область",
+   "referrals": 563,
+   "refusal_pct": 8.9,
+   "hospitalized": 511,
+   "wait_median_days": 4.0,
+   "wait_p90_days": 8.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 0.0,
+   "external_24h": {
+    "referrals": 562,
+    "refusal_pct": 8.7,
+    "hospitalized": 511,
+    "wait_median_days": 4.0,
+    "wait_p90_days": 8.0,
+    "wait_over_30_pct": 0.0
+   },
+   "from_other_regions_pct": 74.4,
+   "day_stay_pct": 0.2,
+   "top_profiles": [
+    {
+     "profile": "Для восстановительного лечения и медицинской реабилитации: общие для детей",
+     "referrals": 562
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 50,
+    "expected": 53.8,
+    "ratio": 0.93,
+    "ci95": [
+     0.69,
+     1.23
+    ],
+    "excess": -3.8
+   },
+   "march_forecast": {
+    "forecast": 121,
+    "naive": 121,
+    "actual": 141,
+    "pending_at_cutoff": 7,
+    "from_pending": 3,
+    "from_new": 118
    },
    "signals": []
   },
@@ -26139,46 +26139,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"ALEXEY SULTAN-AKHMET\"",
-   "region_code": "43",
-   "region": "Кызылординская область",
-   "referrals": 555,
-   "refusal_pct": 2.0,
-   "hospitalized": 544,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 96.8,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 555
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 11,
-    "expected": 32.2,
-    "ratio": 0.34,
-    "ci95": [
-     0.17,
-     0.61
-    ],
-    "excess": -21.2
-   },
-   "march_forecast": {
-    "forecast": 172,
-    "naive": 174,
-    "actual": 143,
-    "pending_at_cutoff": 3,
-    "from_pending": 1,
-    "from_new": 168
-   },
-   "signals": []
-  },
-  {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Жанаозенская городская поликлиника № 1\" Управления здравоохранения Мангистауской области",
    "region_code": "47",
    "region": "Мангистауская область",
@@ -26215,6 +26175,46 @@
     "pending_at_cutoff": 41,
     "from_pending": 17,
     "from_new": 112
+   },
+   "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"ALEXEY SULTAN-AKHMET\"",
+   "region_code": "43",
+   "region": "Кызылординская область",
+   "referrals": 555,
+   "refusal_pct": 2.0,
+   "hospitalized": 544,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 96.8,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 555
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 11,
+    "expected": 32.2,
+    "ratio": 0.34,
+    "ci95": [
+     0.17,
+     0.61
+    ],
+    "excess": -21.2
+   },
+   "march_forecast": {
+    "forecast": 172,
+    "naive": 174,
+    "actual": 143,
+    "pending_at_cutoff": 3,
+    "from_pending": 1,
+    "from_new": 168
    },
    "signals": []
   },
@@ -26593,50 +26593,6 @@
    "signals": []
   },
   {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Бородулихинская районная больница\" управления здравоохранения области Абай",
-   "region_code": "10",
-   "region": "область Абай",
-   "referrals": 539,
-   "refusal_pct": 4.6,
-   "hospitalized": 514,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 2.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 95.5,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 515
-    },
-    {
-     "profile": "Хирургические для взрослых",
-     "referrals": 11
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 25,
-    "expected": 29.6,
-    "ratio": 0.85,
-    "ci95": [
-     0.55,
-     1.25
-    ],
-    "excess": -4.6
-   },
-   "march_forecast": {
-    "forecast": 167,
-    "naive": 167,
-    "actual": 138,
-    "pending_at_cutoff": 15,
-    "from_pending": 10,
-    "from_new": 157
-   },
-   "signals": []
-  },
-  {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Реабилитационный центр №2\" управления здравоохранения города Шымкент",
    "region_code": "61",
    "region": "Туркестанская область",
@@ -26701,6 +26657,50 @@
    "signals": [
     "refusal_above_expected"
    ]
+  },
+  {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Бородулихинская районная больница\" управления здравоохранения области Абай",
+   "region_code": "10",
+   "region": "область Абай",
+   "referrals": 539,
+   "refusal_pct": 4.6,
+   "hospitalized": 514,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 2.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 95.5,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 515
+    },
+    {
+     "profile": "Хирургические для взрослых",
+     "referrals": 11
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 25,
+    "expected": 29.6,
+    "ratio": 0.85,
+    "ci95": [
+     0.55,
+     1.25
+    ],
+    "excess": -4.6
+   },
+   "march_forecast": {
+    "forecast": 167,
+    "naive": 167,
+    "actual": 138,
+    "pending_at_cutoff": 15,
+    "from_pending": 10,
+    "from_new": 157
+   },
+   "signals": []
   },
   {
    "name": "Товарищество с ограниченной ответственностью Медицинская клиника \"Сенім\"",
@@ -26855,6 +26855,46 @@
    "signals": []
   },
   {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городская поликлиника №3\" Управления общественного здравоохранения города Алматы",
+   "region_code": "75",
+   "region": "г. Алматы",
+   "referrals": 535,
+   "refusal_pct": 7.7,
+   "hospitalized": 488,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 3.0,
+   "wait_over_30_pct": 0.2,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 535
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 41,
+    "expected": 29.5,
+    "ratio": 1.39,
+    "ci95": [
+     1.0,
+     1.89
+    ],
+    "excess": 11.5
+   },
+   "march_forecast": {
+    "forecast": 135,
+    "naive": 138,
+    "actual": 153,
+    "pending_at_cutoff": 12,
+    "from_pending": 7,
+    "from_new": 126
+   },
+   "signals": []
+  },
+  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Многопрофильная центральная районная больница Урджарского района\" управления здравоохранения области Абай",
    "region_code": "10",
    "region": "область Абай",
@@ -26899,46 +26939,6 @@
     "pending_at_cutoff": 16,
     "from_pending": 5,
     "from_new": 155
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городская поликлиника №3\" Управления общественного здравоохранения города Алматы",
-   "region_code": "75",
-   "region": "г. Алматы",
-   "referrals": 535,
-   "refusal_pct": 7.7,
-   "hospitalized": 488,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 3.0,
-   "wait_over_30_pct": 0.2,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 535
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 41,
-    "expected": 29.5,
-    "ratio": 1.39,
-    "ci95": [
-     1.0,
-     1.89
-    ],
-    "excess": 11.5
-   },
-   "march_forecast": {
-    "forecast": 135,
-    "naive": 138,
-    "actual": 153,
-    "pending_at_cutoff": 12,
-    "from_pending": 7,
-    "from_new": 126
    },
    "signals": []
   },
@@ -28242,6 +28242,63 @@
    ]
   },
   {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения “Районная больница Нуринского района” управления здравоохранения Карагандинской области",
+   "region_code": "35",
+   "region": "Карагандинская область",
+   "referrals": 499,
+   "refusal_pct": 9.0,
+   "hospitalized": 454,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 6.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 72.5,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 362
+    },
+    {
+     "profile": "Неврологические для взрослых",
+     "referrals": 68
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 51
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 45,
+    "expected": 27.7,
+    "ratio": 1.63,
+    "ci95": [
+     1.19,
+     2.17
+    ],
+    "excess": 17.3
+   },
+   "long_wait_vs_expected": {
+    "observed": 0,
+    "expected": 6.9,
+    "ratio": 0.0,
+    "ci95": [
+     0.0,
+     0.53
+    ]
+   },
+   "march_forecast": {
+    "forecast": 157,
+    "naive": 155,
+    "actual": 118,
+    "pending_at_cutoff": 31,
+    "from_pending": 18,
+    "from_new": 142
+   },
+   "signals": []
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"Ақжан\"",
    "region_code": "35",
    "region": "Карагандинская область",
@@ -28302,63 +28359,6 @@
     "pending_at_cutoff": 81,
     "from_pending": 53,
     "from_new": 71
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения “Районная больница Нуринского района” управления здравоохранения Карагандинской области",
-   "region_code": "35",
-   "region": "Карагандинская область",
-   "referrals": 499,
-   "refusal_pct": 9.0,
-   "hospitalized": 454,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 6.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 72.5,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 362
-    },
-    {
-     "profile": "Неврологические для взрослых",
-     "referrals": 68
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 51
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 45,
-    "expected": 27.7,
-    "ratio": 1.63,
-    "ci95": [
-     1.19,
-     2.17
-    ],
-    "excess": 17.3
-   },
-   "long_wait_vs_expected": {
-    "observed": 0,
-    "expected": 6.9,
-    "ratio": 0.0,
-    "ci95": [
-     0.0,
-     0.53
-    ]
-   },
-   "march_forecast": {
-    "forecast": 157,
-    "naive": 155,
-    "actual": 118,
-    "pending_at_cutoff": 31,
-    "from_pending": 18,
-    "from_new": 142
    },
    "signals": []
   },
@@ -28509,6 +28509,54 @@
    "signals": []
   },
   {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Больница Улытауского района\" управления здавоохранения области Ұлытау",
+   "region_code": "62",
+   "region": "область Ұлытау",
+   "referrals": 496,
+   "refusal_pct": 6.2,
+   "hospitalized": 465,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 99.6,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 63.7,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 316
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 89
+    },
+    {
+     "profile": "Педиатрические ",
+     "referrals": 49
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 31,
+    "expected": 27.4,
+    "ratio": 1.13,
+    "ci95": [
+     0.77,
+     1.6
+    ],
+    "excess": 3.6
+   },
+   "march_forecast": {
+    "forecast": 107,
+    "naive": 109,
+    "actual": 130,
+    "pending_at_cutoff": 1,
+    "from_pending": 1,
+    "from_new": 105
+   },
+   "signals": []
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"Астана Эколайф\"",
    "region_code": "71",
    "region": "г. Астана",
@@ -28565,54 +28613,6 @@
     "pending_at_cutoff": 62,
     "from_pending": 38,
     "from_new": 83
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Больница Улытауского района\" управления здавоохранения области Ұлытау",
-   "region_code": "62",
-   "region": "область Ұлытау",
-   "referrals": 496,
-   "refusal_pct": 6.2,
-   "hospitalized": 465,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 99.6,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 63.7,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 316
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 89
-    },
-    {
-     "profile": "Педиатрические ",
-     "referrals": 49
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 31,
-    "expected": 27.4,
-    "ratio": 1.13,
-    "ci95": [
-     0.77,
-     1.6
-    ],
-    "excess": 3.6
-   },
-   "march_forecast": {
-    "forecast": 107,
-    "naive": 109,
-    "actual": 130,
-    "pending_at_cutoff": 1,
-    "from_pending": 1,
-    "from_new": 105
    },
    "signals": []
   },
@@ -28737,46 +28737,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"Мед Алатау\"",
-   "region_code": "61",
-   "region": "Туркестанская область",
-   "referrals": 485,
-   "refusal_pct": 2.7,
-   "hospitalized": 472,
-   "wait_median_days": -1.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 99.8,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 484
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 13,
-    "expected": 27.2,
-    "ratio": 0.48,
-    "ci95": [
-     0.25,
-     0.82
-    ],
-    "excess": -14.2
-   },
-   "march_forecast": {
-    "forecast": 127,
-    "naive": 128,
-    "actual": 129,
-    "pending_at_cutoff": 2,
-    "from_pending": 1,
-    "from_new": 125
-   },
-   "signals": []
-  },
-  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Аккайынская районная больница\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
    "region_code": "59",
    "region": "Северо-Казахстанская область",
@@ -28813,6 +28773,46 @@
     "pending_at_cutoff": 9,
     "from_pending": 5,
     "from_new": 121
+   },
+   "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"Мед Алатау\"",
+   "region_code": "61",
+   "region": "Туркестанская область",
+   "referrals": 485,
+   "refusal_pct": 2.7,
+   "hospitalized": 472,
+   "wait_median_days": -1.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 99.8,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 484
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 13,
+    "expected": 27.2,
+    "ratio": 0.48,
+    "ci95": [
+     0.25,
+     0.82
+    ],
+    "excess": -14.2
+   },
+   "march_forecast": {
+    "forecast": 127,
+    "naive": 128,
+    "actual": 129,
+    "pending_at_cutoff": 2,
+    "from_pending": 1,
+    "from_new": 125
    },
    "signals": []
   },
@@ -29227,46 +29227,52 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"Центральная семейная поликлиника города Алматы\"",
-   "region_code": "75",
-   "region": "г. Алматы",
+   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Тупкараганская центральная районная больница\" Управления здравоохранения Мангистауской области акимата Мангистауской области",
+   "region_code": "47",
+   "region": "Мангистауская область",
    "referrals": 469,
-   "refusal_pct": 15.4,
-   "hospitalized": 396,
+   "refusal_pct": 7.0,
+   "hospitalized": 419,
    "wait_median_days": 0.0,
-   "wait_p90_days": 7.600000000000023,
-   "wait_over_30_pct": 0.8,
-   "self_referral_pct": 100.0,
+   "wait_p90_days": 5.0,
+   "wait_over_30_pct": 1.0,
+   "self_referral_pct": 98.9,
    "external_24h": null,
    "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
+   "day_stay_pct": 77.8,
    "top_profiles": [
     {
      "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 469
+     "referrals": 365
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 54
+    },
+    {
+     "profile": "Для беременных и рожениц (кроме патологии беременности)",
+     "referrals": 25
     }
    ],
    "refusal_vs_expected": {
-    "observed": 72,
-    "expected": 25.4,
-    "ratio": 2.84,
+    "observed": 33,
+    "expected": 27.9,
+    "ratio": 1.18,
     "ci95": [
-     2.22,
-     3.57
+     0.81,
+     1.66
     ],
-    "excess": 46.6
+    "excess": 5.1
    },
    "march_forecast": {
-    "forecast": 143,
-    "naive": 139,
-    "actual": 118,
-    "pending_at_cutoff": 35,
-    "from_pending": 19,
-    "from_new": 129
+    "forecast": 129,
+    "naive": 127,
+    "actual": 101,
+    "pending_at_cutoff": 29,
+    "from_pending": 17,
+    "from_new": 114
    },
-   "signals": [
-    "refusal_above_expected"
-   ]
+   "signals": []
   },
   {
    "name": "Товарищество с ограниченной ответственностью \"Ақниет PLUS\"",
@@ -29333,52 +29339,46 @@
    "signals": []
   },
   {
-   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Тупкараганская центральная районная больница\" Управления здравоохранения Мангистауской области акимата Мангистауской области",
-   "region_code": "47",
-   "region": "Мангистауская область",
+   "name": "Товарищество с ограниченной ответственностью \"Центральная семейная поликлиника города Алматы\"",
+   "region_code": "75",
+   "region": "г. Алматы",
    "referrals": 469,
-   "refusal_pct": 7.0,
-   "hospitalized": 419,
+   "refusal_pct": 15.4,
+   "hospitalized": 396,
    "wait_median_days": 0.0,
-   "wait_p90_days": 5.0,
-   "wait_over_30_pct": 1.0,
-   "self_referral_pct": 98.9,
+   "wait_p90_days": 7.600000000000023,
+   "wait_over_30_pct": 0.8,
+   "self_referral_pct": 100.0,
    "external_24h": null,
    "from_other_regions_pct": 0.0,
-   "day_stay_pct": 77.8,
+   "day_stay_pct": 100.0,
    "top_profiles": [
     {
      "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 365
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 54
-    },
-    {
-     "profile": "Для беременных и рожениц (кроме патологии беременности)",
-     "referrals": 25
+     "referrals": 469
     }
    ],
    "refusal_vs_expected": {
-    "observed": 33,
-    "expected": 27.9,
-    "ratio": 1.18,
+    "observed": 72,
+    "expected": 25.4,
+    "ratio": 2.84,
     "ci95": [
-     0.81,
-     1.66
+     2.22,
+     3.57
     ],
-    "excess": 5.1
+    "excess": 46.6
    },
    "march_forecast": {
-    "forecast": 129,
-    "naive": 127,
-    "actual": 101,
-    "pending_at_cutoff": 29,
-    "from_pending": 17,
-    "from_new": 114
+    "forecast": 143,
+    "naive": 139,
+    "actual": 118,
+    "pending_at_cutoff": 35,
+    "from_pending": 19,
+    "from_new": 129
    },
-   "signals": []
+   "signals": [
+    "refusal_above_expected"
+   ]
   },
   {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Районная больница\" с.Каргалы Жамбылского района государственного учреждения \"Управление здравоохранения Алматинской области\"",
@@ -29925,6 +29925,46 @@
    ]
   },
   {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городская поликлиника №1\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
+   "region_code": "59",
+   "region": "Северо-Казахстанская область",
+   "referrals": 451,
+   "refusal_pct": 8.9,
+   "hospitalized": 411,
+   "wait_median_days": 1.0,
+   "wait_p90_days": 7.0,
+   "wait_over_30_pct": 0.5,
+   "self_referral_pct": 92.7,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 451
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 40,
+    "expected": 26.7,
+    "ratio": 1.5,
+    "ci95": [
+     1.07,
+     2.04
+    ],
+    "excess": 13.3
+   },
+   "march_forecast": {
+    "forecast": 119,
+    "naive": 116,
+    "actual": 144,
+    "pending_at_cutoff": 33,
+    "from_pending": 21,
+    "from_new": 102
+   },
+   "signals": []
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"Uniserv Medical Center\"",
    "region_code": "27",
    "region": "Западно-Казахстанская область",
@@ -29985,46 +30025,6 @@
     "pending_at_cutoff": 25,
     "from_pending": 16,
     "from_new": 90
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городская поликлиника №1\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
-   "region_code": "59",
-   "region": "Северо-Казахстанская область",
-   "referrals": 451,
-   "refusal_pct": 8.9,
-   "hospitalized": 411,
-   "wait_median_days": 1.0,
-   "wait_p90_days": 7.0,
-   "wait_over_30_pct": 0.5,
-   "self_referral_pct": 92.7,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 451
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 40,
-    "expected": 26.7,
-    "ratio": 1.5,
-    "ci95": [
-     1.07,
-     2.04
-    ],
-    "excess": 13.3
-   },
-   "march_forecast": {
-    "forecast": 119,
-    "naive": 116,
-    "actual": 144,
-    "pending_at_cutoff": 33,
-    "from_pending": 21,
-    "from_new": 102
    },
    "signals": []
   },
@@ -30300,6 +30300,46 @@
    "signals": []
   },
   {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Районная больница Уланского района\" управления здравоохранения Восточно-Казахстанской области",
+   "region_code": "63",
+   "region": "Восточно-Казахстанская область",
+   "referrals": 442,
+   "refusal_pct": 2.5,
+   "hospitalized": 431,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 99.1,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 438
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 11,
+    "expected": 24.6,
+    "ratio": 0.45,
+    "ci95": [
+     0.22,
+     0.8
+    ],
+    "excess": -13.6
+   },
+   "march_forecast": {
+    "forecast": 130,
+    "naive": 131,
+    "actual": 120,
+    "pending_at_cutoff": 4,
+    "from_pending": 2,
+    "from_new": 127
+   },
+   "signals": []
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"Многопрофильный Медицинский Центр \"Денсаулық\" город Семей",
    "region_code": "10",
    "region": "область Абай",
@@ -30344,94 +30384,6 @@
     "actual": 88,
     "pending_at_cutoff": 9,
     "from_pending": 7,
-    "from_new": 117
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Районная больница Уланского района\" управления здравоохранения Восточно-Казахстанской области",
-   "region_code": "63",
-   "region": "Восточно-Казахстанская область",
-   "referrals": 442,
-   "refusal_pct": 2.5,
-   "hospitalized": 431,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 99.1,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 438
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 11,
-    "expected": 24.6,
-    "ratio": 0.45,
-    "ci95": [
-     0.22,
-     0.8
-    ],
-    "excess": -13.6
-   },
-   "march_forecast": {
-    "forecast": 130,
-    "naive": 131,
-    "actual": 120,
-    "pending_at_cutoff": 4,
-    "from_pending": 2,
-    "from_new": 127
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Центр фтизиопульмонологии Алматинской области\" государственного учреждения \"Управление здравоохранения Алматинской области\"",
-   "region_code": "19",
-   "region": "Алматинская область",
-   "referrals": 441,
-   "refusal_pct": 0.0,
-   "hospitalized": 441,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 0.0,
-   "top_profiles": [
-    {
-     "profile": "Туберкулезные для взрослых",
-     "referrals": 142
-    },
-    {
-     "profile": "Для восстановительного лечения и медицинской реабилитации: пульмонологические для детей",
-     "referrals": 119
-    },
-    {
-     "profile": "Для восстановительного лечения и медицинской реабилитации: общие для детей",
-     "referrals": 90
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 0,
-    "expected": 7.2,
-    "ratio": 0.0,
-    "ci95": [
-     0.0,
-     0.51
-    ],
-    "excess": -7.2
-   },
-   "march_forecast": {
-    "forecast": 119,
-    "naive": 122,
-    "actual": 168,
-    "pending_at_cutoff": 0,
-    "from_pending": 0,
     "from_new": 117
    },
    "signals": []
@@ -30485,6 +30437,54 @@
    "signals": [
     "refusal_above_expected"
    ]
+  },
+  {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Центр фтизиопульмонологии Алматинской области\" государственного учреждения \"Управление здравоохранения Алматинской области\"",
+   "region_code": "19",
+   "region": "Алматинская область",
+   "referrals": 441,
+   "refusal_pct": 0.0,
+   "hospitalized": 441,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 0.0,
+   "top_profiles": [
+    {
+     "profile": "Туберкулезные для взрослых",
+     "referrals": 142
+    },
+    {
+     "profile": "Для восстановительного лечения и медицинской реабилитации: пульмонологические для детей",
+     "referrals": 119
+    },
+    {
+     "profile": "Для восстановительного лечения и медицинской реабилитации: общие для детей",
+     "referrals": 90
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 0,
+    "expected": 7.2,
+    "ratio": 0.0,
+    "ci95": [
+     0.0,
+     0.51
+    ],
+    "excess": -7.2
+   },
+   "march_forecast": {
+    "forecast": 119,
+    "naive": 122,
+    "actual": 168,
+    "pending_at_cutoff": 0,
+    "from_pending": 0,
+    "from_new": 117
+   },
+   "signals": []
   },
   {
    "name": "Товарищество с ограниченной ответственностью \"УроМед\"",
@@ -30686,6 +30686,54 @@
    "signals": []
   },
   {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Районная больница Глубоковского района\" управления здравоохранения Восточно-Казахстанской области",
+   "region_code": "63",
+   "region": "Восточно-Казахстанская область",
+   "referrals": 436,
+   "refusal_pct": 10.3,
+   "hospitalized": 391,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 11.0,
+   "wait_over_30_pct": 0.3,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 70.2,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 306
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 50
+    },
+    {
+     "profile": "Патологии беременности",
+     "referrals": 43
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 45,
+    "expected": 24.9,
+    "ratio": 1.81,
+    "ci95": [
+     1.32,
+     2.42
+    ],
+    "excess": 20.1
+   },
+   "march_forecast": {
+    "forecast": 128,
+    "naive": 122,
+    "actual": 109,
+    "pending_at_cutoff": 51,
+    "from_pending": 30,
+    "from_new": 103
+   },
+   "signals": []
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"Кардимед\"",
    "region_code": "35",
    "region": "Карагандинская область",
@@ -30752,94 +30800,6 @@
    ]
   },
   {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Районная больница Глубоковского района\" управления здравоохранения Восточно-Казахстанской области",
-   "region_code": "63",
-   "region": "Восточно-Казахстанская область",
-   "referrals": 436,
-   "refusal_pct": 10.3,
-   "hospitalized": 391,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 11.0,
-   "wait_over_30_pct": 0.3,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 70.2,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 306
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 50
-    },
-    {
-     "profile": "Патологии беременности",
-     "referrals": 43
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 45,
-    "expected": 24.9,
-    "ratio": 1.81,
-    "ci95": [
-     1.32,
-     2.42
-    ],
-    "excess": 20.1
-   },
-   "march_forecast": {
-    "forecast": 128,
-    "naive": 122,
-    "actual": 109,
-    "pending_at_cutoff": 51,
-    "from_pending": 30,
-    "from_new": 103
-   },
-   "signals": []
-  },
-  {
-   "name": "Учреждение \"СВА МСЧ-2\"",
-   "region_code": "63",
-   "region": "Восточно-Казахстанская область",
-   "referrals": 435,
-   "refusal_pct": 6.4,
-   "hospitalized": 407,
-   "wait_median_days": 1.0,
-   "wait_p90_days": 4.0,
-   "wait_over_30_pct": 0.5,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 435
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 28,
-    "expected": 24.2,
-    "ratio": 1.16,
-    "ci95": [
-     0.77,
-     1.68
-    ],
-    "excess": 3.8
-   },
-   "march_forecast": {
-    "forecast": 107,
-    "naive": 106,
-    "actual": 126,
-    "pending_at_cutoff": 24,
-    "from_pending": 15,
-    "from_new": 93
-   },
-   "signals": []
-  },
-  {
    "name": "Коммунальное государственное предприятие \"Костанайский областной центр психического здоровья\" Управления здравоохранения акимата Костанайской области",
    "region_code": "39",
    "region": "Костанайская область",
@@ -30904,6 +30864,46 @@
    "signals": [
     "long_wait_above_expected"
    ]
+  },
+  {
+   "name": "Учреждение \"СВА МСЧ-2\"",
+   "region_code": "63",
+   "region": "Восточно-Казахстанская область",
+   "referrals": 435,
+   "refusal_pct": 6.4,
+   "hospitalized": 407,
+   "wait_median_days": 1.0,
+   "wait_p90_days": 4.0,
+   "wait_over_30_pct": 0.5,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 435
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 28,
+    "expected": 24.2,
+    "ratio": 1.16,
+    "ci95": [
+     0.77,
+     1.68
+    ],
+    "excess": 3.8
+   },
+   "march_forecast": {
+    "forecast": 107,
+    "naive": 106,
+    "actual": 126,
+    "pending_at_cutoff": 24,
+    "from_pending": 15,
+    "from_new": 93
+   },
+   "signals": []
   },
   {
    "name": "государственное коммунальное предприятие на праве хозяйственного ведения \"Ленгерская городская поликлиника\" управления здравоохранения Туркестанской области",
@@ -31074,6 +31074,46 @@
    "signals": []
   },
   {
+   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Городская поликлиника № 2\" управления здравоохранения города Шымкент",
+   "region_code": "79",
+   "region": "г. Шымкент",
+   "referrals": 430,
+   "refusal_pct": 4.2,
+   "hospitalized": 412,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 4.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 98.4,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 430
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 18,
+    "expected": 24.4,
+    "ratio": 0.74,
+    "ci95": [
+     0.44,
+     1.16
+    ],
+    "excess": -6.4
+   },
+   "march_forecast": {
+    "forecast": 118,
+    "naive": 122,
+    "actual": 138,
+    "pending_at_cutoff": 20,
+    "from_pending": 14,
+    "from_new": 101
+   },
+   "signals": []
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"Кардиохирургическая клиника \"Жүрек\"",
    "region_code": "31",
    "region": "Жамбылская область",
@@ -31134,46 +31174,6 @@
     "pending_at_cutoff": 8,
     "from_pending": 6,
     "from_new": 78
-   },
-   "signals": []
-  },
-  {
-   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Городская поликлиника № 2\" управления здравоохранения города Шымкент",
-   "region_code": "79",
-   "region": "г. Шымкент",
-   "referrals": 430,
-   "refusal_pct": 4.2,
-   "hospitalized": 412,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 4.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 98.4,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 430
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 18,
-    "expected": 24.4,
-    "ratio": 0.74,
-    "ci95": [
-     0.44,
-     1.16
-    ],
-    "excess": -6.4
-   },
-   "march_forecast": {
-    "forecast": 118,
-    "naive": 122,
-    "actual": 138,
-    "pending_at_cutoff": 20,
-    "from_pending": 14,
-    "from_new": 101
    },
    "signals": []
   },
@@ -31269,66 +31269,6 @@
     "pending_at_cutoff": 14,
     "from_pending": 8,
     "from_new": 122
-   },
-   "signals": []
-  },
-  {
-   "name": "Товарищество с ограниченной ответственностью «Экомед Плюс»",
-   "region_code": "71",
-   "region": "г. Астана",
-   "referrals": 425,
-   "refusal_pct": 6.4,
-   "hospitalized": 398,
-   "wait_median_days": 21.0,
-   "wait_p90_days": 53.400000000000034,
-   "wait_over_30_pct": 35.2,
-   "self_referral_pct": 0.0,
-   "external_24h": {
-    "referrals": 348,
-    "refusal_pct": 4.6,
-    "hospitalized": 332,
-    "wait_median_days": 26.0,
-    "wait_p90_days": 58.0,
-    "wait_over_30_pct": 41.9
-   },
-   "from_other_regions_pct": 69.2,
-   "day_stay_pct": 18.1,
-   "top_profiles": [
-    {
-     "profile": "Гинекологические для взрослых, включая для производства абортов",
-     "referrals": 348
-    },
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 77
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 27,
-    "expected": 37.3,
-    "ratio": 0.72,
-    "ci95": [
-     0.48,
-     1.05
-    ],
-    "excess": -10.3
-   },
-   "long_wait_vs_expected": {
-    "observed": 140,
-    "expected": 206.9,
-    "ratio": 0.68,
-    "ci95": [
-     0.57,
-     0.8
-    ]
-   },
-   "march_forecast": {
-    "forecast": 122,
-    "naive": 86,
-    "actual": 161,
-    "pending_at_cutoff": 147,
-    "from_pending": 95,
-    "from_new": 63
    },
    "signals": []
   },
@@ -31435,6 +31375,66 @@
     "pending_at_cutoff": 12,
     "from_pending": 6,
     "from_new": 116
+   },
+   "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью «Экомед Плюс»",
+   "region_code": "71",
+   "region": "г. Астана",
+   "referrals": 425,
+   "refusal_pct": 6.4,
+   "hospitalized": 398,
+   "wait_median_days": 21.0,
+   "wait_p90_days": 53.400000000000034,
+   "wait_over_30_pct": 35.2,
+   "self_referral_pct": 0.0,
+   "external_24h": {
+    "referrals": 348,
+    "refusal_pct": 4.6,
+    "hospitalized": 332,
+    "wait_median_days": 26.0,
+    "wait_p90_days": 58.0,
+    "wait_over_30_pct": 41.9
+   },
+   "from_other_regions_pct": 69.2,
+   "day_stay_pct": 18.1,
+   "top_profiles": [
+    {
+     "profile": "Гинекологические для взрослых, включая для производства абортов",
+     "referrals": 348
+    },
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 77
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 27,
+    "expected": 37.3,
+    "ratio": 0.72,
+    "ci95": [
+     0.48,
+     1.05
+    ],
+    "excess": -10.3
+   },
+   "long_wait_vs_expected": {
+    "observed": 140,
+    "expected": 206.9,
+    "ratio": 0.68,
+    "ci95": [
+     0.57,
+     0.8
+    ]
+   },
+   "march_forecast": {
+    "forecast": 122,
+    "naive": 86,
+    "actual": 161,
+    "pending_at_cutoff": 147,
+    "from_pending": 95,
+    "from_new": 63
    },
    "signals": []
   },
@@ -31586,48 +31586,6 @@
    "signals": []
   },
   {
-   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Городская поликлиника №12\" акимата города Астаны",
-   "region_code": "71",
-   "region": "г. Астана",
-   "referrals": 421,
-   "refusal_pct": 14.7,
-   "hospitalized": 359,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 6.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 99.8,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 421
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 62,
-    "expected": 21.7,
-    "ratio": 2.86,
-    "ci95": [
-     2.2,
-     3.67
-    ],
-    "excess": 40.3
-   },
-   "march_forecast": {
-    "forecast": 117,
-    "naive": 114,
-    "actual": 97,
-    "pending_at_cutoff": 28,
-    "from_pending": 12,
-    "from_new": 109
-   },
-   "signals": [
-    "refusal_above_expected"
-   ]
-  },
-  {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Ауданаралық сауықтыру ауруханасы\" оңалту орталығы\" управления здравоохранения акимата Западно-Казахстанской области",
    "region_code": "27",
    "region": "Западно-Казахстанская область",
@@ -31680,6 +31638,96 @@
     "pending_at_cutoff": 50,
     "from_pending": 29,
     "from_new": 50
+   },
+   "signals": []
+  },
+  {
+   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Городская поликлиника №12\" акимата города Астаны",
+   "region_code": "71",
+   "region": "г. Астана",
+   "referrals": 421,
+   "refusal_pct": 14.7,
+   "hospitalized": 359,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 6.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 99.8,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 421
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 62,
+    "expected": 21.7,
+    "ratio": 2.86,
+    "ci95": [
+     2.2,
+     3.67
+    ],
+    "excess": 40.3
+   },
+   "march_forecast": {
+    "forecast": 117,
+    "naive": 114,
+    "actual": 97,
+    "pending_at_cutoff": 28,
+    "from_pending": 12,
+    "from_new": 109
+   },
+   "signals": [
+    "refusal_above_expected"
+   ]
+  },
+  {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Акжарская районная больница\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
+   "region_code": "59",
+   "region": "Северо-Казахстанская область",
+   "referrals": 419,
+   "refusal_pct": 1.9,
+   "hospitalized": 411,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 98.1,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 66.6,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 279
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 84
+    },
+    {
+     "profile": "Для беременных и рожениц (кроме патологии беременности)",
+     "referrals": 50
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 8,
+    "expected": 26.8,
+    "ratio": 0.3,
+    "ci95": [
+     0.13,
+     0.59
+    ],
+    "excess": -18.8
+   },
+   "march_forecast": {
+    "forecast": 133,
+    "naive": 133,
+    "actual": 135,
+    "pending_at_cutoff": 8,
+    "from_pending": 4,
+    "from_new": 128
    },
    "signals": []
   },
@@ -31744,54 +31792,6 @@
     "pending_at_cutoff": 24,
     "from_pending": 13,
     "from_new": 113
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Акжарская районная больница\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
-   "region_code": "59",
-   "region": "Северо-Казахстанская область",
-   "referrals": 419,
-   "refusal_pct": 1.9,
-   "hospitalized": 411,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 98.1,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 66.6,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 279
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 84
-    },
-    {
-     "profile": "Для беременных и рожениц (кроме патологии беременности)",
-     "referrals": 50
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 8,
-    "expected": 26.8,
-    "ratio": 0.3,
-    "ci95": [
-     0.13,
-     0.59
-    ],
-    "excess": -18.8
-   },
-   "march_forecast": {
-    "forecast": 133,
-    "naive": 133,
-    "actual": 135,
-    "pending_at_cutoff": 8,
-    "from_pending": 4,
-    "from_new": 128
    },
    "signals": []
   },
@@ -31874,6 +31874,56 @@
     "from_new": 79
    },
    "signals": []
+  },
+  {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Центр психического здоровья\" Управления общественного здравоохранения города Алматы",
+   "region_code": "75",
+   "region": "г. Алматы",
+   "referrals": 412,
+   "refusal_pct": 11.2,
+   "hospitalized": 358,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 1.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 28.4,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 117
+    },
+    {
+     "profile": "Психиатрические (психоневрологические) для взрослых",
+     "referrals": 92
+    },
+    {
+     "profile": "Наркологические для взрослых",
+     "referrals": 82
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 46,
+    "expected": 18.0,
+    "ratio": 2.56,
+    "ci95": [
+     1.87,
+     3.42
+    ],
+    "excess": 28.0
+   },
+   "march_forecast": {
+    "forecast": 109,
+    "naive": 109,
+    "actual": 103,
+    "pending_at_cutoff": 9,
+    "from_pending": 4,
+    "from_new": 104
+   },
+   "signals": [
+    "refusal_above_expected"
+   ]
   },
   {
    "name": "Товарищество с ограниченной ответственностью \"Медицинский центр Евразия\"",
@@ -31978,54 +32028,44 @@
    ]
   },
   {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Центр психического здоровья\" Управления общественного здравоохранения города Алматы",
-   "region_code": "75",
-   "region": "г. Алматы",
-   "referrals": 412,
-   "refusal_pct": 11.2,
-   "hospitalized": 358,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 1.0,
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Атырауская городская поликлиника №6\" Управления здравоохранения Атырауской области",
+   "region_code": "23",
+   "region": "Атырауская область",
+   "referrals": 411,
+   "refusal_pct": 0.5,
+   "hospitalized": 407,
+   "wait_median_days": -1.0,
+   "wait_p90_days": -1.0,
    "wait_over_30_pct": 0.0,
    "self_referral_pct": 100.0,
    "external_24h": null,
    "from_other_regions_pct": 0.0,
-   "day_stay_pct": 28.4,
+   "day_stay_pct": 100.0,
    "top_profiles": [
     {
      "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 117
-    },
-    {
-     "profile": "Психиатрические (психоневрологические) для взрослых",
-     "referrals": 92
-    },
-    {
-     "profile": "Наркологические для взрослых",
-     "referrals": 82
+     "referrals": 411
     }
    ],
    "refusal_vs_expected": {
-    "observed": 46,
-    "expected": 18.0,
-    "ratio": 2.56,
+    "observed": 2,
+    "expected": 22.8,
+    "ratio": 0.09,
     "ci95": [
-     1.87,
-     3.42
+     0.01,
+     0.32
     ],
-    "excess": 28.0
+    "excess": -20.8
    },
    "march_forecast": {
-    "forecast": 109,
-    "naive": 109,
-    "actual": 103,
-    "pending_at_cutoff": 9,
-    "from_pending": 4,
-    "from_new": 104
+    "forecast": 80,
+    "naive": 82,
+    "actual": 142,
+    "pending_at_cutoff": 0,
+    "from_pending": 0,
+    "from_new": 78
    },
-   "signals": [
-    "refusal_above_expected"
-   ]
+   "signals": []
   },
   {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городская поликлиника № 15\" Управления общественного здравоохранения города Алматы",
@@ -32064,46 +32104,6 @@
     "pending_at_cutoff": 3,
     "from_pending": 2,
     "from_new": 129
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Атырауская городская поликлиника №6\" Управления здравоохранения Атырауской области",
-   "region_code": "23",
-   "region": "Атырауская область",
-   "referrals": 411,
-   "refusal_pct": 0.5,
-   "hospitalized": 407,
-   "wait_median_days": -1.0,
-   "wait_p90_days": -1.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 411
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 2,
-    "expected": 22.8,
-    "ratio": 0.09,
-    "ci95": [
-     0.01,
-     0.32
-    ],
-    "excess": -20.8
-   },
-   "march_forecast": {
-    "forecast": 80,
-    "naive": 82,
-    "actual": 142,
-    "pending_at_cutoff": 0,
-    "from_pending": 0,
-    "from_new": 78
    },
    "signals": []
   },
@@ -32272,70 +32272,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"РЦ Шипагер\"",
-   "region_code": "35",
-   "region": "Карагандинская область",
-   "referrals": 408,
-   "refusal_pct": 30.1,
-   "hospitalized": 285,
-   "wait_median_days": 9.0,
-   "wait_p90_days": 17.0,
-   "wait_over_30_pct": 1.8,
-   "self_referral_pct": 1.5,
-   "external_24h": {
-    "referrals": 393,
-    "refusal_pct": 29.0,
-    "hospitalized": 279,
-    "wait_median_days": 9.0,
-    "wait_p90_days": 17.0,
-    "wait_over_30_pct": 1.8
-   },
-   "from_other_regions_pct": 2.7,
-   "day_stay_pct": 2.2,
-   "top_profiles": [
-    {
-     "profile": "Для восстановительного лечения и медицинской реабилитации: неврологические для детей",
-     "referrals": 248
-    },
-    {
-     "profile": "Для восстановительного лечения и медицинской реабилитации: травматологические для детей",
-     "referrals": 77
-    },
-    {
-     "profile": "Для восстановительного лечения и медицинской реабилитации: ортопедические для детей",
-     "referrals": 51
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 123,
-    "expected": 74.1,
-    "ratio": 1.66,
-    "ci95": [
-     1.38,
-     1.98
-    ],
-    "excess": 48.9
-   },
-   "long_wait_vs_expected": {
-    "observed": 5,
-    "expected": 13.9,
-    "ratio": 0.36,
-    "ci95": [
-     0.12,
-     0.84
-    ]
-   },
-   "march_forecast": {
-    "forecast": 90,
-    "naive": 85,
-    "actual": 81,
-    "pending_at_cutoff": 66,
-    "from_pending": 38,
-    "from_new": 58
-   },
-   "signals": []
-  },
-  {
    "name": "Коммунальное государственное предприятие \"Сарыкольская районная больница\" Управления здравоохранения акимата Костанайской области",
    "region_code": "39",
    "region": "Костанайская область",
@@ -32380,6 +32316,54 @@
     "pending_at_cutoff": 4,
     "from_pending": 2,
     "from_new": 93
+   },
+   "signals": []
+  },
+  {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Кызылординский областной центр психического здоровья\" управления здравоохранения Кызылординской области\"",
+   "region_code": "43",
+   "region": "Кызылординская область",
+   "referrals": 408,
+   "refusal_pct": 2.2,
+   "hospitalized": 399,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 20.3,
+   "top_profiles": [
+    {
+     "profile": "Психиатрические (психоневрологические) для взрослых",
+     "referrals": 171
+    },
+    {
+     "profile": "Психиатрические (психоневрологические) для детей",
+     "referrals": 132
+    },
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 83
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 9,
+    "expected": 16.0,
+    "ratio": 0.56,
+    "ci95": [
+     0.26,
+     1.07
+    ],
+    "excess": -7.0
+   },
+   "march_forecast": {
+    "forecast": 124,
+    "naive": 126,
+    "actual": 134,
+    "pending_at_cutoff": 0,
+    "from_pending": 0,
+    "from_new": 122
    },
    "signals": []
   },
@@ -32448,50 +32432,66 @@
    "signals": []
   },
   {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Кызылординский областной центр психического здоровья\" управления здравоохранения Кызылординской области\"",
-   "region_code": "43",
-   "region": "Кызылординская область",
+   "name": "Товарищество с ограниченной ответственностью \"РЦ Шипагер\"",
+   "region_code": "35",
+   "region": "Карагандинская область",
    "referrals": 408,
-   "refusal_pct": 2.2,
-   "hospitalized": 399,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 20.3,
+   "refusal_pct": 30.1,
+   "hospitalized": 285,
+   "wait_median_days": 9.0,
+   "wait_p90_days": 17.0,
+   "wait_over_30_pct": 1.8,
+   "self_referral_pct": 1.5,
+   "external_24h": {
+    "referrals": 393,
+    "refusal_pct": 29.0,
+    "hospitalized": 279,
+    "wait_median_days": 9.0,
+    "wait_p90_days": 17.0,
+    "wait_over_30_pct": 1.8
+   },
+   "from_other_regions_pct": 2.7,
+   "day_stay_pct": 2.2,
    "top_profiles": [
     {
-     "profile": "Психиатрические (психоневрологические) для взрослых",
-     "referrals": 171
+     "profile": "Для восстановительного лечения и медицинской реабилитации: неврологические для детей",
+     "referrals": 248
     },
     {
-     "profile": "Психиатрические (психоневрологические) для детей",
-     "referrals": 132
+     "profile": "Для восстановительного лечения и медицинской реабилитации: травматологические для детей",
+     "referrals": 77
     },
     {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 83
+     "profile": "Для восстановительного лечения и медицинской реабилитации: ортопедические для детей",
+     "referrals": 51
     }
    ],
    "refusal_vs_expected": {
-    "observed": 9,
-    "expected": 16.0,
-    "ratio": 0.56,
+    "observed": 123,
+    "expected": 74.1,
+    "ratio": 1.66,
     "ci95": [
-     0.26,
-     1.07
+     1.38,
+     1.98
     ],
-    "excess": -7.0
+    "excess": 48.9
+   },
+   "long_wait_vs_expected": {
+    "observed": 5,
+    "expected": 13.9,
+    "ratio": 0.36,
+    "ci95": [
+     0.12,
+     0.84
+    ]
    },
    "march_forecast": {
-    "forecast": 124,
-    "naive": 126,
-    "actual": 134,
-    "pending_at_cutoff": 0,
-    "from_pending": 0,
-    "from_new": 122
+    "forecast": 90,
+    "naive": 85,
+    "actual": 81,
+    "pending_at_cutoff": 66,
+    "from_pending": 38,
+    "from_new": 58
    },
    "signals": []
   },
@@ -32692,6 +32692,54 @@
    "signals": []
   },
   {
+   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Районная больница\" с.Боралдай Илийского района государственного учреждения \"Управления здравоохранения Алматинской области\"",
+   "region_code": "19",
+   "region": "Алматинская область",
+   "referrals": 402,
+   "refusal_pct": 7.0,
+   "hospitalized": 374,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 1.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 99.3,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 84.6,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 340
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 20
+    },
+    {
+     "profile": "Хирургические для взрослых",
+     "referrals": 17
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 28,
+    "expected": 23.0,
+    "ratio": 1.22,
+    "ci95": [
+     0.81,
+     1.76
+    ],
+    "excess": 5.0
+   },
+   "march_forecast": {
+    "forecast": 106,
+    "naive": 108,
+    "actual": 116,
+    "pending_at_cutoff": 6,
+    "from_pending": 3,
+    "from_new": 101
+   },
+   "signals": []
+  },
+  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Областной центр фтизиопульмонологии\" управления здравоохранения Карагандинской области.",
    "region_code": "35",
    "region": "Карагандинская область",
@@ -32747,54 +32795,6 @@
    "signals": [
     "refusal_above_expected"
    ]
-  },
-  {
-   "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Районная больница\" с.Боралдай Илийского района государственного учреждения \"Управления здравоохранения Алматинской области\"",
-   "region_code": "19",
-   "region": "Алматинская область",
-   "referrals": 402,
-   "refusal_pct": 7.0,
-   "hospitalized": 374,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 1.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 99.3,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 84.6,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 340
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 20
-    },
-    {
-     "profile": "Хирургические для взрослых",
-     "referrals": 17
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 28,
-    "expected": 23.0,
-    "ratio": 1.22,
-    "ci95": [
-     0.81,
-     1.76
-    ],
-    "excess": 5.0
-   },
-   "march_forecast": {
-    "forecast": 106,
-    "naive": 108,
-    "actual": 116,
-    "pending_at_cutoff": 6,
-    "from_pending": 3,
-    "from_new": 101
-   },
-   "signals": []
   },
   {
    "name": "Товарищество с ограниченной ответственностью \"Клиника \"Дау-Мед\"",
@@ -32918,66 +32918,42 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"медицинский центр доктора Абдуалиева\"",
-   "region_code": "31",
-   "region": "Жамбылская область",
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Явленская районная больница\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
+   "region_code": "59",
+   "region": "Северо-Казахстанская область",
    "referrals": 399,
-   "refusal_pct": 1.0,
-   "hospitalized": 395,
-   "wait_median_days": 1.0,
-   "wait_p90_days": 6.699999999999989,
-   "wait_over_30_pct": 1.8,
-   "self_referral_pct": 1.8,
-   "external_24h": {
-    "referrals": 58,
-    "refusal_pct": 3.4,
-    "hospitalized": 56,
-    "wait_median_days": 1.0,
-    "wait_p90_days": 7.0,
-    "wait_over_30_pct": 0.0
-   },
-   "from_other_regions_pct": 3.8,
-   "day_stay_pct": 83.7,
+   "refusal_pct": 1.8,
+   "hospitalized": 392,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 96.0,
    "top_profiles": [
     {
      "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 334
-    },
-    {
-     "profile": "Отоларингологические для детей",
-     "referrals": 47
-    },
-    {
-     "profile": "Отоларингологические для взрослых",
-     "referrals": 18
+     "referrals": 383
     }
    ],
    "refusal_vs_expected": {
-    "observed": 4,
-    "expected": 67.7,
-    "ratio": 0.06,
-    "ci95": [
-     0.02,
-     0.15
-    ],
-    "excess": -63.7
-   },
-   "long_wait_vs_expected": {
     "observed": 7,
-    "expected": 54.4,
-    "ratio": 0.13,
+    "expected": 22.2,
+    "ratio": 0.32,
     "ci95": [
-     0.05,
-     0.27
-    ]
+     0.13,
+     0.65
+    ],
+    "excess": -15.2
    },
    "march_forecast": {
-    "forecast": 113,
-    "naive": 114,
+    "forecast": 101,
+    "naive": 103,
     "actual": 124,
-    "pending_at_cutoff": 20,
-    "from_pending": 15,
-    "from_new": 97
+    "pending_at_cutoff": 0,
+    "from_pending": 0,
+    "from_new": 98
    },
    "signals": []
   },
@@ -33039,42 +33015,66 @@
    "signals": []
   },
   {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Явленская районная больница\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
-   "region_code": "59",
-   "region": "Северо-Казахстанская область",
+   "name": "Товарищество с ограниченной ответственностью \"медицинский центр доктора Абдуалиева\"",
+   "region_code": "31",
+   "region": "Жамбылская область",
    "referrals": 399,
-   "refusal_pct": 1.8,
-   "hospitalized": 392,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 96.0,
+   "refusal_pct": 1.0,
+   "hospitalized": 395,
+   "wait_median_days": 1.0,
+   "wait_p90_days": 6.699999999999989,
+   "wait_over_30_pct": 1.8,
+   "self_referral_pct": 1.8,
+   "external_24h": {
+    "referrals": 58,
+    "refusal_pct": 3.4,
+    "hospitalized": 56,
+    "wait_median_days": 1.0,
+    "wait_p90_days": 7.0,
+    "wait_over_30_pct": 0.0
+   },
+   "from_other_regions_pct": 3.8,
+   "day_stay_pct": 83.7,
    "top_profiles": [
     {
      "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 383
+     "referrals": 334
+    },
+    {
+     "profile": "Отоларингологические для детей",
+     "referrals": 47
+    },
+    {
+     "profile": "Отоларингологические для взрослых",
+     "referrals": 18
     }
    ],
    "refusal_vs_expected": {
-    "observed": 7,
-    "expected": 22.2,
-    "ratio": 0.32,
+    "observed": 4,
+    "expected": 67.7,
+    "ratio": 0.06,
     "ci95": [
-     0.13,
-     0.65
+     0.02,
+     0.15
     ],
-    "excess": -15.2
+    "excess": -63.7
+   },
+   "long_wait_vs_expected": {
+    "observed": 7,
+    "expected": 54.4,
+    "ratio": 0.13,
+    "ci95": [
+     0.05,
+     0.27
+    ]
    },
    "march_forecast": {
-    "forecast": 101,
-    "naive": 103,
+    "forecast": 113,
+    "naive": 114,
     "actual": 124,
-    "pending_at_cutoff": 0,
-    "from_pending": 0,
-    "from_new": 98
+    "pending_at_cutoff": 20,
+    "from_pending": 15,
+    "from_new": 97
    },
    "signals": []
   },
@@ -33209,46 +33209,6 @@
    ]
   },
   {
-   "name": "Учреждение \"Офтальмохирургия\"",
-   "region_code": "10",
-   "region": "область Абай",
-   "referrals": 390,
-   "refusal_pct": 1.3,
-   "hospitalized": 385,
-   "wait_median_days": -1.0,
-   "wait_p90_days": -0.0999999999999659,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 98.5,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 390
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 5,
-    "expected": 16.8,
-    "ratio": 0.3,
-    "ci95": [
-     0.1,
-     0.69
-    ],
-    "excess": -11.8
-   },
-   "march_forecast": {
-    "forecast": 103,
-    "naive": 105,
-    "actual": 127,
-    "pending_at_cutoff": 1,
-    "from_pending": 1,
-    "from_new": 101
-   },
-   "signals": []
-  },
-  {
    "name": "Товарищество с ограниченной ответственностью \"Вита-1\" город Усть-Каменогорск",
    "region_code": "63",
    "region": "Восточно-Казахстанская область",
@@ -33289,6 +33249,46 @@
    "signals": []
   },
   {
+   "name": "Учреждение \"Офтальмохирургия\"",
+   "region_code": "10",
+   "region": "область Абай",
+   "referrals": 390,
+   "refusal_pct": 1.3,
+   "hospitalized": 385,
+   "wait_median_days": -1.0,
+   "wait_p90_days": -0.0999999999999659,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 98.5,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 390
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 5,
+    "expected": 16.8,
+    "ratio": 0.3,
+    "ci95": [
+     0.1,
+     0.69
+    ],
+    "excess": -11.8
+   },
+   "march_forecast": {
+    "forecast": 103,
+    "naive": 105,
+    "actual": 127,
+    "pending_at_cutoff": 1,
+    "from_pending": 1,
+    "from_new": 101
+   },
+   "signals": []
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"Центр микрохирургии глаза\"",
    "region_code": "35",
    "region": "Карагандинская область",
@@ -33311,11 +33311,11 @@
    "day_stay_pct": 50.0,
    "top_profiles": [
     {
-     "profile": "Офтальмологические для взрослых",
+     "profile": "Дневной стационар (профиль койки не указан)",
      "referrals": 194
     },
     {
-     "profile": "Дневной стационар (профиль койки не указан)",
+     "profile": "Офтальмологические для взрослых",
      "referrals": 194
     }
    ],
@@ -33732,46 +33732,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"ЕМ АЛУ плюс\"",
-   "region_code": "63",
-   "region": "Восточно-Казахстанская область",
-   "referrals": 378,
-   "refusal_pct": 0.5,
-   "hospitalized": 376,
-   "wait_median_days": -1.0,
-   "wait_p90_days": -1.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 378
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 2,
-    "expected": 19.0,
-    "ratio": 0.11,
-    "ci95": [
-     0.01,
-     0.38
-    ],
-    "excess": -17.0
-   },
-   "march_forecast": {
-    "forecast": 107,
-    "naive": 109,
-    "actual": 130,
-    "pending_at_cutoff": 0,
-    "from_pending": 0,
-    "from_new": 105
-   },
-   "signals": []
-  },
-  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Майская районная больница\" управления здравоохранения Павлодарской области, акимата Павлодарской области",
    "region_code": "55",
    "region": "Павлодарская область",
@@ -33816,6 +33776,46 @@
     "pending_at_cutoff": 5,
     "from_pending": 2,
     "from_new": 110
+   },
+   "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"ЕМ АЛУ плюс\"",
+   "region_code": "63",
+   "region": "Восточно-Казахстанская область",
+   "referrals": 378,
+   "refusal_pct": 0.5,
+   "hospitalized": 376,
+   "wait_median_days": -1.0,
+   "wait_p90_days": -1.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 378
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 2,
+    "expected": 19.0,
+    "ratio": 0.11,
+    "ci95": [
+     0.01,
+     0.38
+    ],
+    "excess": -17.0
+   },
+   "march_forecast": {
+    "forecast": 107,
+    "naive": 109,
+    "actual": 130,
+    "pending_at_cutoff": 0,
+    "from_pending": 0,
+    "from_new": 105
    },
    "signals": []
   },
@@ -34295,6 +34295,46 @@
    "signals": []
   },
   {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городская поликлиника № 36\" Управления общественного здравоохранения города Алматы",
+   "region_code": "75",
+   "region": "г. Алматы",
+   "referrals": 361,
+   "refusal_pct": 3.0,
+   "hospitalized": 348,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 5.0,
+   "wait_over_30_pct": 2.9,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 361
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 11,
+    "expected": 19.3,
+    "ratio": 0.57,
+    "ci95": [
+     0.28,
+     1.02
+    ],
+    "excess": -8.3
+   },
+   "march_forecast": {
+    "forecast": 99,
+    "naive": 102,
+    "actual": 106,
+    "pending_at_cutoff": 21,
+    "from_pending": 13,
+    "from_new": 83
+   },
+   "signals": []
+  },
+  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городская поликлиника №30\" Управления общественного здравоохранения города Алматы",
    "region_code": "75",
    "region": "г. Алматы",
@@ -34402,46 +34442,6 @@
     "refusal_above_expected",
     "long_wait_above_expected"
    ]
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городская поликлиника № 36\" Управления общественного здравоохранения города Алматы",
-   "region_code": "75",
-   "region": "г. Алматы",
-   "referrals": 361,
-   "refusal_pct": 3.0,
-   "hospitalized": 348,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 5.0,
-   "wait_over_30_pct": 2.9,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 361
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 11,
-    "expected": 19.3,
-    "ratio": 0.57,
-    "ci95": [
-     0.28,
-     1.02
-    ],
-    "excess": -8.3
-   },
-   "march_forecast": {
-    "forecast": 99,
-    "naive": 102,
-    "actual": 106,
-    "pending_at_cutoff": 21,
-    "from_pending": 13,
-    "from_new": 83
-   },
-   "signals": []
   },
   {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Поликлиника №2 города Семей\" управления здравоохранения области Абай",
@@ -34827,46 +34827,6 @@
    "signals": []
   },
   {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городская поликлиника №19\" Управления общественного здравоохранения города Алматы",
-   "region_code": "75",
-   "region": "г. Алматы",
-   "referrals": 352,
-   "refusal_pct": 6.8,
-   "hospitalized": 328,
-   "wait_median_days": 2.0,
-   "wait_p90_days": 6.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 352
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 24,
-    "expected": 19.5,
-    "ratio": 1.23,
-    "ci95": [
-     0.79,
-     1.83
-    ],
-    "excess": 4.5
-   },
-   "march_forecast": {
-    "forecast": 95,
-    "naive": 95,
-    "actual": 83,
-    "pending_at_cutoff": 28,
-    "from_pending": 18,
-    "from_new": 78
-   },
-   "signals": []
-  },
-  {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Областной центр психического здоровья\" Управления здравоохранения Мангистауской области",
    "region_code": "47",
    "region": "Мангистауская область",
@@ -34927,6 +34887,46 @@
     "pending_at_cutoff": 12,
     "from_pending": 6,
     "from_new": 93
+   },
+   "signals": []
+  },
+  {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городская поликлиника №19\" Управления общественного здравоохранения города Алматы",
+   "region_code": "75",
+   "region": "г. Алматы",
+   "referrals": 352,
+   "refusal_pct": 6.8,
+   "hospitalized": 328,
+   "wait_median_days": 2.0,
+   "wait_p90_days": 6.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 352
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 24,
+    "expected": 19.5,
+    "ratio": 1.23,
+    "ci95": [
+     0.79,
+     1.83
+    ],
+    "excess": 4.5
+   },
+   "march_forecast": {
+    "forecast": 95,
+    "naive": 95,
+    "actual": 83,
+    "pending_at_cutoff": 28,
+    "from_pending": 18,
+    "from_new": 78
    },
    "signals": []
   },
@@ -35283,6 +35283,109 @@
    "signals": []
   },
   {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Атырауский областной кожно-венерологический диспансер\" Управления здравоохранения Атырауской области",
+   "region_code": "23",
+   "region": "Атырауская область",
+   "referrals": 342,
+   "refusal_pct": 0.6,
+   "hospitalized": 340,
+   "wait_median_days": -1.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 84.8,
+   "external_24h": {
+    "referrals": 51,
+    "refusal_pct": 2.0,
+    "hospitalized": 50,
+    "wait_median_days": 0.0,
+    "wait_p90_days": 1.0,
+    "wait_over_30_pct": 0.0
+   },
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 26.3,
+   "top_profiles": [
+    {
+     "profile": "Дерматовенерологические для взрослых",
+     "referrals": 126
+    },
+    {
+     "profile": "Дерматовенерологические для детей",
+     "referrals": 126
+    },
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 90
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 2,
+    "expected": 15.6,
+    "ratio": 0.13,
+    "ci95": [
+     0.01,
+     0.46
+    ],
+    "excess": -13.6
+   },
+   "march_forecast": {
+    "forecast": 96,
+    "naive": 98,
+    "actual": 97,
+    "pending_at_cutoff": 0,
+    "from_pending": 0,
+    "from_new": 94
+   },
+   "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"MEDICAL CENTER SHUBARSU (МЕДИКАЛ ЦЕНТР ШУБАРСУ)\"",
+   "region_code": "61",
+   "region": "Туркестанская область",
+   "referrals": 342,
+   "refusal_pct": 3.8,
+   "hospitalized": 329,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 98.8,
+   "external_24h": null,
+   "from_other_regions_pct": 37.7,
+   "day_stay_pct": 61.4,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 210
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 92
+    },
+    {
+     "profile": "Для восстановительного лечения и медицинской реабилитации: травматологические для взрослых",
+     "referrals": 14
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 13,
+    "expected": 19.9,
+    "ratio": 0.65,
+    "ci95": [
+     0.35,
+     1.11
+    ],
+    "excess": -6.9
+   },
+   "march_forecast": {
+    "forecast": 88,
+    "naive": 92,
+    "actual": 108,
+    "pending_at_cutoff": 1,
+    "from_pending": 1,
+    "from_new": 83
+   },
+   "signals": []
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"Zhanshuak Medical Group (Жаншуақ Медикал Групп)\"",
    "region_code": "31",
    "region": "Жамбылская область",
@@ -35387,149 +35490,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"MEDICAL CENTER SHUBARSU (МЕДИКАЛ ЦЕНТР ШУБАРСУ)\"",
-   "region_code": "61",
-   "region": "Туркестанская область",
-   "referrals": 342,
-   "refusal_pct": 3.8,
-   "hospitalized": 329,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 98.8,
-   "external_24h": null,
-   "from_other_regions_pct": 37.7,
-   "day_stay_pct": 61.4,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 210
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 92
-    },
-    {
-     "profile": "Неврологические для взрослых",
-     "referrals": 14
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 13,
-    "expected": 19.9,
-    "ratio": 0.65,
-    "ci95": [
-     0.35,
-     1.11
-    ],
-    "excess": -6.9
-   },
-   "march_forecast": {
-    "forecast": 88,
-    "naive": 92,
-    "actual": 108,
-    "pending_at_cutoff": 1,
-    "from_pending": 1,
-    "from_new": 83
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Атырауский областной кожно-венерологический диспансер\" Управления здравоохранения Атырауской области",
-   "region_code": "23",
-   "region": "Атырауская область",
-   "referrals": 342,
-   "refusal_pct": 0.6,
-   "hospitalized": 340,
-   "wait_median_days": -1.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 84.8,
-   "external_24h": {
-    "referrals": 51,
-    "refusal_pct": 2.0,
-    "hospitalized": 50,
-    "wait_median_days": 0.0,
-    "wait_p90_days": 1.0,
-    "wait_over_30_pct": 0.0
-   },
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 26.3,
-   "top_profiles": [
-    {
-     "profile": "Дерматовенерологические для взрослых",
-     "referrals": 126
-    },
-    {
-     "profile": "Дерматовенерологические для детей",
-     "referrals": 126
-    },
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 90
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 2,
-    "expected": 15.6,
-    "ratio": 0.13,
-    "ci95": [
-     0.01,
-     0.46
-    ],
-    "excess": -13.6
-   },
-   "march_forecast": {
-    "forecast": 96,
-    "naive": 98,
-    "actual": 97,
-    "pending_at_cutoff": 0,
-    "from_pending": 0,
-    "from_new": 94
-   },
-   "signals": []
-  },
-  {
-   "name": "Товарищество с ограниченной ответственностью \"Клинико-диагностический реабилитационный центр \"SANAD\"",
-   "region_code": "35",
-   "region": "Карагандинская область",
-   "referrals": 341,
-   "refusal_pct": 8.8,
-   "hospitalized": 311,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 2.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 95.6,
-   "external_24h": null,
-   "from_other_regions_pct": 0.3,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 341
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 30,
-    "expected": 20.9,
-    "ratio": 1.43,
-    "ci95": [
-     0.97,
-     2.05
-    ],
-    "excess": 9.1
-   },
-   "march_forecast": {
-    "forecast": 81,
-    "naive": 82,
-    "actual": 117,
-    "pending_at_cutoff": 5,
-    "from_pending": 3,
-    "from_new": 77
-   },
-   "signals": []
-  },
-  {
    "name": "Товарищество с ограниченной ответственностью \"Otau Med\"",
    "region_code": "79",
    "region": "г. Шымкент",
@@ -35570,6 +35530,46 @@
    "signals": [
     "refusal_above_expected"
    ]
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"Клинико-диагностический реабилитационный центр \"SANAD\"",
+   "region_code": "35",
+   "region": "Карагандинская область",
+   "referrals": 341,
+   "refusal_pct": 8.8,
+   "hospitalized": 311,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 2.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 95.6,
+   "external_24h": null,
+   "from_other_regions_pct": 0.3,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 341
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 30,
+    "expected": 20.9,
+    "ratio": 1.43,
+    "ci95": [
+     0.97,
+     2.05
+    ],
+    "excess": 9.1
+   },
+   "march_forecast": {
+    "forecast": 81,
+    "naive": 82,
+    "actual": 117,
+    "pending_at_cutoff": 5,
+    "from_pending": 3,
+    "from_new": 77
+   },
+   "signals": []
   },
   {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Городская поликлиника №2\" Управления общественного здравоохранения города Алматы",
@@ -36299,46 +36299,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"АСМЕД Тургут Озала\"",
-   "region_code": "75",
-   "region": "г. Алматы",
-   "referrals": 324,
-   "refusal_pct": 5.9,
-   "hospitalized": 298,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 6.300000000000011,
-   "wait_over_30_pct": 1.0,
-   "self_referral_pct": 98.5,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 324
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 19,
-    "expected": 18.4,
-    "ratio": 1.03,
-    "ci95": [
-     0.62,
-     1.61
-    ],
-    "excess": 0.6
-   },
-   "march_forecast": {
-    "forecast": 87,
-    "naive": 87,
-    "actual": 68,
-    "pending_at_cutoff": 20,
-    "from_pending": 10,
-    "from_new": 78
-   },
-   "signals": []
-  },
-  {
    "name": "Государственное коммунальное предприятие на праве хозяйственного ведения \"Алматинский областной кожно-венерологический диспансер\" государственного учреждения \"Управления здравоохранения Алматинской области\" акимата Алматинской области.",
    "region_code": "19",
    "region": "Алматинская область",
@@ -36413,7 +36373,7 @@
      "referrals": 43
     },
     {
-     "profile": "Терапевтические",
+     "profile": "Для восстановительного лечения и медицинской реабилитации: неврологические для взрослых",
      "referrals": 10
     }
    ],
@@ -36434,6 +36394,46 @@
     "pending_at_cutoff": 3,
     "from_pending": 2,
     "from_new": 85
+   },
+   "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"АСМЕД Тургут Озала\"",
+   "region_code": "75",
+   "region": "г. Алматы",
+   "referrals": 324,
+   "refusal_pct": 5.9,
+   "hospitalized": 298,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 6.300000000000011,
+   "wait_over_30_pct": 1.0,
+   "self_referral_pct": 98.5,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 324
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 19,
+    "expected": 18.4,
+    "ratio": 1.03,
+    "ci95": [
+     0.62,
+     1.61
+    ],
+    "excess": 0.6
+   },
+   "march_forecast": {
+    "forecast": 87,
+    "naive": 87,
+    "actual": 68,
+    "pending_at_cutoff": 20,
+    "from_pending": 10,
+    "from_new": 78
    },
    "signals": []
   },
@@ -36474,50 +36474,6 @@
     "pending_at_cutoff": 20,
     "from_pending": 12,
     "from_new": 80
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие \"Мендыкаринская районная больница\" Управления здравоохранения акимата Костанайской области",
-   "region_code": "39",
-   "region": "Костанайская область",
-   "referrals": 320,
-   "refusal_pct": 10.9,
-   "hospitalized": 278,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 6.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 93.1,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 298
-    },
-    {
-     "profile": "Паллиативной помощи",
-     "referrals": 11
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 35,
-    "expected": 17.8,
-    "ratio": 1.97,
-    "ci95": [
-     1.37,
-     2.74
-    ],
-    "excess": 17.2
-   },
-   "march_forecast": {
-    "forecast": 76,
-    "naive": 71,
-    "actual": 107,
-    "pending_at_cutoff": 26,
-    "from_pending": 13,
-    "from_new": 67
    },
    "signals": []
   },
@@ -36566,6 +36522,50 @@
     "pending_at_cutoff": 0,
     "from_pending": 0,
     "from_new": 76
+   },
+   "signals": []
+  },
+  {
+   "name": "Коммунальное государственное предприятие \"Мендыкаринская районная больница\" Управления здравоохранения акимата Костанайской области",
+   "region_code": "39",
+   "region": "Костанайская область",
+   "referrals": 320,
+   "refusal_pct": 10.9,
+   "hospitalized": 278,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 6.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 93.1,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 298
+    },
+    {
+     "profile": "Паллиативной помощи",
+     "referrals": 11
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 35,
+    "expected": 17.8,
+    "ratio": 1.97,
+    "ci95": [
+     1.37,
+     2.74
+    ],
+    "excess": 17.2
+   },
+   "march_forecast": {
+    "forecast": 76,
+    "naive": 71,
+    "actual": 107,
+    "pending_at_cutoff": 26,
+    "from_pending": 13,
+    "from_new": 67
    },
    "signals": []
   },
@@ -36634,6 +36634,54 @@
    "signals": []
   },
   {
+   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Мамлютская районная больница\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
+   "region_code": "59",
+   "region": "Северо-Казахстанская область",
+   "referrals": 317,
+   "refusal_pct": 7.6,
+   "hospitalized": 293,
+   "wait_median_days": 0.0,
+   "wait_p90_days": 0.0,
+   "wait_over_30_pct": 0.0,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 84.5,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 268
+    },
+    {
+     "profile": "Паллиативной помощи",
+     "referrals": 20
+    },
+    {
+     "profile": "Терапевтические",
+     "referrals": 18
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 24,
+    "expected": 17.4,
+    "ratio": 1.38,
+    "ci95": [
+     0.88,
+     2.05
+    ],
+    "excess": 6.6
+   },
+   "march_forecast": {
+    "forecast": 95,
+    "naive": 97,
+    "actual": 89,
+    "pending_at_cutoff": 0,
+    "from_pending": 0,
+    "from_new": 94
+   },
+   "signals": []
+  },
+  {
    "name": "Товарищество с ограниченной ответственностью \"ЖАН-ЕР\" город Семей",
    "region_code": "10",
    "region": "область Абай",
@@ -36679,54 +36727,6 @@
     "pending_at_cutoff": 11,
     "from_pending": 6,
     "from_new": 82
-   },
-   "signals": []
-  },
-  {
-   "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Мамлютская районная больница\" коммунального государственного учреждения \"Управление здравоохранения акимата Северо-Казахстанской области\"",
-   "region_code": "59",
-   "region": "Северо-Казахстанская область",
-   "referrals": 317,
-   "refusal_pct": 7.6,
-   "hospitalized": 293,
-   "wait_median_days": 0.0,
-   "wait_p90_days": 0.0,
-   "wait_over_30_pct": 0.0,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 84.5,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 268
-    },
-    {
-     "profile": "Паллиативной помощи",
-     "referrals": 20
-    },
-    {
-     "profile": "Терапевтические",
-     "referrals": 18
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 24,
-    "expected": 17.4,
-    "ratio": 1.38,
-    "ci95": [
-     0.88,
-     2.05
-    ],
-    "excess": 6.6
-   },
-   "march_forecast": {
-    "forecast": 95,
-    "naive": 97,
-    "actual": 89,
-    "pending_at_cutoff": 0,
-    "from_pending": 0,
-    "from_new": 94
    },
    "signals": []
   },
@@ -37306,46 +37306,6 @@
    "signals": []
   },
   {
-   "name": "Товарищество с ограниченной ответственностью \"Альянс Медикал\"",
-   "region_code": "23",
-   "region": "Атырауская область",
-   "referrals": 304,
-   "refusal_pct": 5.6,
-   "hospitalized": 287,
-   "wait_median_days": -1.0,
-   "wait_p90_days": 11.0,
-   "wait_over_30_pct": 5.9,
-   "self_referral_pct": 100.0,
-   "external_24h": null,
-   "from_other_regions_pct": 0.0,
-   "day_stay_pct": 100.0,
-   "top_profiles": [
-    {
-     "profile": "Дневной стационар (профиль койки не указан)",
-     "referrals": 304
-    }
-   ],
-   "refusal_vs_expected": {
-    "observed": 17,
-    "expected": 16.9,
-    "ratio": 1.01,
-    "ci95": [
-     0.59,
-     1.62
-    ],
-    "excess": 0.1
-   },
-   "march_forecast": {
-    "forecast": 62,
-    "naive": 58,
-    "actual": 79,
-    "pending_at_cutoff": 31,
-    "from_pending": 12,
-    "from_new": 54
-   },
-   "signals": []
-  },
-  {
    "name": "Коммунальное государственное предприятие на праве хозяйственного ведения \"Успенская районная больница\" управления здравоохранения Павлодарской области, акимата Павлодарской области",
    "region_code": "55",
    "region": "Павлодарская область",
@@ -37386,6 +37346,46 @@
     "pending_at_cutoff": 7,
     "from_pending": 4,
     "from_new": 104
+   },
+   "signals": []
+  },
+  {
+   "name": "Товарищество с ограниченной ответственностью \"Альянс Медикал\"",
+   "region_code": "23",
+   "region": "Атырауская область",
+   "referrals": 304,
+   "refusal_pct": 5.6,
+   "hospitalized": 287,
+   "wait_median_days": -1.0,
+   "wait_p90_days": 11.0,
+   "wait_over_30_pct": 5.9,
+   "self_referral_pct": 100.0,
+   "external_24h": null,
+   "from_other_regions_pct": 0.0,
+   "day_stay_pct": 100.0,
+   "top_profiles": [
+    {
+     "profile": "Дневной стационар (профиль койки не указан)",
+     "referrals": 304
+    }
+   ],
+   "refusal_vs_expected": {
+    "observed": 17,
+    "expected": 16.9,
+    "ratio": 1.01,
+    "ci95": [
+     0.59,
+     1.62
+    ],
+    "excess": 0.1
+   },
+   "march_forecast": {
+    "forecast": 62,
+    "naive": 58,
+    "actual": 79,
+    "pending_at_cutoff": 31,
+    "from_pending": 12,
+    "from_new": 54
    },
    "signals": []
   },
