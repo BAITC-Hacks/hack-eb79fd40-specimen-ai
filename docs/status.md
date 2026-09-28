@@ -6,7 +6,8 @@ The organizer repository is `BAITC-Hacks/hack-eb79fd40-specimen-ai` and the
 canonical origin is `https://specimen-ai.govtech-kz.com`. The shared VPS uses
 host Caddy, rootless Docker, and loopback port 8019. Persistent workspace state
 was copied directly between servers without downloading secrets: the migration
-snapshot contains 4 sessions, 4 referrals, 2 delivery records, and 7 accounts.
+snapshot contains 0 active sessions, 16 referrals, 19 delivery records, and
+7 accounts.
 The previous service at `https://84.247.161.211` remains a rollback target until
 the new origin passes exact-SHA health, TLS, authenticated L1, state parity, and
 access-control checks. See

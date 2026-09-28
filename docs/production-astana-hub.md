@@ -63,8 +63,8 @@ require all of the following:
 2. HTTPS is publicly trusted for the exact hostname and HTTP redirects to it.
 3. Authenticated L1 passes against the exact production origin.
 4. Anonymous model and reference endpoints return `401`.
-5. Restored workspace counts match the migration snapshot: 4 sessions,
-   4 referrals, 2 delivery records, and 7 accounts.
+5. Restored workspace counts match the migration snapshot: 0 active sessions,
+   16 referrals, 19 delivery records, and 7 accounts.
 6. The previous service remains reachable until this checklist is accepted.
 
 ## Persistent state and S3
