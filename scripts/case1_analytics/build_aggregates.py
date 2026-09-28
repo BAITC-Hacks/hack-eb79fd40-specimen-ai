@@ -95,8 +95,14 @@ def load(raw: Path) -> tuple[pd.DataFrame, list[dict[str, Any]]]:
         raise SystemExit(f"expected 3 CSV parts in {raw}, found {len(paths)}")
     frames = [pd.read_csv(p, usecols=COLUMNS, dtype=str) for p in paths]
     df = pd.concat(frames, ignore_index=True)
+    # Timestamps mix "…:SS" and "…:SS.fff"; ISO8601 parses both, and any loss is fatal.
+    frames_na = {c: int(df[c].isna().sum()) for c in ("registration_dt", "hospitalization_dt", "refusal_dt")}
     for column in ("registration_dt", "hospitalization_dt", "refusal_dt"):
-        df[column] = pd.to_datetime(df[column], errors="coerce")
+        df[column] = pd.to_datetime(df[column], format="ISO8601", errors="coerce")
+    for column in ("registration_dt", "hospitalization_dt", "refusal_dt"):
+        lost = df[column].isna().sum() - frames_na[column]
+        if lost:
+            raise SystemExit(f"{column}: {lost} values failed to parse")
     df["region"] = df["hospitalization_code"].str.split(".").str[0]
     df["refused"] = df["refusal_dt"].notna()
     df["hospitalized"] = df["hospitalization_dt"].notna() & ~df["refused"]
