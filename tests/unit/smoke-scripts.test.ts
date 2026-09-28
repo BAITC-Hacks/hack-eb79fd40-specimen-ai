@@ -77,7 +77,7 @@ describe("production smoke scripts", () => {
     expect(calls).toHaveLength(5);
     expect(calls.every(({ url }) => url.startsWith(`${CANONICAL_BASE}/`))).toBe(true);
     expect(calls.every(({ init }) => init?.redirect === "error")).toBe(true);
-    expect(calls.some(({ url }) => url.includes("-k"))).toBe(false);
+    expect(calls.every(({ url }) => new URL(url).protocol === "https:")).toBe(true);
   });
 
   it("carries a workspace cookie and same-origin header without exposing either", async () => {

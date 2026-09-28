@@ -6,11 +6,11 @@ baseline; it does not replace the frozen product contracts in SPINE.
 
 | Field | Value |
 |---|---|
-| Updated | 2026-07-17 |
-| Implementation baseline | `19aa75528974582de44e5d8b1e7027289776f6e4` |
+| Updated | 2026-09-28 |
+| Implementation baseline | current `main`; exact release SHA is reported by `/api/healthz` |
 | Mutable implementation snapshot | [status.md](status.md) |
 | Contract canon | SPINE v2 at `/home/almaz/dev/Almaz/Projects/private/demeu/architecture/00-SPINE.md` |
-| Repository | `demeu-ai/demeu`, default branch `main` |
+| Repository | `BAITC-Hacks/hack-eb79fd40-specimen-ai`, default branch `main` |
 
 ## How the documentation fits together
 
@@ -37,6 +37,7 @@ difference in [Status](status.md#known-contract-and-runtime-divergences).
 | [Architecture](architecture.md) | Components, trust boundaries, and inference flow | You need the whole system model |
 | [Frontend](frontend.md) | Doctor, patient, and design-system behavior | You change screens or UX copy |
 | [Deployment](deployment.md) | Images, ingress, TLS, health, deploy, rollback | You operate the VPS |
+| [Astana Hub production](production-astana-hub.md) | Current domain, shared-VPS topology, state and acceptance gates | You operate the current production |
 | [Status](status.md) | Evidence-backed mutable snapshot and divergences | You need to know what is true now |
 | [API reference](api-reference.md) | HTTP endpoints, payloads, and errors | You build an API client |
 | [Runtime services](runtime-services.md) | LLM, rules, model, Telegram, and PDF services | You change backend orchestration |
@@ -46,7 +47,7 @@ difference in [Status](status.md#known-contract-and-runtime-divergences).
 | [Evaluation](evaluation.md) | Eval corpus, metrics, and claim rules | You report model quality |
 | [Testing](testing.md) | Test layers, commands, and release gates | You verify a change |
 
-All twelve entries are required documentation. Every relative link in this
+All entries above are required documentation. Every relative link in this
 index must resolve before a documentation release is accepted.
 
 ## Reading paths
@@ -92,7 +93,7 @@ index must resolve before a documentation release is accepted.
 | Question | Authority |
 |---|---|
 | Frozen names, DTOs, invariants, and error codes | SPINE v2 |
-| What baseline `19aa755` implements | Repository code plus [status.md](status.md) |
+| What the current release implements | Repository code plus [status.md](status.md) |
 | Production behavior observed at a point in time | Accepted report linked from [status.md](status.md#production-evidence) |
 | Published metrics | [`eval/report.json`](../eval/report.json), interpreted by [evaluation.md](evaluation.md) |
 | Deployment procedure | [deployment.md](deployment.md) and scripts under [`deploy/`](../deploy/) |

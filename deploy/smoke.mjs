@@ -4,8 +4,8 @@ import { lstat, mkdir, open, realpath } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-export const CANONICAL_BASE = "https://84.247.161.211";
-export const LEGACY_PRODUCTION_ORIGIN = "https://109-123-248-16.sslip.io";
+export const CANONICAL_BASE = "https://specimen-ai.govtech-kz.com";
+export const LEGACY_PRODUCTION_ORIGIN = "https://84.247.161.211";
 export const L1_OPT_IN = "I_ACCEPT_PRODUCTION_SMOKE";
 export const L2_OPT_IN = "I_AUTHORIZE_3_SCENARIOS_AND_UP_TO_24_ANTHROPIC_REQUESTS";
 export const SCENARIO1_ONCE_OPT_IN = "I_AUTHORIZE_ONE_PRODUCTION_SCENARIO1_ONCE";

@@ -38,25 +38,24 @@ npm run dev               # http://localhost:3000
   остаются `UNVALIDATED`, пока `data/pathology_map.json` имеет
   `validated:false`.
 
-## 3. Что осталось до release
+## 3. Текущий release
 
-1. Получить явно разрешённый commit/push текущих принятых исправлений; текущий
-   production остаётся на предыдущем проверенном SHA до нового deploy.
+1. Канонический репозиторий организаторов —
+   `BAITC-Hacks/hack-eb79fd40-specimen-ai`, ветка `main`; канонический origin —
+   `https://specimen-ai.govtech-kz.com`.
 2. После отдельного разрешения стоимости запустить L2: три production-сценария.
    Локальный live-прогон одного сценария не заменяет этот шаг.
 3. Отдельно проверить сводку глазами в Telegram; HTTP 200 Bot API не является
    read receipt.
 4. Ардан проверяет продуктовый UI, деку, демо-видео и сдачу. Врачебная
    валидация таблицы маршрутизации остаётся отдельной задачей.
-5. Принять и выкатить отдельный bare-IP TLS change: канонический origin —
-   `https://109.123.248.16`, pinned Caddy получает публично доверенный
-   short-lived сертификат через HTTP-01, а прежний sslip hostname остаётся
-   rollback-alias. После переключения нужно сгенерировать новые ссылки:
-   активные in-memory сессии не переживают recreate.
+5. Прежний сервис `https://84.247.161.211` не выключать до приёмки нового
+   origin. Текущая топология — shared host Caddy → loopback `8019`; подробности
+   в `docs/production-astana-hub.md`.
 
 ## Стек
 
 Next.js 15.5 (App Router) · React 19 · TypeScript · Anthropic SDK · Docker.
 Python используется только офлайн в `scripts/`. Живой прогон против API
-выполнен локально для одного срочного сценария; публичный production-прогон
-ещё не выполнен.
+выполнен для одного срочного сценария на прежнем production. Проверка нового
+origin входит в release acceptance; L2 остаётся за отдельным разрешением.

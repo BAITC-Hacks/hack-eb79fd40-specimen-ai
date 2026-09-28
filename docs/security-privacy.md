@@ -176,7 +176,7 @@ TELEGRAM_DOCTOR_CHAT_IDS — основной множественный пар�
 | Durable audit/retry queue | Не реализовано |
 | Зафиксированная версия согласия и timestamp | Не реализовано |
 | Шифрование данных на диске приложения | Неприменимо к in-memory store; инфраструктурные логи не проверены |
-| TLS production-host | Зависит от деплоя; sslip.io сертификат не проверен |
+| TLS production-host | `specimen-ai.govtech-kz.com`: доверенный сертификат host Caddy проверяется при каждом release acceptance |
 
 ## Рекомендованный порядок снижения риска
 

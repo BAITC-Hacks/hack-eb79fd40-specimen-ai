@@ -1,12 +1,33 @@
 # Demeu deployment runbook
 
-Read-only SSH reconnaissance, exact-SHA branch-B deployment, public certificate and independent L1
-smoke have been accepted for the current magic-DNS production. Every subsequent mutation remains an
-explicit operator action through `deploy/deploy.sh`. Bare-IP certificate issuance, SAN and renewal
-window were observed live, but the first cutover failed closed on a no-SNI client. The IP-only
-`default_sni` remediation is verified offline; repeat cutover remains a separate operator phase.
+The current production target is the organizer-provided shared VPS documented
+in [`docs/production-astana-hub.md`](../docs/production-astana-hub.md). It uses
+host Caddy, rootless Docker, `specimen-ai.govtech-kz.com`, and loopback port
+8019. Every mutation remains an explicit operator action through
+`deploy/deploy.sh`. The bare-IP sections below are retained as historical
+rollback evidence and must not be used as the current topology.
 
 ## Required server state
+
+Текущий production-профиль организаторов:
+
+```dotenv
+VPS_RECON_CONFIRMED=yes
+TLS_BRANCH=branch-a-caddy
+DEMEU_DOMAIN=specimen-ai.govtech-kz.com
+APP_BASE_URL=https://specimen-ai.govtech-kz.com
+APP_PORT=8019
+DEMEU_PROCESSING_MODE=external_llm
+DEMEU_HOST_DATA_DIR=/home/specimen_ai/demeu-data
+DEMEU_HOST_ACCOUNTS_FILE=/home/specimen_ai/demeu-config/accounts.json
+```
+
+На общем сервере 80/443 принадлежат host Caddy, поэтому release-скрипты
+подключают `compose.host-proxy.yml` и `compose.workspace.yml`, но не запускают
+Compose Caddy. Checkout расположен в `/home/specimen_ai/demeu`; source of truth
+— `BAITC-Hacks/hack-eb79fd40-specimen-ai`, ветка `main`.
+
+### Historical server profiles
 
 Текущий сентябрьский production на `84.247.161.211` использует:
 
@@ -162,7 +183,7 @@ cost-authorized and is not required merely to prove the origin switch.
 ## Public smoke after deployment
 
 Both smoke levels are pinned to an explicit trusted production origin. The current default is
-`https://84.247.161.211`; for a custom domain set
+`https://specimen-ai.govtech-kz.com`; for a custom domain set
 `EXPECTED_PRODUCTION_ORIGIN=https://demo.example.kz`. `BASE_URL`, when supplied, must equal that
 origin exactly. HTTP, a different host, a port, path, redirect, certificate error, DNS error,
 timeout, non-JSON API response, or unexpected status fails closed. Accepted hosts use the same

@@ -6,10 +6,10 @@ evidence is recorded in [Status](status.md#production-evidence).
 
 | Field | Value |
 |---|---|
-| Updated | 2026-07-17 |
-| Baseline | `19aa75528974582de44e5d8b1e7027289776f6e4` |
+| Updated | 2026-09-28 |
+| Baseline | current `main`; exact release SHA is reported by `/api/healthz` |
 | Canon | SPINE v2 plus accepted deployment evidence |
-| Repository | `demeu-ai/demeu`, default branch `main` |
+| Repository | `BAITC-Hacks/hack-eb79fd40-specimen-ai`, default branch `main` |
 
 ## Container image
 
@@ -46,7 +46,14 @@ production ingress for this baseline.
 
 ## Production address and TLS
 
-The accepted production report for baseline `19aa755` used the bare-IP origin:
+The current production topology is documented in
+[Production: Astana Hub infrastructure](production-astana-hub.md). Its exact
+origin is `https://specimen-ai.govtech-kz.com`; the shared host Caddy terminates
+TLS and proxies to the rootless application on `127.0.0.1:8019`.
+
+### Historical bare-IP evidence
+
+The accepted historical production report for baseline `19aa755` used the bare-IP origin:
 
 ```text
 https://109.123.248.16

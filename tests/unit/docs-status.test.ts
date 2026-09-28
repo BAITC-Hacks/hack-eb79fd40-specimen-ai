@@ -16,31 +16,34 @@ describe("release documentation status", () => {
     expect(readme).toContain("воздержалась с `low_confidence`");
     expect(readme).toContain("`llm_fallback`");
     expect(readme).toContain("parity зелёный\n  на 150/150 примерах");
-    expect(readme).toContain("публичный сертификат и независимый L1 smoke");
-    expect(readme).toContain("сценарии 2–3 не\n  запускались без отдельного разрешения стоимости");
+    expect(readme).toContain("DNS и доверенный TLS нового домена");
+    expect(readme).toContain("Платные сценарии 2–3 не запускались без отдельного\n  разрешения стоимости");
   });
 
   it("keeps the handoff aligned with completed and remaining work", () => {
     expect(handoff).toContain("LR-модель интегрирована в `analyze()`");
     expect(handoff).toContain("Read-only SSH-разведка VPS принята");
-    expect(handoff).toContain("Получить явно разрешённый commit/push");
+    expect(handoff).toContain("BAITC-Hacks/hack-eb79fd40-specimen-ai");
     expect(handoff).toContain("три production-сценария");
     expect(handoff).not.toMatch(/адаптер ещё не реализован|бот не создан|SSH[^.]*недоступен/iu);
     expect(handoff).not.toMatch(/Живой прогон против API ещё\s+не выполнялся/iu);
   });
 
-  it("pins accepted branch B and distinguishes current live evidence from bare-IP work", () => {
-    expect(envExample).toContain("TLS_BRANCH=branch-b-caddy");
+  it("pins the shared Astana Hub host-proxy profile and retains historical evidence", () => {
+    expect(envExample).toContain("TLS_BRANCH=branch-a-caddy");
     expect(envExample).not.toContain("TLS_BRANCH=branch-a-nginx");
+    expect(envExample).toContain("DEMEU_DOMAIN=specimen-ai.govtech-kz.com");
+    expect(envExample).toContain("APP_PORT=8019");
+    expect(readme).toContain("https://specimen-ai.govtech-kz.com");
+    expect(deploy).toContain("`https://specimen-ai.govtech-kz.com`");
+    expect(deploy).toContain("`compose.host-proxy.yml`");
     expect(deploy).toContain("ports 80, 443, and 3100 free");
     expect(deploy).toContain("TLS_BRANCH=branch-b-caddy");
-    expect(deploy).toContain("exact-SHA branch-B deployment");
-    expect(deploy).toContain("`default_sni` remediation is verified offline");
+    expect(deploy).toContain("shared VPS");
+    expect(deploy).toContain("rootless Docker");
     expect(tls).toContain("выбрана ветка B");
     expect(tls).toContain("прошёл независимый L1 smoke");
     expect(tls).toContain("default_sni 109.123.248.16");
-    expect(envExample).toContain("DEMEU_DOMAIN=109.123.248.16");
-    expect(readme).toContain("`https://109.123.248.16`");
     expect(deploy).toContain("about 160 hours");
     expect(deploy).toContain("Do not use `down -v`");
     expect(deploy).toContain("sslip hostname as a rollback alias");

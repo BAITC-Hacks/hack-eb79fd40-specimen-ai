@@ -1,5 +1,10 @@
 # TLS / reverse proxy: взаимоисключающие ветки
 
+> Historical topology. Current production uses the organizer's shared host
+> Caddy at `specimen-ai.govtech-kz.com` and rootless app port 8019. Use
+> [`docs/production-astana-hub.md`](../docs/production-astana-hub.md) for current
+> operations. The commands below are retained for rollback and provenance.
+
 Запуск приложения, два режима доставки кода и автоматический возврат на последний зелёный образ
 описаны в `deploy/DEPLOY.md`.
 
