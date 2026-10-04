@@ -28,6 +28,7 @@ import {
 } from "@/lib/patient-state";
 import type { PatientClosing } from "@/lib/patient-response";
 import DoctorPanel, { SYNTHETIC_DEMO_RESULT } from "./DoctorPanel";
+import Preparation, { preparationRequest } from "../../p/Preparation";
 import {
   ConsentGate,
   InputWidgetChoices,
@@ -49,7 +50,8 @@ type Phase =
   | "replaying"
   | "replay_failed"
   | "finalizing"
-  | "done";
+  | "done"
+  | "preparation";
 
 interface UiMessage {
   id: number;
@@ -67,6 +69,8 @@ export default function PatientChat() {
   });
   const [language, setLanguage] = useState<Language>("ru");
   const [demo, setDemo] = useState(false);
+  const [preparationId, setPreparationId] = useState<string | null>(null);
+  const [preparationPending, setPreparationPending] = useState(false);
   const [queryReady, setQueryReady] = useState(false);
   const [phase, setPhase] = useState<Phase>(token === null ? "invalid" : "consent");
   const [messages, setMessages] = useState<UiMessage[]>([]);
@@ -98,42 +102,61 @@ export default function PatientChat() {
     ) !== null;
     setDemo(localDemo && query.get("demo") === "1");
     const key = token === null ? null : `demeu:session:${token}`;
+    const preparationKey = token === null ? null : `demeu:preparation:${token}`;
     let saved: string | null = null;
-    try { if (key) saved = window.sessionStorage.getItem(key); } catch { /* Storage can be disabled. */ }
-    if (!saved || token === null) {
-      setPhase(token === null ? "invalid" : "consent");
-      setQueryReady(true);
-      return;
-    }
-    setPhase("restoring");
-    setQueryReady(false);
-    void resumeChat(saved, token).then((response) => {
+    let savedPreparation: string | null = null;
+    try {
+      if (key) saved = window.sessionStorage.getItem(key) ?? window.localStorage.getItem(key);
+      if (preparationKey) savedPreparation = window.localStorage.getItem(preparationKey);
+    } catch { /* Storage can be disabled. */ }
+    if (token === null) { setPhase("invalid"); setQueryReady(true); return; }
+    setPhase("restoring"); setQueryReady(false);
+    void (async () => {
+      if (!savedPreparation) {
+        try {
+          const discovered = await preparationRequest("/api/patient/discover", { token });
+          if (disposed) return;
+          savedPreparation = discovered.accessId; setPreparationId(discovered.accessId);
+          try { if (preparationKey) window.localStorage.setItem(preparationKey, discovered.accessId); } catch { /* Cookie discovery works without browser storage. */ }
+          if (discovered.state !== "awaiting_referral" || !saved) { setQueryReady(true); setPhase("preparation"); return; }
+        } catch { /* A fresh link has no preparation cookie yet. */ }
+      }
+      if (!saved && !savedPreparation) { if (!disposed) { setQueryReady(true); setPhase("consent"); } return; }
+      if (savedPreparation) {
+        setPreparationId(savedPreparation);
+        try {
+          const prepared = await preparationRequest(`/api/patient/${encodeURIComponent(savedPreparation)}/package`);
+          if (disposed) return;
+          if (prepared.state !== "awaiting_referral" || !saved) { setQueryReady(true); setPhase("preparation"); return; }
+        } catch { /* Chat capability may still allow recovery or a doctor can reissue. */ }
+      }
+      if (!saved) { if (!disposed) { setQueryReady(true); setPhase("preparation"); } return; }
+      if (!savedPreparation) {
+        try {
+          const grantResponse = await fetch("/api/chat/preparation", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: saved }), signal: AbortSignal.timeout(10000), referrerPolicy: "no-referrer" });
+          const grant = grantResponse.ok ? await grantResponse.json() : null;
+          if (!disposed && typeof grant?.preparationId === "string") {
+            savedPreparation = grant.preparationId; setPreparationId(grant.preparationId);
+            try { if (preparationKey) window.localStorage.setItem(preparationKey, grant.preparationId); } catch { /* Cookie still protects this browser. */ }
+          }
+        } catch { /* Continue the existing questionnaire independently. */ }
+      }
+      const response = await resumeChat(saved, token);
       if (disposed) return;
       setQueryReady(true);
       if (!response.ok) {
         if (response.failure.kind === "http" && [401, 404].includes(response.failure.status)) {
-          try { if (key) window.sessionStorage.removeItem(key); } catch { /* No persistent fallback. */ }
-          setSessionId(null);
-          setPhase("consent");
-        } else {
-          setStartFailure(response.failure);
-          setPhase("restore_error");
-        }
+          if (savedPreparation) { setPhase("preparation"); return; }
+          setSessionId(null); setPhase("expired");
+        } else { setStartFailure(response.failure); setPhase("restore_error"); }
         return;
       }
       const restored = response.data;
-      setSessionId(restored.sessionId);
-      setLanguage(restored.language);
+      setSessionId(restored.sessionId); setLanguage(restored.language);
       setMessages(restored.messages.map((message) => ({ ...message, id: nextMessageId.current++ })));
-      setTurnsLeft(restored.turnsLeft);
-      setClosing(restored.closing ?? null);
-      if (restored.status === "aborted") {
-        try { if (key) window.sessionStorage.removeItem(key); } catch { /* No persistent fallback. */ }
-        setPhase("expired");
-      } else {
-        setPhase(restored.status === "completed" ? "done" : "chat");
-      }
-    });
+      setTurnsLeft(restored.turnsLeft); setClosing(restored.closing ?? null);
+      setPhase(restored.status === "aborted" ? "expired" : restored.status === "completed" ? "done" : "chat");
+    })();
     return () => { disposed = true; };
   }, [token, restoreAttempt]);
 
@@ -190,7 +213,12 @@ export default function PatientChat() {
       }
 
       setSessionId(response.data.sessionId);
-      try { window.sessionStorage.setItem(`demeu:session:${token}`, response.data.sessionId); } catch { /* Resume is optional when browser storage is disabled. */ }
+      try { window.sessionStorage.setItem(`demeu:session:${token}`, response.data.sessionId); if (response.data.preparationId || response.data.preparationPending) window.localStorage.setItem(`demeu:session:${token}`, response.data.sessionId); } catch { /* Resume is optional when browser storage is disabled. */ }
+      if (response.data.preparationId) {
+        setPreparationId(response.data.preparationId);
+        try { window.localStorage.setItem(`demeu:preparation:${token}`, response.data.preparationId); } catch { /* Optional storage. */ }
+      }
+      setPreparationPending(!response.data.preparationId);
       setTurnsLeft(response.data.turnsLeft);
       setMessages([
         {
@@ -360,6 +388,7 @@ export default function PatientChat() {
         onLanguage={setLanguage}
       />
 
+      {phase === "preparation" && preparationId && <Preparation key={preparationId} accessId={preparationId} language={language} />}
       {phase === "consent" && <ConsentGate ready={queryReady} language={language} onConsent={() => void openSession()} />}
       {(phase === "starting" || phase === "restoring") && <LoadingState language={language} />}
       {phase === "restore_error" && (
@@ -496,6 +525,8 @@ export default function PatientChat() {
             {phase === "done" && closing && (
               <PatientFinale language={language} emergency={emergency} />
             )}
+            {phase === "done" && preparationId && <Preparation key={preparationId} accessId={preparationId} language={language} />}
+            {phase === "done" && preparationPending && !preparationId && <div className="confirm-inline"><p>{language === "kk" ? "Дайындық тізімі уақытша қолжетімсіз. Қайта ашып көріңіз." : "Список подготовки временно недоступен. Попробуйте открыть ещё раз."}</p><button type="button" className="btn subtle" onClick={() => setRestoreAttempt((value) => value + 1)}>{text.retry}</button></div>}
             {phase === "done" && demo && closing && (
               <DoctorPanel result={SYNTHETIC_DEMO_RESULT} />
             )}

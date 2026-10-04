@@ -18,15 +18,17 @@ describe("referral detail record boundary", () => {
   });
   it("invalidates pending responses when the loaded record leaves", () => {
     expect(source).toContain("return () => { active = false; generation.current = requestGeneration + 1; }");
-    expect(source.match(/const requestGeneration = beginOperation\(\)/g)).toHaveLength(3);
-    expect(source.match(/finally \{ finishOperation\(requestGeneration\); \}/g)).toHaveLength(3);
+    expect(source.match(/const requestGeneration = beginOperation\(\)/g)).toHaveLength(8);
+    expect(source.match(/finally \{ finishOperation\(requestGeneration\); \}/g)).toHaveLength(8);
+    expect(source).toContain('async function managePreparation(action: "reissue" | "revoke")');
+    expect(source).toContain("async function confirmReport(report: PatientReport)");
     expect(source).toContain("if (requestGeneration !== generation.current) return");
   });
   it("blocks stale revisions and retains entered intent without automatic replay", () => {
     expect(source).toContain("!ready || busy || conflict");
     expect(source).toContain("setConflict(true); setRetainedIntent(intent)");
     expect(source).toContain("Изменение не применяется автоматически.");
-    expect(source.match(/<fieldset disabled=\{disabled\}>/g)).toHaveLength(2);
+    expect(source.match(/<fieldset disabled=\{disabled\}>/g)).toHaveLength(4);
     expect(source).toContain("useWorkspaceCommand()");
   });
   it("hides PDF navigation while actions are blocked and keeps notification explicit", () => {

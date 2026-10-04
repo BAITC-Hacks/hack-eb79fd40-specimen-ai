@@ -442,14 +442,14 @@ export async function sendDoctorSummary(
   if (pdf) await client.sendDocument(chatId, pdf);
 }
 
-export function renderAbortedNotice(notice: AbortedSessionNotice): string {
+export function renderAbortedNotice(notice: AbortedSessionNotice, context?: DoctorSummaryContext): string {
   return [
     "⚠️ Demeu: пациент начал опрос и не закончил.",
-    `Сессия: ${notice.sessionId}`,
-    `Токен врача: ${notice.doctorToken}`,
+    ...(context ? [`Врач: ${line(context.doctorDisplayName)}`] : []),
     `Начало: ${DATE_TIME.format(notice.startedAt)}`,
     `Завершение: ${DATE_TIME.format(notice.abortedAt)}`,
-    `Причина: ${notice.reason}`,
+    `Причина: ${notice.reason === "ttl_expired" ? "время опроса истекло" : "опрос прерван"}`,
+    ...(context ? ["Открыть эпизод в Demeu:", line(context.intakeUrl)] : []),
   ].join("\n");
 }
 
@@ -457,8 +457,9 @@ export async function sendAbortedNotice(
   client: TelegramClient,
   chatId: string,
   notice: AbortedSessionNotice,
+  context?: DoctorSummaryContext,
 ): Promise<void> {
-  await client.sendMessage(chatId, renderAbortedNotice(notice));
+  await client.sendMessage(chatId, renderAbortedNotice(notice, context));
 }
 
 const MIN_TELEGRAM_CHAT_ID = -(2n ** 63n);
@@ -567,8 +568,8 @@ export class TelegramNotifier implements AbortedNoticePort {
     }
   }
 
-  async sendAbortedNotice(notice: AbortedSessionNotice): Promise<void> {
-    const text = renderAbortedNotice(notice);
+  async sendAbortedNotice(notice: AbortedSessionNotice, context?: DoctorSummaryContext): Promise<void> {
+    const text = renderAbortedNotice(notice, context);
     let failedRecipientCount = 0;
     for (const chatId of this.chatIds) {
       try {

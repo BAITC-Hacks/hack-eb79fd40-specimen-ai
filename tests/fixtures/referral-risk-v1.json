@@ -1,0 +1,810 @@
+{
+  "artifactSha256": "c52267ac918981ec1ef7458c57eede369b66cde2a7de69142d9d14f8770c6bed",
+  "cases": [
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -10.695744355787445,
+        "probability": 2.264057298065493e-05,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "all_fields_low"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": 15.889753782169402,
+        "probability": 0.9999998743485343,
+        "riskBand": "at_or_above_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "86e04201aa1edd80d721063ac7b16f49c5698684662db69420152d0dc046bfd4"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "94cebc4aeb96c6e7900cb115209f4b35cdf63b1516f690985a6fa43258a6f876"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "d84f740a29eee27e8bc11d9b90649a015725e8d22f4a8344c9faf63bfed3424a"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "163ea12d4ffbc412c6182e4870e30e035c9d162806622993ae379a0103c9dd90"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "25aceb8737859a6617b22386b4feffe1eedeb514ca62de0a732b9085eb6169ed"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "ff3d1b32e8da5fc78865c36965e4d21586b4c54b1193669038035397b2dcd06a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "01d28a3cbae8b59c32e9be334aa718c6f579c0ebe39ecc49efac0a8a4ce46034"
+        }
+      },
+      "name": "all_fields_high"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -8.696740826141006,
+        "probability": 0.0001671017011798503,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "86e04201aa1edd80d721063ac7b16f49c5698684662db69420152d0dc046bfd4"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "frequent_bed_profile"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "fallback_infrequent_or_unseen",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -9.164429824372457,
+        "probability": 0.00010468711464368823,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "raw",
+          "value": "synthetic-unseen-bed_profile"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "infrequent_bed_profile"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -7.315753672306421,
+        "probability": 0.000664538042756073,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "163ea12d4ffbc412c6182e4870e30e035c9d162806622993ae379a0103c9dd90"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "frequent_icd10_ref_diag_code"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "fallback_infrequent_or_unseen",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -9.05081947208328,
+        "probability": 0.0001172811211720782,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "raw",
+          "value": "synthetic-unseen-icd10_ref_diag_code"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "infrequent_icd10_ref_diag_code"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -3.181373339304909,
+        "probability": 0.03987272531806951,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "ff3d1b32e8da5fc78865c36965e4d21586b4c54b1193669038035397b2dcd06a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "frequent_referring_mo"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "fallback_infrequent_or_unseen",
+          "territorial_type": "frequent"
+        },
+        "logit": -8.35516438624843,
+        "probability": 0.0002351235264579781,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "raw",
+          "value": "synthetic-unseen-referring_mo"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "infrequent_referring_mo"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -4.595861152855024,
+        "probability": 0.009992663768204268,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "d84f740a29eee27e8bc11d9b90649a015725e8d22f4a8344c9faf63bfed3424a"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "frequent_hospital_mo"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "fallback_infrequent_or_unseen",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -8.04948741327626,
+        "probability": 0.0003191636338712869,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "raw",
+          "value": "synthetic-unseen-hospital_mo"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "infrequent_hospital_mo"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -10.67213471988941,
+        "probability": 2.3181456177138724e-05,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "01d28a3cbae8b59c32e9be334aa718c6f579c0ebe39ecc49efac0a8a4ce46034"
+        }
+      },
+      "name": "frequent_territorial_type"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "unknown_all_zero"
+        },
+        "logit": -10.411566544201106,
+        "probability": 3.0081607296203548e-05,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "raw",
+          "value": "synthetic-unseen-territorial_type"
+        }
+      },
+      "name": "zero_territorial_type"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -6.46861890403536,
+        "probability": 0.0015489638294102904,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "94cebc4aeb96c6e7900cb115209f4b35cdf63b1516f690985a6fa43258a6f876"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "frequent_finance_source"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "unknown_all_zero",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -9.088681278892787,
+        "probability": 0.00011292414933975126,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "raw",
+          "value": "synthetic-unseen-finance_source"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "zero_finance_source"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -7.354229738023138,
+        "probability": 0.0006394709184108025,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "25aceb8737859a6617b22386b4feffe1eedeb514ca62de0a732b9085eb6169ed"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "frequent_referral_purpose"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "frequent",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "unknown_all_zero",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -9.897602043530815,
+        "probability": 5.029261365788402e-05,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "token",
+          "token": "5d1812e514529d563e6af5ebe2eaac35ca0eed5efb7c1b3f0cd5d282f8b22ad2"
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "raw",
+          "value": "synthetic-unseen-referral_purpose"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "zero_referral_purpose"
+    },
+    {
+      "expected": {
+        "coverage": {
+          "bed_profile": "missing",
+          "finance_source": "frequent",
+          "hospital_mo": "frequent",
+          "icd10_ref_diag_code": "frequent",
+          "referral_purpose": "frequent",
+          "referring_mo": "frequent",
+          "territorial_type": "frequent"
+        },
+        "logit": -10.19296912784886,
+        "probability": 3.743117817721239e-05,
+        "riskBand": "below_working_threshold"
+      },
+      "inputs": {
+        "bed_profile": {
+          "kind": "raw",
+          "value": null
+        },
+        "finance_source": {
+          "kind": "token",
+          "token": "5a8cc6526c135b35233bed8a5df0ddda6f7314d615ffef7409deb8bfadf01be4"
+        },
+        "hospital_mo": {
+          "kind": "token",
+          "token": "22946eb89bef1d43b0ddfc7fd1024caf36ca5e71c86a760f74127a0b7a4e6fe2"
+        },
+        "icd10_ref_diag_code": {
+          "kind": "token",
+          "token": "752469410bc7cfd1f9fa7f74d8c6017177b684830195fad633bdcb6bc8cb01e3"
+        },
+        "referral_purpose": {
+          "kind": "token",
+          "token": "2837a8cc687b487cd1072e12a425c65e1ca49e767274473a0acf58316b0eb5f3"
+        },
+        "referring_mo": {
+          "kind": "token",
+          "token": "8b49e0fd9ffc99a2c3caa28522f53dab26acbffeced3017976ecae9b6452f84a"
+        },
+        "territorial_type": {
+          "kind": "token",
+          "token": "ec788bb4b266f43faa10d68b6e556cec0de7e8b2379db1d9556bbe589b9f8516"
+        }
+      },
+      "name": "missing_bed_profile"
+    }
+  ],
+  "hashVector": {
+    "feature": "bed_profile",
+    "token": "5700fdbf94621524b4252ef937952be062583f6a220a036dd972bf3311a2b449",
+    "value": " Synthetic Ё "
+  },
+  "schemaVersion": 1
+}

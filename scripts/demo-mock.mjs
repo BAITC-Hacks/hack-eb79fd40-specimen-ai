@@ -80,7 +80,7 @@ async function seed(directory) {
   try {
     for (let index = 0; index < 14; index += 1) {
       const actor = people[index % 2];
-      const referral = await service.create(actor, {
+      let referral = await service.create(actor, {
         patientLabel: `Учебный пациент ${String(index + 1).padStart(2, "0")}`,
         profile: REFERRAL_PROFILES[index % REFERRAL_PROFILES.length],
         icd10Code: ["K80.2", "N20.0", "M54.5", "I25.1", "S83.2"][index % 5],
@@ -88,6 +88,18 @@ async function seed(directory) {
         idempotencyKey: randomUUID(),
       });
       ownIds[actor.id].push(referral.id);
+      referral = await service.assess(actor, referral.id, {
+        expectedRevision: referral.revision,
+        expectedAssessmentRevision: 0,
+        idempotencyKey: randomUUID(),
+        reason: "Локальный демонстрационный сценарий",
+        assessment: {
+          hypothesis: "Учебное заключение врача",
+          profile: referral.profile,
+          icd10Code: referral.icd10Code,
+          careContext: "operative",
+        },
+      });
       if (index >= 6) {
         await service.update(actor, referral.id, { expectedRevision: referral.revision, idempotencyKey: randomUUID(), patch: index < 11 ? { queue: true } : { scheduledDate: date(7) } });
       }
@@ -128,8 +140,9 @@ async function smoke(base, telegramBase, ownIds) {
     throw new Error("Doctor scope failed in demo");
   }
   const aggregate = (await request(base, "/api/workspace/aggregates", undefined, cookieAnalyst)).result.aggregates;
-  if (!aggregate.suppressed || aggregate.total !== null || !aggregate.groups.some((item) => item.count >= 5)) {
-    throw new Error("Analyst suppression failed in demo");
+  if (aggregate.suppressed || aggregate.total !== 5 || aggregate.groups.length !== 1
+    || aggregate.groups[0]?.flow !== "preparing" || aggregate.groups[0]?.count !== 5) {
+    throw new Error("Analyst stable privacy release failed in demo");
   }
   const link = (await request(base, "/api/link", {}, cookieA)).result;
   if (!/^[0-9a-f]{16}$/u.test(link.token)) throw new Error("Patient link missing");

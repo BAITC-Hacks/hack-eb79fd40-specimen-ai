@@ -105,6 +105,9 @@ async function makeSandbox(): Promise<Sandbox> {
   await Promise.all([
     copyFile("deploy/rollback.sh", join(root, "deploy/rollback.sh")),
     copyFile("deploy/tls.sh", join(root, "deploy/tls.sh")),
+    copyFile("deploy/recovery-guards.sh", join(root, "deploy/recovery-guards.sh")),
+    copyFile("deploy/validate-mis-credentials.cjs", join(root, "deploy/validate-mis-credentials.cjs")),
+    copyFile("deploy/compose.mis.yml", join(root, "deploy/compose.mis.yml")),
     copyFile("docker-compose.yml", join(root, "docker-compose.yml")),
     copyFile("deploy/compose.caddy.yml", join(root, "deploy/compose.caddy.yml")),
     copyFile("deploy/compose.workspace.yml", join(root, "deploy/compose.workspace.yml")),
@@ -194,6 +197,35 @@ mutate_env() {
     printf '%s\\n' "# synthetic mutation during $phase" >> "$APP_DIR/.env"
   fi
 }
+if [ "\${1-}" = run ]; then
+  mounted=""
+  while [ "\${1-}" != -e ]; do
+    if [ "\${1-}" = --mount ]; then
+      mounted="\${2#type=bind,src=}"
+      mounted="\${mounted%%,dst=*}"
+    fi
+    shift
+  done
+  shift
+  code="$1"
+  shift
+  if printf '%s' "$code" | grep -q 'demeu-recovery-schema:v1'; then
+    marker="$STUB_STATE/schema-marker"
+    [ "\${STUB_RECOVERY_SCHEMA_MISSING-0}" = 0 ] || exit 1
+    printf '%s\\n' "\${STUB_RECOVERY_SCHEMA:-6}" > "$marker"
+    [ -z "\${STUB_CONTAINER_MOUNT_SOURCE-}" ] || mounted="$STUB_CONTAINER_MOUNT_SOURCE"
+    exec node -e "$code" "$marker" "$mounted" "\${3-}"
+  fi
+  if printf '%s' "$code" | grep -q 'demeu-mis-file:v1'; then
+    [ "\${STUB_MIS_UNREADABLE-0}" = 0 ] || exit 1
+    exec node -e "$code" "$mounted"
+  fi
+  exit 2
+fi
+if [ "\${1-}" = image ] && [ "\${2-}" = inspect ] && [ "\${3-}" = --format ]; then
+  printf '%s\\n' 'sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+  exit 0
+fi
 if [ "\${1-}" = image ]; then
   action="\${2-}"
   source="\${3-}"
@@ -227,6 +259,10 @@ case "$command" in
     touch "$STUB_STATE/image_demeu-app_latest"
     ;;
   up)
+    if [ -n "\${STUB_MIGRATE_SCHEMA-}" ] && [ ! -f "$STUB_STATE/migrated" ]; then
+      printf '{"schemaVersion":%s,"referrals":[],"links":[],"commands":[]}\\n' "$STUB_MIGRATE_SCHEMA" > "$STUB_SNAPSHOT_FILE"
+      touch "$STUB_STATE/migrated"
+    fi
     args="$*"
     if ! printf '%s' "$args" | grep -q -- '--no-build'; then
       [ "\${STUB_UP_FAIL-0}" = 0 ] || exit 1
@@ -490,7 +526,7 @@ describe("deploy/rollback.sh", () => {
     const commands = await readFile(sandbox.log, "utf8");
 
     expect(result.code).toBe(1);
-    expect(result.stderr).toContain(`referral snapshot schema v${schemaVersion} is newer than rollback target capability v2`);
+    expect(result.stderr).toContain("referral snapshot is malformed or newer than rollback target capability v2");
     expect(commands).not.toContain("git reset");
     expect(commands).not.toMatch(/docker image tag/u);
     expect(commands).not.toMatch(/docker .* build/u);
@@ -731,7 +767,7 @@ describe("deploy/rollback.sh", () => {
       "aaaaaaa\n",
     );
     expect(commands).toContain(
-      "docker image tag demeu-app:rollback-recovery demeu-app:last-green",
+      "docker image tag sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee demeu-app:last-green",
     );
     expect(commands).toContain(`git reset --hard --quiet ${B}`);
     expect(commands).toMatch(/up -d --no-build --force-recreate app/u);
@@ -1170,4 +1206,45 @@ describe("deploy/rollback.sh", () => {
     expect(blocked.stderr).toContain("already running");
     expect(afterRelease.code).toBe(0);
   });
+  it("rejects malformed trailing snapshot bytes before target checkout/build", async () => {
+    const sandbox = await makeSandbox(); const data = join(sandbox.root, "data"); await mkdir(data);
+    await writeFile(join(data, "referrals.json"), '{"schemaVersion":2,"referrals":[]}broken');
+    await writeFile(join(sandbox.root, ".env"), `${validEnv()}DEMEU_HOST_DATA_DIR=${data}\n`);
+    const result = await runRollback(sandbox);
+    const log = await readFile(sandbox.log, "utf8");
+    expect(result.code).toBe(1);
+    expect(log).not.toContain("git reset");
+    expect(log).not.toMatch(/docker .* build|docker .* up/u);
+  });
+
+  it("does not bypass rollback compatibility when only the rootless image UID can read state", async () => {
+    const sandbox = await makeSandbox();
+    const containerData = join(sandbox.root, "container-visible-data");
+    await mkdir(containerData);
+    await writeFile(join(containerData, "referrals.json"), '{"schemaVersion":6,"referrals":[]}');
+    await writeFile(join(sandbox.root, ".env"), `${validEnv()}DEMEU_HOST_DATA_DIR=/rootless-private/data\n`);
+    const result = await runRollback(sandbox, [], { STUB_CONTAINER_MOUNT_SOURCE: containerData });
+    const log = await readFile(sandbox.log, "utf8");
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("newer than rollback target capability v2");
+    expect(log).toContain("src=/rootless-private/data,dst=/state,readonly");
+    expect(log).not.toContain("git reset");
+    expect(log).not.toMatch(/docker .* build|docker .* up/u);
+  });
+
+  it("refuses rollback automatic recovery when target has advanced persistent schema beyond the exact saved image", async () => {
+    const sandbox = await makeSandbox(); const data = join(sandbox.root, "data"); await mkdir(data);
+    const snapshot = join(data, "referrals.json"); await writeFile(snapshot, '{"schemaVersion":2,"referrals":[]}');
+    await writeFile(join(sandbox.root, ".env"), `${validEnv()}DEMEU_HOST_DATA_DIR=${data}\n`);
+    const result = await runRollback(sandbox, [], { STUB_RECOVERY_SCHEMA: "2", STUB_HEALTH_FAIL_COMMIT: "aaaaaaa",
+      STUB_MIGRATE_SCHEMA: "6", STUB_SNAPSHOT_FILE: snapshot });
+    const log = await readFile(sandbox.log, "utf8");
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("retain current runtime and use validated recovery");
+    expect(log).not.toContain(`git reset --hard --quiet ${B}`);
+    expect(log).not.toContain("docker image tag sha256:");
+    expect(await readFile(join(sandbox.state, "commit"), "utf8")).toBe(`${A}\n`);
+    expect(await readFile(join(sandbox.root, ".deploy_green_sha"), "utf8")).toBe("bbbbbbb\n");
+  });
+
 });

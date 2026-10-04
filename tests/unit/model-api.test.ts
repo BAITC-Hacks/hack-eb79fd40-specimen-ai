@@ -66,6 +66,7 @@ describe("model API catalog", () => {
       baseline: { name: "hierarchical_median_mae_days", value: 3.620706 },
     });
     expect(payload.models.find((model: { id: string }) => model.id === "b3-referral-refusal-v0")).toMatchObject({
+      availability: "runtime", runtimeActivation: "research_only", researchOnly: true,
       primaryMetric: { name: "pr_auc", value: 0.34820996, period: "2025-03", rows: 223353 },
       baseline: { name: "smoothed_pair_pr_auc", value: 0.31268672 },
     });

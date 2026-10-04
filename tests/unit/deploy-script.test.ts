@@ -23,6 +23,7 @@ function syntheticAnthropicKey(suffix: string): string {
 
 const SYNTHETIC_KEY = syntheticAnthropicKey("synthetic_test_value_".repeat(3));
 const DEEP_PROBE_AUTHORIZATION = "I_AUTHORIZE_ONE_STRUCTURED_EXTRACTION";
+const PREPARED_IMAGE = `sha256:${"d".repeat(64)}`;
 
 interface Sandbox {
   root: string;
@@ -93,6 +94,9 @@ async function makeSandbox(): Promise<Sandbox> {
   await Promise.all([
     copyFile("deploy/deploy.sh", join(root, "deploy/deploy.sh")),
     copyFile("deploy/tls.sh", join(root, "deploy/tls.sh")),
+    copyFile("deploy/recovery-guards.sh", join(root, "deploy/recovery-guards.sh")),
+    copyFile("deploy/validate-mis-credentials.cjs", join(root, "deploy/validate-mis-credentials.cjs")),
+    copyFile("deploy/compose.mis.yml", join(root, "deploy/compose.mis.yml")),
     copyFile("docker-compose.yml", join(root, "docker-compose.yml")),
     copyFile("deploy/compose.caddy.yml", join(root, "deploy/compose.caddy.yml")),
     copyFile("deploy/compose.workspace.yml", join(root, "deploy/compose.workspace.yml")),
@@ -114,7 +118,18 @@ set -eu
 printf 'git %s\\n' "$*" >> "$STUB_LOG"
 case "\${1-}:\${2-}" in
   ls-files:--error-unmatch) exit 1 ;;
-  rev-parse:--short) cat "$STUB_STATE/commit" ;;
+  rev-parse:--short)
+    if [ "\${3-}" = HEAD ] || [ "\${3+x}" != x ]; then cat "$STUB_STATE/commit"; else printf '%.7s\\n' "$3"; fi
+    ;;
+  rev-parse:--verify)
+    value=$(printf '%.7s' "$3")
+    case "$value" in
+      aaaaaaa) printf '%040d\\n' 0 | tr 0 a ;;
+      bbbbbbb) printf '%040d\\n' 0 | tr 0 b ;;
+      ccccccc) printf '%040d\\n' 0 | tr 0 c ;;
+      *) exit 1 ;;
+    esac
+    ;;
   rev-parse:--is-inside-work-tree) printf 'true\\n' ;;
   status:--porcelain) printf '%s' "\${STUB_DIRTY-}" ;;
   pull:*)
@@ -128,6 +143,7 @@ case "\${1-}:\${2-}" in
     for value in "$@"; do target="$value"; done
     printf '%s\\n' "$target" > "$STUB_STATE/commit"
     ;;
+  show:*) printf '%s\\n' "\${STUB_SOURCE_SCHEMA:-2}" ;;
 esac
 `,
   );
@@ -137,6 +153,81 @@ esac
     `#!/bin/sh
 set -eu
 printf 'docker %s\\n' "$*" >> "$STUB_LOG"
+if [ "\${1-}" = run ]; then
+  mounted=""
+  while [ "\${1-}" != -e ]; do
+    if [ "\${1-}" = --mount ]; then
+      mounted="\${2#type=bind,src=}"
+      mounted="\${mounted%%,dst=*}"
+    fi
+    shift
+  done
+  shift
+  code="$1"
+  shift
+  if printf '%s' "$code" | grep -q 'demeu-recovery-marker-absent:v1'; then
+    [ "\${STUB_CURRENT_MARKER_PRESENT-0}" = 0 ]
+    exit
+  fi
+  if printf '%s' "$code" | grep -q 'demeu-recovery-marker:v1'; then
+    [ "\${STUB_PREPARED_SCHEMA_MISSING-0}" = 0 ] || exit 1
+    printf '%s' "\${STUB_PREPARED_SCHEMA:-2}"
+    exit 0
+  fi
+  if printf '%s' "$code" | grep -q 'demeu-recovery-layer:v1'; then
+    work="$STUB_STATE/layer-work"
+    base_app="$STUB_STATE/base-app"
+    rm -rf "$work"
+    mkdir -p "$work" "$base_app"
+    chmod "\${STUB_BASE_APP_MODE:-755}" "$base_app"
+    exec node -e "$code" "$mounted" "$work" "\${3-}" "$base_app"
+  fi
+  if printf '%s' "$code" | grep -q 'demeu-recovery-schema:v1'; then
+    marker="$STUB_STATE/schema-marker"
+    [ "\${STUB_RECOVERY_SCHEMA_MISSING-0}" = 0 ] || exit 1
+    printf '%s\\n' "\${STUB_RECOVERY_SCHEMA:-6}" > "$marker"
+    [ -z "\${STUB_CONTAINER_MOUNT_SOURCE-}" ] || mounted="$STUB_CONTAINER_MOUNT_SOURCE"
+    exec node -e "$code" "$marker" "$mounted" "\${3-}"
+  fi
+  if printf '%s' "$code" | grep -q 'demeu-mis-file:v1'; then
+    [ "\${STUB_MIS_UNREADABLE-0}" = 0 ] || exit 1
+    exec node -e "$code" "$mounted"
+  fi
+  exit 2
+fi
+if [ "\${1-}" = inspect ] && [ "\${2-}" = --format ] && [ "\${3-}" = '{{.Image}}' ]; then
+  printf '%s\\n' "\${STUB_RUNNING_IMAGE_ID:-sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee}"
+  exit 0
+fi
+if [ "\${1-}" = image ] && [ "\${2-}" = inspect ] && [ "\${3-}" = --format ]; then
+  format="$4"
+  ref="$5"
+  safe_ref=$(printf '%s' "$ref" | tr '/:' '__')
+  prepared="\${STUB_PREPARED_IMAGE_ID:-sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd}"
+  case "$format" in
+    '{{.Id}}')
+      if [ -f "$STUB_STATE/image_id_$safe_ref" ]; then cat "$STUB_STATE/image_id_$safe_ref"
+      elif [ "$ref" = "$prepared" ]; then printf '%s\\n' "$prepared"
+      else printf '%s\\n' 'sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'; fi
+      ;;
+    '{{range .Config.Env}}{{println .}}{{end}}') printf 'COMMIT_SHA=%s\\n' "\${STUB_IMAGE_COMMIT:-bbbbbbb}" ;;
+    '{{json .Config}}')
+      if [ "$ref" = "$prepared" ] && [ "\${STUB_PREPARED_CONFIG_MISMATCH-0}" != 0 ]; then printf '%s\\n' '{"User":"wrong"}'
+      else printf '%s\\n' '{"User":"nextjs","Env":["COMMIT_SHA=bbbbbbb"]}'; fi
+      ;;
+    '{{join .RootFS.Layers "\\n"}}')
+      printf '%s\\n' \
+        'sha256:1111111111111111111111111111111111111111111111111111111111111111' \
+        'sha256:2222222222222222222222222222222222222222222222222222222222222222'
+      if [ "$ref" = "$prepared" ]; then
+        [ "\${STUB_ROOTFS_LAYER_LIST_INVALID-0}" = 0 ] || printf '\\n'
+        printf '%s\\n' 'sha256:3333333333333333333333333333333333333333333333333333333333333333'
+      fi
+      ;;
+    *) exit 2 ;;
+  esac
+  exit 0
+fi
 if [ "\${1-}" = image ]; then
   action="\${2-}"
   source="\${3-}"
@@ -145,10 +236,36 @@ if [ "\${1-}" = image ]; then
   safe_target=$(printf '%s' "$target" | tr '/:' '__')
   case "$action" in
     inspect) [ -f "$STUB_STATE/image_$safe_source" ] ;;
+    save)
+      archive_root="$STUB_STATE/archive-root"
+      layer_root="$STUB_STATE/layer-root"
+      rm -rf "$archive_root" "$layer_root"
+      mkdir -p "$archive_root" "$layer_root/app"
+      chmod 755 "$layer_root/app"
+      printf '%s\\n' "\${STUB_PREPARED_LAYER_CONTENT:-2}" > "$layer_root/app/referral-schema-version"
+      case "\${STUB_PREPARED_LAYER_MODE:-buildkit}" in
+        buildkit) entries='app' ;;
+        valid) entries='app/referral-schema-version' ;;
+        extra) printf 'extra\\n' > "$layer_root/extra"; entries='app/referral-schema-version extra' ;;
+        whiteout) : > "$layer_root/app/.wh.server.js"; entries='app/referral-schema-version app/.wh.server.js' ;;
+        *) exit 1 ;;
+      esac
+      case "\${STUB_PREPARED_LAYER_COMPRESSION:-gzip}" in
+        gzip) tar -czf "$archive_root/layer.tar" -C "$layer_root" $entries ;;
+        raw) tar -cf "$archive_root/layer.tar" -C "$layer_root" $entries ;;
+        unknown) printf 'not-a-supported-layer-archive' > "$archive_root/layer.tar" ;;
+        *) exit 1 ;;
+      esac
+      printf '%s\\n' '[{"Layers":["layer.tar"]}]' > "$archive_root/manifest.json"
+      tar -cf "$target" -C "$archive_root" manifest.json layer.tar
+      ;;
     tag)
       pair="$source->$target"
       [ "\${STUB_TAG_FAIL_PAIR-}" != "$pair" ] || exit 1
       touch "$STUB_STATE/image_$safe_target"
+      if printf '%s' "$source" | grep -q '^sha256:'; then printf '%s\\n' "$source" > "$STUB_STATE/image_id_$safe_target"
+      elif [ -f "$STUB_STATE/image_id_$safe_source" ]; then cat "$STUB_STATE/image_id_$safe_source" > "$STUB_STATE/image_id_$safe_target"
+      else printf '%s\\n' 'sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' > "$STUB_STATE/image_id_$safe_target"; fi
       ;;
   esac
   exit
@@ -174,6 +291,10 @@ case "$command" in
     exit 0
     ;;
   up)
+    if [ -n "\${STUB_MIGRATE_SCHEMA-}" ] && [ ! -f "$STUB_STATE/migrated" ]; then
+      printf '{"schemaVersion":%s,"referrals":[],"links":[],"commands":[]}\\n' "$STUB_MIGRATE_SCHEMA" > "$STUB_SNAPSHOT_FILE"
+      touch "$STUB_STATE/migrated"
+    fi
     [ "\${STUB_UP_FAIL-0}" = 0 ] || exit 1
     touch "$STUB_STATE/running"
     exit 0
@@ -259,12 +380,13 @@ function validEnv(branch = "branch-a-nginx", domain = "109-123-248-16.sslip.io")
 async function runDeploy(
   sandbox: Sandbox,
   extraEnv: Readonly<Record<string, string>> = {},
+  args: readonly string[] = [],
 ): Promise<DeployResult> {
   const env = deployEnvironment(sandbox, extraEnv);
   try {
     const { stdout, stderr } = await execFile(
       "bash",
-      [join(sandbox.root, "deploy/deploy.sh")],
+      [join(sandbox.root, "deploy/deploy.sh"), ...args],
       { cwd: sandbox.root, env },
     );
     return { code: 0, stdout, stderr };
@@ -280,6 +402,20 @@ async function runDeploy(
       stderr: failure.stderr ?? failure.message,
     };
   }
+}
+
+async function prepareLegacyProduction(
+  sandbox: Sandbox,
+  schemaVersion = 2,
+  extraEnv = "",
+): Promise<{ data: string; before: number }> {
+  await writeFile(join(sandbox.root, ".env"), validEnv());
+  expect((await runDeploy(sandbox, { STUB_TARGET_SHA: "bbbbbbb" })).code).toBe(0);
+  const data = join(sandbox.root, "prepared-recovery-data");
+  await mkdir(data);
+  await writeFile(join(data, "referrals.json"), JSON.stringify({ schemaVersion, referrals: [], links: [], commands: [] }));
+  await writeFile(join(sandbox.root, ".env"), `${validEnv()}DEMEU_HOST_DATA_DIR=${data}\n${extraEnv}`);
+  return { data, before: (await readFile(sandbox.log, "utf8")).length };
 }
 
 afterEach(async () => {
@@ -487,7 +623,7 @@ describe("deploy/deploy.sh", () => {
     expect(interrupted).toMatchObject({ code: 143, signal: null });
     expect(stderr).toContain("interrupted by TERM");
     expect(`${stdout}\n${stderr}`).not.toContain(SYNTHETIC_KEY);
-    expect(commands).toContain("docker image tag demeu-app:deploy-recovery demeu-app:last-green");
+    expect(commands).toContain("docker image tag sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee demeu-app:last-green");
     expect(await readFile(join(sandbox.state, "commit"), "utf8")).toBe("ddddddd\n");
     expect(next.code).toBe(0);
   });
@@ -622,7 +758,7 @@ describe("deploy/deploy.sh", () => {
     expect(failed.code).toBe(1);
     expect(commands).toContain("docker image tag demeu-app:last-green demeu-app:latest");
     expect(commands.match(/docker image tag demeu-app:last-green demeu-app:deploy-recovery/gu)).toHaveLength(1);
-    expect(commands).toContain("docker image tag demeu-app:deploy-recovery demeu-app:last-green");
+    expect(commands).toContain("docker image tag sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee demeu-app:last-green");
     expect(commands).toMatch(/up -d --no-build --force-recreate app/u);
     expect(commands).toContain("git reset --hard --quiet bbbbbbb");
     expect(await readFile(join(sandbox.state, "commit"), "utf8")).toBe("bbbbbbb\n");
@@ -631,7 +767,7 @@ describe("deploy/deploy.sh", () => {
     expect(await readFile(join(sandbox.root, ".deploy_prev_sha"), "utf8")).toBe(prevBefore);
     const resetIndex = commands.lastIndexOf("git reset --hard --quiet bbbbbbb");
     const imageIndex = commands.lastIndexOf(
-      "docker image tag demeu-app:deploy-recovery demeu-app:last-green",
+      "docker image tag sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee demeu-app:last-green",
     );
     const exactHealthIndex = commands.lastIndexOf("bbbbbbb");
     expect(resetIndex).toBeGreaterThan(-1);
@@ -1019,4 +1155,277 @@ describe("deploy/deploy.sh", () => {
     expect(commands).not.toContain("rsync ");
     expect(commands).not.toContain("ssh ");
   });
+  it.each(["2", "7", "garbage"])("blocks a pre-mutation incompatible/malformed recovery marker %s without activating a candidate", async (marker) => {
+    const sandbox = await makeSandbox();
+    await writeFile(join(sandbox.root, ".env"), validEnv());
+    expect((await runDeploy(sandbox, { STUB_TARGET_SHA: "bbbbbbb" })).code).toBe(0);
+    const data = join(sandbox.root, "workspace-data"); await mkdir(data);
+    await writeFile(join(data, "referrals.json"), '{"schemaVersion":6,"referrals":[]}');
+    await writeFile(join(sandbox.root, ".env"), `${validEnv()}DEMEU_HOST_DATA_DIR=${data}\n`);
+    const before = await readFile(sandbox.log, "utf8");
+    const failed = await runDeploy(sandbox, { STUB_TARGET_SHA: "ccccccc", STUB_RECOVERY_SCHEMA: marker });
+    const mutations = (await readFile(sandbox.log, "utf8")).slice(before.length);
+    expect(failed.code).toBe(1);
+    expect(failed.stderr).toContain("saved recovery image cannot read current persistent state");
+    expect(mutations).not.toMatch(/docker .* build|docker .* up/u);
+    expect(await readFile(join(sandbox.root, ".deploy_green_sha"), "utf8")).toBe("bbbbbbb\n");
+  });
+
+  it("checks rootless state inside the exact image instead of treating host EACCES as absence", async () => {
+    const sandbox = await makeSandbox();
+    await writeFile(join(sandbox.root, ".env"), validEnv());
+    expect((await runDeploy(sandbox, { STUB_TARGET_SHA: "bbbbbbb" })).code).toBe(0);
+    const containerData = join(sandbox.root, "container-visible-data");
+    await mkdir(containerData);
+    await writeFile(join(containerData, "referrals.json"), '{"schemaVersion":6,"referrals":[]}');
+    await writeFile(join(sandbox.root, ".env"), `${validEnv()}DEMEU_HOST_DATA_DIR=/rootless-private/data\n`);
+    const before = await readFile(sandbox.log, "utf8");
+    const failed = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "ccccccc",
+      STUB_RECOVERY_SCHEMA: "2",
+      STUB_CONTAINER_MOUNT_SOURCE: containerData,
+    });
+    const commands = (await readFile(sandbox.log, "utf8")).slice(before.length);
+    expect(failed.code).toBe(1);
+    expect(failed.stderr).toContain("saved recovery image cannot read current persistent state");
+    expect(commands).toContain("src=/rootless-private/data,dst=/state,readonly");
+    expect(commands).not.toMatch(/docker .* build|docker .* up/u);
+  });
+
+  it("uses an exact marker-only child of the proven running image as first-boundary recovery", async () => {
+    const sandbox = await makeSandbox();
+    const { before } = await prepareLegacyProduction(sandbox);
+    const result = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "ccccccc",
+      STUB_RECOVERY_SCHEMA: "2",
+      DEMEU_PREPARED_RECOVERY_IMAGE_ID: PREPARED_IMAGE,
+      DEMEU_PREPARED_RECOVERY_COMMIT: "bbbbbbb",
+    });
+    const commands = (await readFile(sandbox.log, "utf8")).slice(before);
+    expect(result.code, `${result.stderr}\n${commands}`).toBe(0);
+    expect(commands).toContain(`docker image tag ${PREPARED_IMAGE} demeu-app:deploy-recovery`);
+    expect(commands).toContain("demeu-recovery-marker-absent:v1");
+    expect(commands).toContain("demeu-recovery-marker:v1");
+    expect(commands).toContain("demeu-recovery-layer:v1");
+    expect(commands.indexOf(`docker image tag ${PREPARED_IMAGE} demeu-app:deploy-recovery`))
+      .toBeLessThan(commands.indexOf("docker compose -f docker-compose.yml" + " -f deploy/compose.host-proxy.yml -f deploy/compose.workspace.yml build --pull app"));
+  });
+
+  it("runs the real prepared provenance/state/MIS preflight without tag, build or activation", async () => {
+    const sandbox = await makeSandbox();
+    const { before } = await prepareLegacyProduction(sandbox);
+    const result = await runDeploy(sandbox, {
+      STUB_RECOVERY_SCHEMA: "2",
+      STUB_PREPARED_LAYER_COMPRESSION: "raw",
+      STUB_PREPARED_LAYER_MODE: "valid",
+      DEMEU_PREPARED_RECOVERY_IMAGE_ID: PREPARED_IMAGE,
+      DEMEU_PREPARED_RECOVERY_COMMIT: "bbbbbbb",
+    }, ["--check-prepared-recovery"]);
+    const commands = (await readFile(sandbox.log, "utf8")).slice(before);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("prepared recovery preflight passed");
+    expect(commands).toContain("demeu-recovery-layer:v1");
+    expect(commands).toContain("src=" + join(sandbox.root, "prepared-recovery-data") + ",dst=/state,readonly");
+    expect(commands).not.toMatch(/docker image tag|docker .* build|docker .* up/u);
+  });
+
+  it("fails prepared-only preflight on tampered layer without any runtime mutation", async () => {
+    const sandbox = await makeSandbox();
+    const { before } = await prepareLegacyProduction(sandbox);
+    const result = await runDeploy(sandbox, {
+      STUB_PREPARED_LAYER_MODE: "extra",
+      DEMEU_PREPARED_RECOVERY_IMAGE_ID: PREPARED_IMAGE,
+      DEMEU_PREPARED_RECOVERY_COMMIT: "bbbbbbb",
+    }, ["--check-prepared-recovery"]);
+    const commands = (await readFile(sandbox.log, "utf8")).slice(before);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("prepared recovery image provenance is invalid");
+    expect(commands).not.toMatch(/docker image tag|docker .* build|docker .* up/u);
+  });
+
+  it.each([
+    ["current image already has a marker", { STUB_CURRENT_MARKER_PRESENT: "1" }],
+    ["running image differs from latest", { STUB_RUNNING_IMAGE_ID: `sha256:${"f".repeat(64)}` }],
+    ["prepared rootfs contains an internal blank layer entry", { STUB_ROOTFS_LAYER_LIST_INVALID: "1" }],
+    ["extra layer path is present", { STUB_PREPARED_LAYER_MODE: "extra" }],
+    ["whiteout is present", { STUB_PREPARED_LAYER_MODE: "whiteout" }],
+    ["parent directory metadata differs from base", { STUB_BASE_APP_MODE: "700" }],
+    ["marker layer content differs", { STUB_PREPARED_LAYER_CONTENT: "3" }],
+    ["layer compression is unsupported", { STUB_PREPARED_LAYER_COMPRESSION: "unknown" }],
+    ["prepared config differs from the running image", { STUB_PREPARED_CONFIG_MISMATCH: "1" }],
+    ["prepared source marker differs", { STUB_PREPARED_SCHEMA: "3" }],
+  ])("rejects prepared recovery provenance before candidate mutation: %s", async (_label, tamper) => {
+    const sandbox = await makeSandbox();
+    const { before } = await prepareLegacyProduction(sandbox);
+    const result = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "ccccccc",
+      STUB_RECOVERY_SCHEMA: "2",
+      DEMEU_PREPARED_RECOVERY_IMAGE_ID: PREPARED_IMAGE,
+      DEMEU_PREPARED_RECOVERY_COMMIT: "bbbbbbb",
+      ...tamper,
+    });
+    const commands = (await readFile(sandbox.log, "utf8")).slice(before);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("prepared recovery image provenance is invalid");
+    expect(commands).not.toMatch(/docker .* build|docker .* up/u);
+  });
+
+  it("rejects a prepared commit that disagrees with the existing green marker", async () => {
+    const sandbox = await makeSandbox();
+    const { before } = await prepareLegacyProduction(sandbox);
+    const result = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "ccccccc",
+      STUB_IMAGE_COMMIT: "aaaaaaa",
+      DEMEU_PREPARED_RECOVERY_IMAGE_ID: PREPARED_IMAGE,
+      DEMEU_PREPARED_RECOVERY_COMMIT: "aaaaaaa",
+    });
+    const commands = (await readFile(sandbox.log, "utf8")).slice(before);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("prepared recovery image provenance is invalid");
+    expect(commands).not.toMatch(/docker .* build|docker .* up/u);
+    expect(await readFile(join(sandbox.root, ".deploy_green_sha"), "utf8")).toBe("bbbbbbb\n");
+  });
+
+  it("validates prepared snapshot compatibility before candidate mutation", async () => {
+    const sandbox = await makeSandbox();
+    const { before } = await prepareLegacyProduction(sandbox, 6);
+    const result = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "ccccccc",
+      STUB_RECOVERY_SCHEMA: "2",
+      DEMEU_PREPARED_RECOVERY_IMAGE_ID: PREPARED_IMAGE,
+      DEMEU_PREPARED_RECOVERY_COMMIT: "bbbbbbb",
+    });
+    const commands = (await readFile(sandbox.log, "utf8")).slice(before);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("saved recovery image cannot read current persistent state");
+    expect(commands).not.toMatch(/docker .* build|docker .* up/u);
+  });
+
+  it("validates optional MIS readability for prepared recovery before candidate mutation", async () => {
+    const sandbox = await makeSandbox();
+    const mis = join(sandbox.root, "mis.json");
+    await writeFile(mis, JSON.stringify({ schemaVersion: 1, integrations: [{ integrationId: "mis", organizationId: "clinic", enabled: true,
+      keys: [{ credentialId: "key", secretHash: `sha256$${"a".repeat(64)}`, enabled: true, scopes: ["events:pull", "events:ack"], expiresAt: null }] }] }), { mode: 0o600 });
+    const { before } = await prepareLegacyProduction(sandbox, 2, `DEMEU_HOST_MIS_CREDENTIALS_FILE=${mis}\n`);
+    const result = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "ccccccc",
+      STUB_RECOVERY_SCHEMA: "2",
+      STUB_MIS_UNREADABLE: "1",
+      DEMEU_PREPARED_RECOVERY_IMAGE_ID: PREPARED_IMAGE,
+      DEMEU_PREPARED_RECOVERY_COMMIT: "bbbbbbb",
+    });
+    const commands = (await readFile(sandbox.log, "utf8")).slice(before);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("MIS credentials are invalid or unreadable by saved runtime UID");
+    expect(commands).not.toMatch(/docker .* build|docker .* up/u);
+  });
+
+  it("recovers with the verified prepared image and restores its matching green marker", async () => {
+    const sandbox = await makeSandbox();
+    const { before } = await prepareLegacyProduction(sandbox);
+    const result = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "ccccccc",
+      STUB_RECOVERY_SCHEMA: "2",
+      STUB_HEALTH_MODE: "candidate-red",
+      DEMEU_PREPARED_RECOVERY_IMAGE_ID: PREPARED_IMAGE,
+      DEMEU_PREPARED_RECOVERY_COMMIT: "bbbbbbb",
+    });
+    const commands = (await readFile(sandbox.log, "utf8")).slice(before);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("last green release is active");
+    expect(commands).toContain(`docker image tag ${PREPARED_IMAGE} demeu-app:last-green`);
+    expect(commands).toContain("bbbbbbb external_llm");
+    expect(await readFile(join(sandbox.root, ".deploy_green_sha"), "utf8")).toBe("bbbbbbb\n");
+  });
+
+  it("refuses prepared fallback if the failed candidate advanced persistent schema", async () => {
+    const sandbox = await makeSandbox();
+    const { data, before } = await prepareLegacyProduction(sandbox);
+    const result = await runDeploy(sandbox, {
+      STUB_TARGET_SHA: "ccccccc",
+      STUB_RECOVERY_SCHEMA: "2",
+      STUB_HEALTH_MODE: "candidate-red",
+      STUB_MIGRATE_SCHEMA: "6",
+      STUB_SNAPSHOT_FILE: join(data, "referrals.json"),
+      DEMEU_PREPARED_RECOVERY_IMAGE_ID: PREPARED_IMAGE,
+      DEMEU_PREPARED_RECOVERY_COMMIT: "bbbbbbb",
+    });
+    const commands = (await readFile(sandbox.log, "utf8")).slice(before);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("retain current runtime and use validated recovery");
+    expect(commands).not.toContain(`docker image tag ${PREPARED_IMAGE} demeu-app:last-green`);
+    expect(JSON.parse(await readFile(join(data, "referrals.json"), "utf8")).schemaVersion).toBe(6);
+  });
+
+  it("rechecks a newer live snapshot before automatic fallback and leaves candidate runtime/checkout intact when blocked", async () => {
+    const sandbox = await makeSandbox();
+    await writeFile(join(sandbox.root, ".env"), validEnv());
+    expect((await runDeploy(sandbox, { STUB_TARGET_SHA: "bbbbbbb" })).code).toBe(0);
+    const data = join(sandbox.root, "workspace-data"); await mkdir(data);
+    const snapshot = join(data, "referrals.json");
+    await writeFile(snapshot, '{"schemaVersion":2,"referrals":[]}');
+    await writeFile(join(sandbox.root, ".env"), `${validEnv()}DEMEU_HOST_DATA_DIR=${data}\n`);
+    const before = await readFile(sandbox.log, "utf8");
+    const failed = await runDeploy(sandbox, { STUB_TARGET_SHA: "ccccccc", STUB_RECOVERY_SCHEMA: "2",
+      STUB_HEALTH_MODE: "candidate-red", STUB_MIGRATE_SCHEMA: "6", STUB_SNAPSHOT_FILE: snapshot });
+    const commands = (await readFile(sandbox.log, "utf8")).slice(before.length);
+    expect(failed.code).toBe(1);
+    expect(failed.stderr).toContain("retain current runtime and use validated recovery");
+    expect(commands).not.toContain("git reset");
+    expect(commands).not.toContain("docker image tag sha256:");
+    expect(await readFile(join(sandbox.state, "commit"), "utf8")).toBe("ccccccc\n");
+    expect(JSON.parse(await readFile(snapshot, "utf8")).schemaVersion).toBe(6);
+    expect(await readFile(join(sandbox.root, ".deploy_green_sha"), "utf8")).toBe("bbbbbbb\n");
+  });
+
+  it.each([false, true])("fails closed on missing image capability or malformed trailing JSON (missing=%s)", async (missing) => {
+    const sandbox = await makeSandbox(); await writeFile(join(sandbox.root, ".env"), validEnv());
+    expect((await runDeploy(sandbox)).code).toBe(0);
+    const data = join(sandbox.root, "data"); await mkdir(data);
+    await writeFile(join(data, "referrals.json"), '{"schemaVersion":2,"referrals":[]}' + (missing ? "" : "broken"));
+    await writeFile(join(sandbox.root, ".env"), `${validEnv()}DEMEU_HOST_DATA_DIR=${data}\n`);
+    const result = await runDeploy(sandbox, { STUB_RECOVERY_SCHEMA_MISSING: missing ? "1" : "0" });
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain("saved recovery image cannot read current persistent state");
+  });
+
+  it("recovers a compatible snapshot through the pinned immutable image with hardened no-network validation", async () => {
+    const sandbox = await makeSandbox(); await writeFile(join(sandbox.root, ".env"), validEnv());
+    expect((await runDeploy(sandbox, { STUB_TARGET_SHA: "bbbbbbb" })).code).toBe(0);
+    const data = join(sandbox.root, "data"); await mkdir(data);
+    await writeFile(join(data, "referrals.json"), '{"schemaVersion":6,"referrals":[]}');
+    await writeFile(join(sandbox.root, ".env"), `${validEnv()}DEMEU_HOST_DATA_DIR=${data}\n`);
+    const failed = await runDeploy(sandbox, { STUB_TARGET_SHA: "ccccccc", STUB_HEALTH_MODE: "candidate-red" });
+    const log = await readFile(sandbox.log, "utf8");
+    expect(failed.stderr).toContain("last green release is active");
+    expect(log).toContain("--network none --read-only --cap-drop ALL --security-opt no-new-privileges");
+    expect(log).toContain("docker image tag sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee demeu-app:last-green");
+    expect(await readFile(join(sandbox.state, "commit"), "utf8")).toBe("bbbbbbb\n");
+  });
+
+  it("enables the optional MIS read-only mount only for an explicit private strict file; defaults remain disabled", async () => {
+    const disabled = await makeSandbox(); await writeFile(join(disabled.root, ".env"), validEnv());
+    expect((await runDeploy(disabled)).code).toBe(0);
+    expect(await readFile(disabled.log, "utf8")).not.toContain("compose.mis.yml");
+    const sandbox = await makeSandbox(); const file = join(sandbox.root, "mis.json");
+    await writeFile(file, JSON.stringify({ schemaVersion: 1, integrations: [{ integrationId: "mis", organizationId: "clinic", enabled: true,
+      keys: [{ credentialId: "key", secretHash: `sha256$${"a".repeat(64)}`, enabled: true, scopes: ["events:pull", "events:ack"], expiresAt: null }] }] }), { mode: 0o600 });
+    await writeFile(join(sandbox.root, ".env"), `${validEnv()}DEMEU_HOST_MIS_CREDENTIALS_FILE=${file}\n`);
+    expect((await runDeploy(sandbox)).code).toBe(0);
+    const log = await readFile(sandbox.log, "utf8");
+    expect(log).toContain("-f deploy/compose.mis.yml");
+    expect(log).toContain("dst=/run/secrets/demeu-mis-credentials.json,readonly");
+    expect(log).not.toContain("sha256$" + "a".repeat(64));
+  });
+
+  it.each(["permissions", "shape", "unreadable", "duplicate"])("rejects invalid MIS credentials (%s) before runtime activation", async (reason) => {
+    const sandbox = await makeSandbox(); const file = join(sandbox.root, "mis.json");
+    await writeFile(file, reason === "shape" ? '{"schemaVersion":1,"integrations":[],"hidden":true}' : '{"schemaVersion":1,"integrations":[]}', { mode: reason === "permissions" ? 0o644 : 0o600 });
+    await writeFile(join(sandbox.root, ".env"), `${validEnv()}DEMEU_HOST_MIS_CREDENTIALS_FILE=${file}\n${reason === "duplicate" ? `DEMEU_HOST_MIS_CREDENTIALS_FILE=${file}\n` : ""}`);
+    const result = await runDeploy(sandbox, { STUB_MIS_UNREADABLE: reason === "unreadable" ? "1" : "0" });
+    expect(result.code).toBe(1);
+    expect(await readFile(sandbox.log, "utf8")).not.toMatch(/docker .* up/u);
+    expect(`${result.stdout}${result.stderr}`).not.toContain(SYNTHETIC_KEY);
+  });
+
 });

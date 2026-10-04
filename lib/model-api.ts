@@ -549,7 +549,7 @@ function refusalCard(sourceValue: unknown): ModelCard {
     taskId: "B3",
     title: "B3: риск зафиксированного отказа",
     kind: "research_model",
-    availability: "measured",
+    availability: "runtime",
     runtimeActivation: "research_only",
     researchOnly: true,
     metricStatus: "measured",
@@ -760,7 +760,10 @@ function refusalDetail(card: ModelCard, sourceValue: unknown): ModelDetail {
   return {
     ...card,
     source: {
-      artifacts: [{ path: "reports/referral-refusal-baseline-v0.json", sha256: null }],
+      artifacts: [
+        { path: "reports/referral-refusal-baseline-v0.json", sha256: null },
+        { path: "models/referral-risk-v1.json", sha256: "c52267ac918981ec1ef7458c57eede369b66cde2a7de69142d9d14f8770c6bed" },
+      ],
       dataset: {
         name: "Ashyq Data planned hospitalization referrals",
         period: { from: text(period.registration_min, "source.period.registration_min"), to: text(period.registration_max, "source.period.registration_max") },

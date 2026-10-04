@@ -1,0 +1,1110 @@
+{
+  "schemaVersion": 1,
+  "version": "2025-02-17-order-9-appendix-5-conservative-draft-v1",
+  "status": "available",
+  "source": "Приложение 5 к Стандарту организации оказания медицинской помощи в стационарных условиях в Республике Казахстан, утвержденному приказом МЗ РК от 24.03.2022 № ҚР-ДСМ-27 (рег. № 27218), в редакции приказа МЗ РК от 17.02.2025 № 9: https://old.adilet.zan.kz/rus/docs/V2200027218. Общие исследования для взрослых пациентов при консервативном лечении документированы источником; профильные дополнения включены как непроверенный черновик с неизвестной применимостью.",
+  "scope": {
+    "population": "adult",
+    "careSetting": "inpatient",
+    "treatment": "conservative"
+  },
+  "validated": false,
+  "profiles": [
+    {
+      "profile": "Хирургический",
+      "requirements": [
+        {
+          "id": "cbc",
+          "label": "Общий анализ крови (развернутый)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "urinalysis",
+          "label": "Общий анализ мочи",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem",
+          "label": "Биохимический анализ крови: креатинин, общий белок, АЛТ, АСТ",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem_extra",
+          "label": "Мочевина, глюкоза (по показаниям)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "coagulogram",
+          "label": "Коагулограмма (для пациентов с заболеваниями крови с нарушениями свертываемости крови)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с заболеваниями сердечно-сосудистой системы",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg_oncology",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с онкологическими заболеваниями",
+          "required": false,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hiv",
+          "label": "Анализ крови на ВИЧ-инфекцию",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hepatitis",
+          "label": "Кровь на маркеры гепатитов В и С (ИФА)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "fluorography",
+          "label": "Флюорография (пациентам с 15 лет и лицам, осуществляющим уход за детьми)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 365,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "microreaction",
+          "label": "Микрореакция",
+          "required": true,
+          "conditional": false,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        }
+      ]
+    },
+    {
+      "profile": "Урологический",
+      "requirements": [
+        {
+          "id": "cbc",
+          "label": "Общий анализ крови (развернутый)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "urinalysis",
+          "label": "Общий анализ мочи",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem",
+          "label": "Биохимический анализ крови: креатинин, общий белок, АЛТ, АСТ",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem_extra",
+          "label": "Мочевина, глюкоза (по показаниям)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "coagulogram",
+          "label": "Коагулограмма (для пациентов с заболеваниями крови с нарушениями свертываемости крови)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с заболеваниями сердечно-сосудистой системы",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg_oncology",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с онкологическими заболеваниями",
+          "required": false,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hiv",
+          "label": "Анализ крови на ВИЧ-инфекцию",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hepatitis",
+          "label": "Кровь на маркеры гепатитов В и С (ИФА)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "fluorography",
+          "label": "Флюорография (пациентам с 15 лет и лицам, осуществляющим уход за детьми)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 365,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "microreaction",
+          "label": "Микрореакция",
+          "required": true,
+          "conditional": false,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "uro_ct_abdomen",
+          "label": "КТ органов брюшной полости с контрастированием (по показаниям)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "uro_mri_pelvis",
+          "label": "МРТ органов малого таза с контрастированием (по показаниям)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "uro_urography",
+          "label": "Обзорная экскреторная урография на 7, 15 и 45 минуте (по показаниям)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "uro_psa",
+          "label": "ПСА общий и свободный (по показаниям, мужчины старше 40 лет)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "uro_urine_culture",
+          "label": "Бактериологический посев мочи (по показаниям)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "uro_usdg_legs",
+          "label": "УЗДГ сосудов нижних конечностей (по показаниям)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "uro_echocg",
+          "label": "ЭхоКГ (по показаниям, пациенты старше 50 лет)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "profile_addition_unverified"
+        }
+      ]
+    },
+    {
+      "profile": "Гинекологический",
+      "requirements": [
+        {
+          "id": "cbc",
+          "label": "Общий анализ крови (развернутый)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "urinalysis",
+          "label": "Общий анализ мочи",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem",
+          "label": "Биохимический анализ крови: креатинин, общий белок, АЛТ, АСТ",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem_extra",
+          "label": "Мочевина, глюкоза (по показаниям)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "coagulogram",
+          "label": "Коагулограмма (для пациентов с заболеваниями крови с нарушениями свертываемости крови)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с заболеваниями сердечно-сосудистой системы",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg_oncology",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с онкологическими заболеваниями",
+          "required": false,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hiv",
+          "label": "Анализ крови на ВИЧ-инфекцию",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hepatitis",
+          "label": "Кровь на маркеры гепатитов В и С (ИФА)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "fluorography",
+          "label": "Флюорография (пациентам с 15 лет и лицам, осуществляющим уход за детьми)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 365,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "microreaction",
+          "label": "Микрореакция",
+          "required": true,
+          "conditional": false,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "gyn_smear_purity",
+          "label": "Мазок на степень чистоты",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "gyn_oncocytology",
+          "label": "Мазок на онкоцитологию",
+          "required": null,
+          "conditional": true,
+          "validForDays": 180,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "gyn_tumor_markers",
+          "label": "Онкомаркеры СА 125, НЕ 4 (при образовании яичников)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 60,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "gyn_us_pelvis",
+          "label": "УЗИ органов малого таза",
+          "required": null,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "gyn_mri_pelvis",
+          "label": "МРТ органов малого таза (по показаниям)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "profile_addition_unverified"
+        }
+      ]
+    },
+    {
+      "profile": "Кардиохирургический",
+      "requirements": [
+        {
+          "id": "cbc",
+          "label": "Общий анализ крови (развернутый)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "urinalysis",
+          "label": "Общий анализ мочи",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem",
+          "label": "Биохимический анализ крови: креатинин, общий белок, АЛТ, АСТ",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem_extra",
+          "label": "Мочевина, глюкоза (по показаниям)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "coagulogram",
+          "label": "Коагулограмма (для пациентов с заболеваниями крови с нарушениями свертываемости крови)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с заболеваниями сердечно-сосудистой системы",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg_oncology",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с онкологическими заболеваниями",
+          "required": false,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hiv",
+          "label": "Анализ крови на ВИЧ-инфекцию",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hepatitis",
+          "label": "Кровь на маркеры гепатитов В и С (ИФА)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "fluorography",
+          "label": "Флюорография (пациентам с 15 лет и лицам, осуществляющим уход за детьми)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 365,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "microreaction",
+          "label": "Микрореакция",
+          "required": true,
+          "conditional": false,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "card_echocg",
+          "label": "Эхокардиография (ЭхоКГ)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "card_tee",
+          "label": "Чреспищеводная ЭхоКГ (при госпитализации в отделение интервенционной аритмологии)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "card_coronary_angio",
+          "label": "Коронарная ангиография (CD с результатами)",
+          "required": null,
+          "conditional": true,
+          "validForDays": null,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "card_catheterization",
+          "label": "Катетеризация полостей сердца (CD с результатами)",
+          "required": null,
+          "conditional": true,
+          "validForDays": null,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "card_ct_aorta",
+          "label": "Компьютерная томография аорты (CD с результатами)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 180,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "card_chest_xray",
+          "label": "Обзорная рентгенография грудной клетки",
+          "required": null,
+          "conditional": true,
+          "validForDays": 180,
+          "provenance": "profile_addition_unverified"
+        }
+      ]
+    },
+    {
+      "profile": "Травматологический и ортопедический",
+      "requirements": [
+        {
+          "id": "cbc",
+          "label": "Общий анализ крови (развернутый)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "urinalysis",
+          "label": "Общий анализ мочи",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem",
+          "label": "Биохимический анализ крови: креатинин, общий белок, АЛТ, АСТ",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem_extra",
+          "label": "Мочевина, глюкоза (по показаниям)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "coagulogram",
+          "label": "Коагулограмма (для пациентов с заболеваниями крови с нарушениями свертываемости крови)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с заболеваниями сердечно-сосудистой системы",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg_oncology",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с онкологическими заболеваниями",
+          "required": false,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hiv",
+          "label": "Анализ крови на ВИЧ-инфекцию",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hepatitis",
+          "label": "Кровь на маркеры гепатитов В и С (ИФА)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "fluorography",
+          "label": "Флюорография (пациентам с 15 лет и лицам, осуществляющим уход за детьми)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 365,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "microreaction",
+          "label": "Микрореакция",
+          "required": true,
+          "conditional": false,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "trauma_dentist",
+          "label": "Консультация стоматолога с заключением о санации полости рта",
+          "required": null,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "trauma_usdg_legs",
+          "label": "УЗДГ сосудов нижних конечностей",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "trauma_xray",
+          "label": "Рентгенография костей и суставов по основному заболеванию (с описанием)",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        }
+      ]
+    },
+    {
+      "profile": "Офтальмологический",
+      "requirements": [
+        {
+          "id": "cbc",
+          "label": "Общий анализ крови (развернутый)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "urinalysis",
+          "label": "Общий анализ мочи",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem",
+          "label": "Биохимический анализ крови: креатинин, общий белок, АЛТ, АСТ",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem_extra",
+          "label": "Мочевина, глюкоза (по показаниям)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "coagulogram",
+          "label": "Коагулограмма (для пациентов с заболеваниями крови с нарушениями свертываемости крови)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с заболеваниями сердечно-сосудистой системы",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg_oncology",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с онкологическими заболеваниями",
+          "required": false,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hiv",
+          "label": "Анализ крови на ВИЧ-инфекцию",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hepatitis",
+          "label": "Кровь на маркеры гепатитов В и С (ИФА)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "fluorography",
+          "label": "Флюорография (пациентам с 15 лет и лицам, осуществляющим уход за детьми)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 365,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "microreaction",
+          "label": "Микрореакция",
+          "required": true,
+          "conditional": false,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "oph_conjunctival_culture",
+          "label": "Бактериальный посев из конъюнктивальной полости глаза",
+          "required": null,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_ent",
+          "label": "Консультация отоларинголога",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_dentist",
+          "label": "Консультация стоматолога с заключением о санации ротовой полости",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_lacrimal_lavage",
+          "label": "Промывание слезных путей",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_eye_ultrasound",
+          "label": "Эхография и УЗИ глаза, расчёт интраокулярной линзы (ИОЛ), по показаниям",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_ubm",
+          "label": "Ультрабиомикроскопия (УБМ), по показаниям",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_endothelial_microscopy",
+          "label": "Эндотелиальная микроскопия, по показаниям",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_cycloscopy",
+          "label": "Циклоскопия, по показаниям",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_visometry",
+          "label": "Визометрия",
+          "required": null,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_tonometry",
+          "label": "Тонометрия",
+          "required": null,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_autorefractometry",
+          "label": "Авторефрактометрия",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_electrophysiology",
+          "label": "Электрофизиологические исследования, по показаниям",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_perimetry",
+          "label": "Периметрия, по показаниям",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_oct",
+          "label": "Оптическая когерентная томография зрительного нерва и сетчатки, по показаниям",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "oph_exophthalmometry",
+          "label": "Экзофтальмометрия, по показаниям",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        }
+      ]
+    },
+    {
+      "profile": "Сосудистая хирургия",
+      "requirements": [
+        {
+          "id": "cbc",
+          "label": "Общий анализ крови (развернутый)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "urinalysis",
+          "label": "Общий анализ мочи",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem",
+          "label": "Биохимический анализ крови: креатинин, общий белок, АЛТ, АСТ",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem_extra",
+          "label": "Мочевина, глюкоза (по показаниям)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "coagulogram",
+          "label": "Коагулограмма (для пациентов с заболеваниями крови с нарушениями свертываемости крови)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с заболеваниями сердечно-сосудистой системы",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg_oncology",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с онкологическими заболеваниями",
+          "required": false,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hiv",
+          "label": "Анализ крови на ВИЧ-инфекцию",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hepatitis",
+          "label": "Кровь на маркеры гепатитов В и С (ИФА)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "fluorography",
+          "label": "Флюорография (пациентам с 15 лет и лицам, осуществляющим уход за детьми)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 365,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "microreaction",
+          "label": "Микрореакция",
+          "required": true,
+          "conditional": false,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "vascular_usdg",
+          "label": "УЗДГ поражённых сосудов",
+          "required": null,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "vascular_cta",
+          "label": "КТ-ангиография соответствующего сосудистого бассейна, по показаниям",
+          "required": null,
+          "conditional": true,
+          "validForDays": 180,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "vascular_crp",
+          "label": "С-реактивный белок, по показаниям",
+          "required": null,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "vascular_monitoring",
+          "label": "Холтер или суточное мониторирование артериального давления при высоком риске",
+          "required": null,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "vascular_surgeon",
+          "label": "Консультация ангиохирурга",
+          "required": null,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "profile_addition_unverified"
+        }
+      ]
+    },
+    {
+      "profile": "Онкологический и радиологический",
+      "requirements": [
+        {
+          "id": "cbc",
+          "label": "Общий анализ крови (развернутый)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "urinalysis",
+          "label": "Общий анализ мочи",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem",
+          "label": "Биохимический анализ крови: креатинин, общий белок, АЛТ, АСТ",
+          "required": true,
+          "conditional": false,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "biochem_extra",
+          "label": "Мочевина, глюкоза (по показаниям)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "coagulogram",
+          "label": "Коагулограмма (для пациентов с заболеваниями крови с нарушениями свертываемости крови)",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с заболеваниями сердечно-сосудистой системы",
+          "required": false,
+          "conditional": true,
+          "validForDays": 14,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "ecg_oncology",
+          "label": "Электрокардиограмма (ЭКГ) для пациентов с онкологическими заболеваниями",
+          "required": false,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hiv",
+          "label": "Анализ крови на ВИЧ-инфекцию",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "hepatitis",
+          "label": "Кровь на маркеры гепатитов В и С (ИФА)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 180,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "fluorography",
+          "label": "Флюорография (пациентам с 15 лет и лицам, осуществляющим уход за детьми)",
+          "required": true,
+          "conditional": false,
+          "validForDays": 365,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "microreaction",
+          "label": "Микрореакция",
+          "required": true,
+          "conditional": false,
+          "validForDays": 30,
+          "provenance": "source_documented"
+        },
+        {
+          "id": "onco_chest_xray",
+          "label": "Рентгенография органов грудной клетки в двух проекциях для химиотерапевтического профиля",
+          "required": null,
+          "conditional": true,
+          "validForDays": 90,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "onco_chest_imaging",
+          "label": "КТ или рентгенография органов грудной клетки в двух проекциях для хирургического и радиологического профилей",
+          "required": null,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "profile_addition_unverified"
+        },
+        {
+          "id": "onco_echocg",
+          "label": "ЭхоКГ для пациентов старше 50 лет",
+          "required": null,
+          "conditional": true,
+          "validForDays": 30,
+          "provenance": "profile_addition_unverified"
+        }
+      ]
+    }
+  ]
+}

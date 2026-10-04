@@ -1,20 +1,35 @@
 import { resolve } from "node:path";
 import { FileReferralRepository, ReferralService } from "./referrals/service";
-import { WorkspaceAuthError, workspaceEnabled } from "./workspace-auth";
+import { currentWorkspaceActor, WorkspaceAuthError, workspaceEnabled } from "./workspace-auth";
+import { MisService } from "./mis/service";
+import { verifiedReferralRiskPort } from "./mis/risk";
 
 const globals = globalThis as typeof globalThis & {
-  __demeuReferralRuntime?: { path: string; service: ReferralService };
+  __demeuReferralRuntime?: { path: string; repository: FileReferralRepository; service: ReferralService; mis: MisService };
 };
 
-// Lazy initialization keeps builds and the disabled public chat free of disk writes.
-export function workspace(): ReferralService {
+function runtime() {
   if (!workspaceEnabled()) throw new WorkspaceAuthError(503, "WORKSPACE_UNAVAILABLE");
   const path = resolve(process.env.DEMEU_DATA_DIR!, "referrals.json");
   if (globals.__demeuReferralRuntime && globals.__demeuReferralRuntime.path !== path) {
     throw new WorkspaceAuthError(503, "WORKSPACE_UNAVAILABLE");
   }
   if (!globals.__demeuReferralRuntime) {
-    globals.__demeuReferralRuntime = { path, service: new ReferralService(new FileReferralRepository(path)) };
+    const repository = new FileReferralRepository(path);
+    const researchEventsEnabled = process.env.DEMEU_MIS_RESEARCH_EVENTS === "I_ACKNOWLEDGE_RESEARCH_ONLY";
+    globals.__demeuReferralRuntime = {
+      path,
+      repository,
+      service: new ReferralService(repository, { resolveDoctor: currentWorkspaceActor, risk: verifiedReferralRiskPort, researchEventsEnabled }),
+      mis: new MisService(repository, { risk: verifiedReferralRiskPort, researchEventsEnabled }),
+    };
   }
-  return globals.__demeuReferralRuntime.service;
+  return globals.__demeuReferralRuntime;
 }
+
+// Lazy initialization keeps builds and the disabled public chat free of disk writes.
+export function workspace(): ReferralService {
+  return runtime().service;
+}
+
+export function misWorkspace(): MisService { return runtime().mis; }

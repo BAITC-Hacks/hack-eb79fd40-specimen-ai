@@ -2,6 +2,10 @@
 
 set -Eeuo pipefail
 
+DEMEU_SCRIPT_DIRECTORY="${BASH_SOURCE[0]%/*}"
+[ "$DEMEU_SCRIPT_DIRECTORY" != "${BASH_SOURCE[0]}" ] || DEMEU_SCRIPT_DIRECTORY=.
+source "${DEMEU_SCRIPT_DIRECTORY}/recovery-guards.sh"
+
 APP_DIR="${APP_DIR:-/opt/demeu}"
 SERVER="${SERVER:-root@109.123.248.16}"
 BRANCH="${BRANCH:-main}"
@@ -23,6 +27,7 @@ SERVER_GIT_MODE=0
 PREVIOUS_SHA=""
 COMPOSE_ARGS=()
 RECOVERY_IMAGE_AVAILABLE=0
+RECOVERY_IMAGE_ID=""
 LAST_GREEN_SAFE=0
 PREEXISTING_APP_PRESENT=0
 RUNTIME_MUTATION_STARTED=0
@@ -32,6 +37,10 @@ OLD_PREV_SHA=""
 OLD_PREV_SHA_PRESENT=0
 PROCESSING_MODE="external_llm"
 CURRENT_PROCESSING_MODE=""
+PREPARED_RECOVERY_IMAGE_ID="${DEMEU_PREPARED_RECOVERY_IMAGE_ID-}"
+PREPARED_RECOVERY_COMMIT="${DEMEU_PREPARED_RECOVERY_COMMIT-}"
+PREPARED_IMAGE_ARCHIVE=""
+RECOVERY_EXPECTED_SHA=""
 
 log() {
   printf '[deploy] %s\n' "$*"
@@ -81,6 +90,12 @@ validate_common_inputs() {
     || die "HEALTH_ATTEMPTS must be a canonical integer from 1 to 999"
   [[ "$HEALTH_INTERVAL_SECONDS" =~ ^(0|[1-9][0-9]{0,2})$ ]] \
     || die "HEALTH_INTERVAL_SECONDS must be a canonical integer from 0 to 999"
+  if [ -n "$PREPARED_RECOVERY_IMAGE_ID" ] || [ -n "$PREPARED_RECOVERY_COMMIT" ]; then
+    [[ "$PREPARED_RECOVERY_IMAGE_ID" =~ ^sha256:[a-f0-9]{64}$ ]] \
+      || die "prepared recovery image must be an immutable sha256 image ID"
+    [[ "$PREPARED_RECOVERY_COMMIT" =~ ^[0-9a-f]{7}$ ]] \
+      || die "prepared recovery commit must be the canonical 7-character runtime SHA"
+  fi
 }
 
 require_deep_probe_authorization() {
@@ -241,6 +256,7 @@ configure_compose() {
       || die "current production requires TLS_BRANCH=branch-b-caddy"
     COMPOSE_ARGS+=(-f deploy/compose.new-server-ip.yml)
   fi
+  configure_private_mis
   docker compose "${COMPOSE_ARGS[@]}" config --quiet
 }
 
@@ -430,14 +446,149 @@ restore_deploy_markers() {
   return "$failed"
 }
 
+image_commit_sha() {
+  local image="$1" value
+  value="$(docker image inspect --format '{{range .Config.Env}}{{println .}}{{end}}' "$image" \
+    | awk -F= '$1 == "COMMIT_SHA" { count++; value=substr($0,12) } END { if (count == 1) printf "%s", value; else exit 1 }')" \
+    || return 1
+  [[ "$value" =~ ^[0-9a-f]{7,40}$ ]] || return 1
+  printf '%s' "$value"
+}
+
+assert_marker_only_child_layer() {
+  local base="$1" prepared="$2" schema="$3" status=0
+  PREPARED_IMAGE_ARCHIVE="$(mktemp "${APP_DIR}/.prepared-recovery-image.XXXXXX")" || return 1
+  if ! docker image save --output "$PREPARED_IMAGE_ARCHIVE" "$prepared"; then
+    rm -f "$PREPARED_IMAGE_ARCHIVE"
+    PREPARED_IMAGE_ARCHIVE=""
+    return 1
+  fi
+  docker run --rm --network none --read-only --cap-drop ALL --user 0 \
+    --security-opt no-new-privileges \
+    --mount "type=bind,src=${PREPARED_IMAGE_ARCHIVE},dst=/archive/image.tar,readonly" \
+    --tmpfs /work:rw,noexec,nosuid,nodev,size=16777216 \
+    --entrypoint node "$base" -e '
+      // demeu-recovery-layer:v1
+      const fs = require("node:fs");
+      const { spawnSync } = require("node:child_process");
+      const archive = process.argv[1];
+      const work = process.argv[2];
+      const expectedSchema = process.argv[3];
+      const baseAppPath = process.argv[4];
+      const fail = () => process.exit(1);
+      const untar = (...args) => {
+        const result = spawnSync("tar", args, { encoding: "utf8", maxBuffer: 1024 * 1024 });
+        if (result.status !== 0) fail();
+        return result.stdout;
+      };
+      try {
+        untar("-xf", archive, "-C", work, "manifest.json");
+        const manifest = JSON.parse(fs.readFileSync(`${work}/manifest.json`, "utf8"));
+        if (!Array.isArray(manifest) || manifest.length !== 1 || !Array.isArray(manifest[0].Layers)
+          || manifest[0].Layers.length < 1) fail();
+        const layer = manifest[0].Layers.at(-1);
+        if (typeof layer !== "string" || layer.startsWith("/") || layer.includes("..")
+          || !/^[A-Za-z0-9._/-]+$/.test(layer)) fail();
+        untar("-xf", archive, "-C", work, layer);
+        const layerPath = `${work}/${layer}`;
+        const layerInfo = fs.lstatSync(layerPath);
+        if (!layerInfo.isFile() || layerInfo.isSymbolicLink() || layerInfo.size < 1 || layerInfo.size > 1048576) fail();
+        const header = Buffer.alloc(2);
+        const descriptor = fs.openSync(layerPath, "r");
+        try {
+          if (fs.readSync(descriptor, header, 0, header.length, 0) !== header.length) fail();
+        } finally {
+          fs.closeSync(descriptor);
+        }
+        const compressed = header[0] === 0x1f && header[1] === 0x8b;
+        const entries = untar(compressed ? "-tzf" : "-tf", layerPath).trim().split("\n").filter(Boolean)
+          .map((entry) => entry.replace(/^\.\//, ""));
+        const markerOnly = entries.length === 1 && entries[0] === "app/referral-schema-version";
+        const markerWithParent = entries.length === 2 && entries[0] === "app/"
+          && entries[1] === "app/referral-schema-version";
+        if (!markerOnly && !markerWithParent) fail();
+        fs.mkdirSync(`${work}/layer`, { mode: 0o700 });
+        untar(compressed ? "-xzf" : "-xf", layerPath, "-C", `${work}/layer`);
+        const app = fs.lstatSync(`${work}/layer/app`);
+        const baseApp = fs.lstatSync(baseAppPath);
+        const marker = fs.lstatSync(`${work}/layer/app/referral-schema-version`);
+        if (!app.isDirectory() || app.isSymbolicLink() || !marker.isFile() || marker.isSymbolicLink()) fail();
+        if (markerWithParent && (!baseApp.isDirectory() || baseApp.isSymbolicLink()
+          || app.uid !== baseApp.uid || app.gid !== baseApp.gid
+          || (app.mode & 0o7777) !== (baseApp.mode & 0o7777))) fail();
+        if (fs.readdirSync(`${work}/layer`).join(",") !== "app"
+          || fs.readdirSync(`${work}/layer/app`).join(",") !== "referral-schema-version") fail();
+        const value = fs.readFileSync(`${work}/layer/app/referral-schema-version`, "utf8");
+        process.exit(value === `${expectedSchema}\n` ? 0 : 1);
+      } catch { fail(); }
+    ' /archive/image.tar /work "$schema" /app >/dev/null 2>&1 || status=1
+  rm -f "$PREPARED_IMAGE_ARCHIVE" || status=1
+  PREPARED_IMAGE_ARCHIVE=""
+  return "$status"
+}
+
+assert_prepared_recovery_image() {
+  local prepared="$1" expected_commit="$2" running latest resolved full short source_schema image_schema checkout_commit
+  local current_config prepared_config
+  local -a current_layers prepared_layers
+
+  running="$(docker inspect --format '{{.Image}}' demeu-app 2>/dev/null)" || return 1
+  [[ "$running" =~ ^sha256:[a-f0-9]{64}$ ]] || return 1
+  latest="$(resolve_recovery_image demeu-app:latest)" || return 1
+  [ "$running" = "$latest" ] || return 1
+  assert_recovery_image_marker_absent "$running" || return 1
+  if [ "$OLD_GREEN_SHA_PRESENT" = "1" ]; then
+    [ "$OLD_GREEN_SHA" = "$expected_commit" ] || return 1
+  fi
+  if [ "$SERVER_GIT_MODE" = "1" ]; then
+    [ "$PREVIOUS_SHA" = "$expected_commit" ] || return 1
+  else
+    checkout_commit="$(git rev-parse --short HEAD)" || return 1
+    [ "$checkout_commit" = "$expected_commit" ] || return 1
+  fi
+  resolved="$(resolve_recovery_image "$prepared")" || return 1
+  [ "$resolved" = "$prepared" ] || return 1
+  [ "$(image_commit_sha "$running")" = "$expected_commit" ] || return 1
+  [ "$(image_commit_sha "$prepared")" = "$expected_commit" ] || return 1
+
+  full="$(git rev-parse --verify "${expected_commit}^{commit}" 2>/dev/null)" || return 1
+  short="$(git rev-parse --short "$full")" || return 1
+  [ "$expected_commit" = "$short" ] || [ "$expected_commit" = "$full" ] || return 1
+  source_schema="$(git show "${full}:deploy/referral-schema-version" 2>/dev/null | tr -d '\n\r')" || return 1
+  [[ "$source_schema" =~ ^[1-6]$ ]] || return 1
+  image_schema="$(read_recovery_image_schema "$prepared")" || return 1
+  [ "$image_schema" = "$source_schema" ] || return 1
+
+  current_config="$(docker image inspect --format '{{json .Config}}' "$running")" || return 1
+  prepared_config="$(docker image inspect --format '{{json .Config}}' "$prepared")" || return 1
+  [ "$current_config" = "$prepared_config" ] || return 1
+  mapfile -t current_layers < <(docker image inspect --format '{{join .RootFS.Layers "\n"}}' "$running") \
+    || return 1
+  mapfile -t prepared_layers < <(docker image inspect --format '{{join .RootFS.Layers "\n"}}' "$prepared") \
+    || return 1
+  [ "${#current_layers[@]}" -gt 0 ] \
+    && [ "${#prepared_layers[@]}" -eq "$(( ${#current_layers[@]} + 1 ))" ] || return 1
+  local index
+  for ((index = 0; index < ${#current_layers[@]}; index++)); do
+    [[ "${current_layers[index]}" =~ ^sha256:[a-f0-9]{64}$ ]] || return 1
+    [ "${current_layers[index]}" = "${prepared_layers[index]}" ] || return 1
+  done
+  [[ "${prepared_layers[-1]}" =~ ^sha256:[a-f0-9]{64}$ ]] || return 1
+  assert_marker_only_child_layer "$running" "$prepared" "$source_schema" || return 1
+}
+
 snapshot_recovery_image() {
-  local current_health_ok=0 detected_mode=""
+  local current_health_ok=0 detected_mode="" expected_commit="${OLD_GREEN_SHA-}"
   if docker image inspect "$LAST_GREEN_IMAGE" >/dev/null 2>&1; then
     LAST_GREEN_SAFE=1
   fi
+  if [ -n "$PREPARED_RECOVERY_IMAGE_ID" ]; then
+    expected_commit="$PREPARED_RECOVERY_COMMIT"
+    LAST_GREEN_SAFE=0
+  fi
   if docker image inspect demeu-app:latest >/dev/null 2>&1; then
-    if [ "$OLD_GREEN_SHA_PRESENT" = "1" ]; then
-      detected_mode="$(health_probe_existing "$OLD_GREEN_SHA" || true)"
+    if [ -n "$expected_commit" ]; then
+      detected_mode="$(health_probe_existing "$expected_commit" || true)"
     else
       detected_mode="$(health_probe_existing || true)"
     fi
@@ -447,15 +598,37 @@ snapshot_recovery_image() {
     fi
     if [ "$current_health_ok" = "1" ]; then
       PREEXISTING_APP_PRESENT=1
-      docker image tag demeu-app:latest "$LAST_GREEN_IMAGE"
-      LAST_GREEN_SAFE=1
+      if [ -n "$PREPARED_RECOVERY_IMAGE_ID" ]; then
+        assert_prepared_recovery_image "$PREPARED_RECOVERY_IMAGE_ID" "$PREPARED_RECOVERY_COMMIT" \
+          || die "prepared recovery image provenance is invalid"
+        docker image tag "$PREPARED_RECOVERY_IMAGE_ID" "$RECOVERY_IMAGE"
+        RECOVERY_IMAGE_ID="$(resolve_recovery_image "$RECOVERY_IMAGE")" \
+          || die "prepared recovery image identity could not be pinned"
+        [ "$RECOVERY_IMAGE_ID" = "$PREPARED_RECOVERY_IMAGE_ID" ] \
+          || die "prepared recovery image identity changed while pinning"
+        RECOVERY_IMAGE_AVAILABLE=1
+        RECOVERY_EXPECTED_SHA="$PREPARED_RECOVERY_COMMIT"
+        LAST_GREEN_SAFE=1
+      else
+        docker image tag demeu-app:latest "$LAST_GREEN_IMAGE"
+        LAST_GREEN_SAFE=1
+      fi
     elif [ "$OLD_GREEN_SHA_PRESENT" = "1" ] || [ "$LAST_GREEN_SAFE" = "1" ]; then
       die "existing production health could not be verified before build"
     fi
+  elif [ -n "$PREPARED_RECOVERY_IMAGE_ID" ]; then
+    die "prepared recovery image requires the existing production image and container"
   fi
-  if [ "$LAST_GREEN_SAFE" = "1" ]; then
+  if [ "$LAST_GREEN_SAFE" = "1" ] && [ "$RECOVERY_IMAGE_AVAILABLE" != "1" ]; then
     docker image tag "$LAST_GREEN_IMAGE" "$RECOVERY_IMAGE"
+    RECOVERY_IMAGE_ID="$(resolve_recovery_image "$RECOVERY_IMAGE")" || die "recovery image identity could not be pinned"
     RECOVERY_IMAGE_AVAILABLE=1
+  fi
+  if [ "$RECOVERY_IMAGE_AVAILABLE" = "1" ]; then
+    assert_recovery_image_compatible "$RECOVERY_IMAGE_ID" \
+      || die "saved recovery image cannot read current persistent state"
+    assert_private_mis_readable "$RECOVERY_IMAGE_ID" \
+      || die "MIS credentials are invalid or unreadable by saved runtime UID"
   fi
 }
 
@@ -470,6 +643,12 @@ recover_deployment() {
   fi
   RECOVERY_RUNNING=1
   log "activation failed; recovering the last green release"
+  if [ "$RUNTIME_MUTATION_STARTED" = "1" ] && [ "$RECOVERY_IMAGE_AVAILABLE" = "1" ]; then
+    if ! assert_recovery_image_compatible "$RECOVERY_IMAGE_ID" || ! assert_private_mis_readable "$RECOVERY_IMAGE_ID"; then
+      printf '[deploy] FAIL: recovery image is incompatible with current persistent state or private mounts; retain current runtime and use validated recovery\n' >&2
+      return 1
+    fi
+  fi
 
   if [ "$SERVER_GIT_MODE" = "1" ] && [ -n "$PREVIOUS_SHA" ]; then
     git reset --hard --quiet "$PREVIOUS_SHA" || recovery_failed=1
@@ -487,11 +666,13 @@ recover_deployment() {
         last_green_restored=1
       fi
     elif [ "$RECOVERY_IMAGE_AVAILABLE" = "1" ]; then
-      docker image tag "$RECOVERY_IMAGE" "$LAST_GREEN_IMAGE" || recovery_failed=1
+      docker image tag "$RECOVERY_IMAGE_ID" "$LAST_GREEN_IMAGE" || recovery_failed=1
       docker image tag "$LAST_GREEN_IMAGE" demeu-app:latest || recovery_failed=1
       compose up -d --no-build --force-recreate app >/dev/null \
         || recovery_failed=1
-      if [ "$recovery_failed" = "0" ] && [ "$OLD_GREEN_SHA_PRESENT" = "1" ]; then
+      if [ "$recovery_failed" = "0" ] && [ -n "$RECOVERY_EXPECTED_SHA" ]; then
+        wait_for_existing_health "$RECOVERY_EXPECTED_SHA" "$CURRENT_PROCESSING_MODE" || recovery_failed=1
+      elif [ "$recovery_failed" = "0" ] && [ "$OLD_GREEN_SHA_PRESENT" = "1" ]; then
         wait_for_existing_health "$OLD_GREEN_SHA" "$CURRENT_PROCESSING_MODE" || recovery_failed=1
       elif [ "$recovery_failed" = "0" ]; then
         wait_for_existing_health "" "$CURRENT_PROCESSING_MODE" || recovery_failed=1
@@ -500,7 +681,10 @@ recover_deployment() {
         last_green_restored=1
       fi
     elif [ "$LAST_GREEN_SAFE" = "1" ]; then
-      docker image tag "$LAST_GREEN_IMAGE" demeu-app:latest || recovery_failed=1
+      local fallback_id
+      fallback_id="$(resolve_recovery_image "$LAST_GREEN_IMAGE")" || return 1
+      assert_recovery_image_compatible "$fallback_id" && assert_private_mis_readable "$fallback_id" || return 1
+      docker image tag "$fallback_id" demeu-app:latest || recovery_failed=1
       compose up -d --no-build --force-recreate app >/dev/null \
         || recovery_failed=1
       if [ "$recovery_failed" = "0" ]; then
@@ -531,6 +715,11 @@ handle_exit() {
   local status="$?" recovery_status=0
   trap - EXIT INT TERM
   set +e
+
+  if [ -n "$PREPARED_IMAGE_ARCHIVE" ]; then
+    rm -f "$PREPARED_IMAGE_ARCHIVE" >/dev/null 2>&1 || true
+    PREPARED_IMAGE_ARCHIVE=""
+  fi
 
   if [ "$status" -ne 0 ] && [ "$ACTIVATION_STARTED" = "1" ] \
     && [ "$DEPLOY_SUCCEEDED" != "1" ]; then
@@ -599,6 +788,7 @@ activate_server_release() {
   log "building commit ${COMMIT_SHA}"
   RUNTIME_MUTATION_STARTED=1
   compose build --pull app
+  assert_private_mis_readable demeu-app:latest || die "MIS credential JSON or mapped runtime UID readability is invalid"
   compose up -d --remove-orphans
 
   if ! wait_for_health "$COMMIT_SHA"; then
@@ -637,6 +827,36 @@ activate_server_release() {
   DEPLOY_SUCCEEDED=1
   docker image rm "$RECOVERY_IMAGE" >/dev/null 2>&1 || true
   log "release is healthy: commit verified, processing_mode=${PROCESSING_MODE}"
+}
+
+check_prepared_recovery() {
+  local detected_mode
+  [ -n "$PREPARED_RECOVERY_IMAGE_ID" ] && [ -n "$PREPARED_RECOVERY_COMMIT" ] \
+    || die "prepared recovery preflight requires both one-shot variables"
+  require_command docker
+  require_command git
+  require_command awk
+  require_command mktemp
+
+  cd "$APP_DIR" || die "APP_DIR does not exist"
+  acquire_deploy_lock
+  load_processing_mode
+  validate_secret_file
+  snapshot_deploy_markers
+  validate_server_config
+  configure_compose
+  COMPOSE_READY=1
+
+  detected_mode="$(health_probe_existing "$PREPARED_RECOVERY_COMMIT" || true)"
+  [ -n "$detected_mode" ] || die "existing production health does not match prepared recovery commit"
+  CURRENT_PROCESSING_MODE="$detected_mode"
+  assert_prepared_recovery_image "$PREPARED_RECOVERY_IMAGE_ID" "$PREPARED_RECOVERY_COMMIT" \
+    || die "prepared recovery image provenance is invalid"
+  assert_recovery_image_compatible "$PREPARED_RECOVERY_IMAGE_ID" \
+    || die "prepared recovery image cannot read current persistent state"
+  assert_private_mis_readable "$PREPARED_RECOVERY_IMAGE_ID" \
+    || die "MIS credentials are invalid or unreadable by prepared runtime UID"
+  log "prepared recovery preflight passed: provenance, persistent state and private mounts"
 }
 
 run_rsync_mode() {
@@ -679,13 +899,19 @@ run_rsync_mode() {
     -- ./ "${SERVER}:${APP_DIR}/"
 
   ssh -- "$SERVER" \
-    "cd '$APP_DIR' && APP_DIR='$APP_DIR' DEMEU_DEEP_PROBE='$DEEP_PROBE_AUTHORIZATION' bash deploy/deploy.sh --activate-rsync '$commit_sha'"
+    "cd '$APP_DIR' && APP_DIR='$APP_DIR' DEMEU_DEEP_PROBE='$DEEP_PROBE_AUTHORIZATION' DEMEU_PREPARED_RECOVERY_IMAGE_ID='$PREPARED_RECOVERY_IMAGE_ID' DEMEU_PREPARED_RECOVERY_COMMIT='$PREPARED_RECOVERY_COMMIT' bash deploy/deploy.sh --activate-rsync '$commit_sha'"
 }
 
 validate_common_inputs
 trap 'handle_exit' EXIT
 trap 'handle_signal INT 130' INT
 trap 'handle_signal TERM 143' TERM
+
+if [ "${1-}" = --check-prepared-recovery ]; then
+  [ "$#" -eq 1 ] || die "prepared recovery preflight does not accept extra arguments"
+  check_prepared_recovery
+  exit 0
+fi
 
 case "$DEPLOY_MODE" in
   rsync)

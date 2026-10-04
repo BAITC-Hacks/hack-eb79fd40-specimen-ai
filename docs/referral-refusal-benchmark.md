@@ -9,11 +9,10 @@
 комплектности для этой версии не требуются. Это меняет готовность B3, но не
 постановку и метрики существующего D1 benchmark.
 
-Benchmark остаётся offline-исследованием. Его агрегированные метрики показаны
-в аналитическом интерфейсе, но patient-level scorer не подключён к карточке
-направления, API клинического пути или production scoring. Решение о такой
-интеграции принимается отдельно после отчёта, проверки переноса и Python ↔
-TypeScript parity.
+Benchmark остаётся исследованием. Отдельный server-side scorer подключён к
+карточке направления только по вручную подтверждённому неизменяемому снимку
+семи регистрационных полей. Он не подключён к клиническому решению, срочности,
+маршруту, комплектности, Telegram или пациентскому пакету.
 
 ## Данные и разбиение
 
@@ -93,15 +92,26 @@ Brier или полей выбора. Нестабильные между сер
 `joblib` из этого fingerprint исключены и проверяются отдельно для конкретного
 бинарного файла.
 
-## Контракт будущей карточки
+## Контракт карточки
 
 Карточка передаёт только семь регистрационных полей выше. Scorer возвращает
-`refusal_probability_among_mature_outcomes`, выбранный на validation
-`working_threshold`, один из двух диапазонов (`probability < threshold` или
-`probability >= threshold`), `method`, `model_version` и метку
+`refusalProbabilityAmongMatureOutcomes`, выбранный на validation
+`workingThreshold`, один из двух диапазонов (`probability < threshold` или
+`probability >= threshold`), `method`, `modelVersion` и метку
 экспериментальных ограничений. Это условная вероятность отказа среди зрелых
-непротиворечивых исходов. Интерфейс не должен показывать её как подтверждённый
-исход и не должен подключать scorer до отдельного решения об интеграции.
+непротиворечивых исходов. Интерфейс не показывает её как подтверждённый исход.
+При отсутствии снимка, обязательного поля или проверенного артефакта
+возвращается явное `unavailable`, никогда числовой ноль. `bed_profile` может
+быть `null`: такое пропущенное значение присутствовало при обучении;
+остальные шесть полей обязательны.
+
+Экспорт `models/referral-risk-v1.json` хранит только SHA-256 токены категорий и
+веса, поэтому значения категорий и строки источника не попадают в git. Токены
+подвержены словарному сопоставлению и не считаются анонимизацией. Runtime
+проверяет точный SHA артефакта и sklearn oracle. Отчёт
+`reports/referral-risk-parity.json` фиксирует проверку всех 223 353 мартовских
+строк тем же TypeScript scorer: максимальное расхождение
+`3.3306690738754696e-16`, расхождений диапазона нет.
 
 ## Воспроизведение
 
@@ -125,6 +135,13 @@ uv pip install --python .venv/bin/python -r scripts/referral_ml/requirements.txt
 .venv/bin/python -m scripts.referral_ml.verify_refusal_report \
   reports/referral-refusal-baseline-v0.json \
   --model data/processed/referral-refusal-baseline-v0.joblib
+.venv/bin/python -m scripts.referral_ml.export_referral_risk \
+  --model data/processed/referral-refusal-baseline-v0.joblib \
+  --report reports/referral-refusal-baseline-v0.json \
+  --input "$HANDOFF/referrals_features.parquet" \
+  --output models/referral-risk-v1.json \
+  --fixture tests/fixtures/referral-risk-v1.json \
+  --parity-report reports/referral-risk-parity.json
 .venv/bin/python -m unittest discover -s tests/referral_ml -p 'test_*.py'
 .venv/bin/ruff check scripts/referral_ml tests/referral_ml
 ```

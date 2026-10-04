@@ -1,0 +1,12 @@
+# Enabled by stock deploy/rollback only after explicit private host-file preflight.
+services:
+  app:
+    environment:
+      DEMEU_MIS_CREDENTIALS_FILE: /run/secrets/demeu-mis-credentials.json
+    volumes:
+      - type: bind
+        source: ${DEMEU_HOST_MIS_CREDENTIALS_FILE:?Set the explicitly configured private MIS file}
+        target: /run/secrets/demeu-mis-credentials.json
+        read_only: true
+        bind:
+          create_host_path: false

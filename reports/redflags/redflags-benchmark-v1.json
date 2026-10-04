@@ -172,7 +172,7 @@
       "id": "rules",
       "kind": "deterministic_rules",
       "model": "lib/redflags.ts",
-      "version": "36c2bf1f899883d7274529d1c52729d4e38087fb25d4b9ae33fe102413d75409",
+      "version": "8ec89a44d0b6de5a9f18223fa8cbdfc0442b81e5a5020b74c1d6effea7613669",
       "availability": "measured",
       "research_only": true,
       "item_count": 160,
@@ -181,10 +181,10 @@
         "fp": 0,
         "tn": 80,
         "fn": 0,
-        "precision": 1,
-        "recall": 1,
-        "f1": 1,
-        "false_positive_rate": 0
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "false_positive_rate": 0.0
       },
       "slices": {
         "language:ru": {
@@ -192,117 +192,125 @@
           "fp": 0,
           "tn": 40,
           "fn": 0,
-          "precision": 1,
-          "recall": 1,
-          "f1": 1,
-          "false_positive_rate": 0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
         },
         "language:kk": {
           "tp": 40,
           "fp": 0,
           "tn": 40,
           "fn": 0,
-          "precision": 1,
-          "recall": 1,
-          "f1": 1,
-          "false_positive_rate": 0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
         },
         "trigger:bleeding": {
           "tp": 10,
           "fp": 0,
           "tn": 10,
           "fn": 0,
-          "precision": 1,
-          "recall": 1,
-          "f1": 1,
-          "false_positive_rate": 0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
         },
         "trigger:chest_pain": {
           "tp": 10,
           "fp": 0,
           "tn": 10,
           "fn": 0,
-          "precision": 1,
-          "recall": 1,
-          "f1": 1,
-          "false_positive_rate": 0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
         },
         "trigger:consciousness": {
           "tp": 10,
           "fp": 0,
           "tn": 10,
           "fn": 0,
-          "precision": 1,
-          "recall": 1,
-          "f1": 1,
-          "false_positive_rate": 0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
         },
         "trigger:dyspnea_rest": {
           "tp": 10,
           "fp": 0,
           "tn": 10,
           "fn": 0,
-          "precision": 1,
-          "recall": 1,
-          "f1": 1,
-          "false_positive_rate": 0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
         },
         "trigger:meningeal": {
           "tp": 10,
           "fp": 0,
           "tn": 10,
           "fn": 0,
-          "precision": 1,
-          "recall": 1,
-          "f1": 1,
-          "false_positive_rate": 0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
         },
         "trigger:stroke": {
           "tp": 10,
           "fp": 0,
           "tn": 10,
           "fn": 0,
-          "precision": 1,
-          "recall": 1,
-          "f1": 1,
-          "false_positive_rate": 0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
         },
         "trigger:suicidal": {
           "tp": 10,
           "fp": 0,
           "tn": 10,
           "fn": 0,
-          "precision": 1,
-          "recall": 1,
-          "f1": 1,
-          "false_positive_rate": 0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
         },
         "trigger:thunderclap_headache": {
           "tp": 10,
           "fp": 0,
           "tn": 10,
           "fn": 0,
-          "precision": 1,
-          "recall": 1,
-          "f1": 1,
-          "false_positive_rate": 0
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "false_positive_rate": 0.0
         }
       },
       "latency_ms": {
         "measurement_unit": "per_item_wall_clock",
         "request_count": 160,
-        "total": 124.37403200000014,
-        "mean": 0.7773377000000009,
-        "p50": 0.020978000000013708,
-        "p95": 0.9114649999999926
+        "total": 141.53512699999985,
+        "mean": 0.884594543749999,
+        "p50": 0.026218000000028496,
+        "p95": 0.9948289999999815
       },
       "cost": {
         "currency": "USD",
-        "amount": 0,
+        "amount": 0.0,
         "basis": "local execution; hardware, electricity and operator time excluded"
       },
       "predictions_artifact": "eval/redflags/rules-v1.json",
-      "development_stage": "after corpus-guided hardening"
+      "development_stage": "after corpus-guided hardening",
+      "measured_at": "2026-10-04T14:21:58.537509+00:00",
+      "provenance": {
+        "source_sha256": "8ec89a44d0b6de5a9f18223fa8cbdfc0442b81e5a5020b74c1d6effea7613669",
+        "runner_sha256": "70cc9795d2da7add574480144d06260a7c9b75dd5944303ef1f201ef0672178f",
+        "corpus_sha256": "bafae774a648ccde988b4804a02d0d0adce983d7d979e6fcefcf230902ac5625",
+        "predictions_sha256": "c1ef260744849fd672bde6ff8eae54fe9f992e60116d4fff54152ee0639f19bb",
+        "execution": "offline deterministic TypeScript only; historical candidates unchanged"
+      }
     },
     {
       "id": "qwen2.5:7b",
@@ -747,5 +755,6 @@
     "independent_adversarial_review_cases_in_corpus": false,
     "independent_adversarial_review_test": "tests/unit/redflags.production-20260926.test.ts",
     "misses_artifact": "reports/redflags/rules-misses-before-hardening-v1.json"
-  }
+  },
+  "rules_refreshed_at": "2026-10-04T14:21:58.537509+00:00"
 }

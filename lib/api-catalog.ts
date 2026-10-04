@@ -1,5 +1,5 @@
 export type ApiMethod = "GET" | "POST" | "DELETE";
-export type ApiGroupId = "system" | "patient" | "auth" | "intakes" | "referrals" | "analytics" | "models" | "reference";
+export type ApiGroupId = "system" | "patient" | "auth" | "intakes" | "referrals" | "analytics" | "models" | "reference" | "mis";
 export type CodeLanguage = "curl" | "fetch";
 
 export interface ApiField {
@@ -7,6 +7,7 @@ export interface ApiField {
   type: string;
   required: boolean;
   description: string;
+  location?: "path" | "query" | "header" | "body";
 }
 
 export type ApiErrorSpec =
@@ -23,7 +24,7 @@ export interface ApiEndpoint {
   auth: {
     label: string;
     detail: string;
-    kind: "public" | "conditional" | "patient" | "workspace";
+    kind: "public" | "conditional" | "patient" | "workspace" | "service";
   };
   request: {
     contentType: "application/json" | "none";
@@ -35,9 +36,13 @@ export interface ApiEndpoint {
     status: number;
     description: string;
     example: unknown;
+    contentTypes?: readonly string[];
   };
   errors: readonly ApiErrorSpec[];
   notes?: readonly string[];
+  roles?: readonly ("owner" | "doctor" | "analyst")[];
+  pathExample?: Readonly<Record<string, string>>;
+  strictQuery?: boolean;
 }
 
 export interface ApiGroup {
@@ -55,11 +60,8 @@ export interface FlowStory {
   steps: readonly { endpointId: string; label: string; detail: string }[];
 }
 
-const field = (name: string, type: string, required: boolean, description: string): ApiField => ({
-  name,
-  type,
-  required,
-  description,
+const field = (name: string, type: string, required: boolean, description: string, location?: ApiField["location"]): ApiField => ({
+  name, type, required, description, ...(location ? { location } : {}),
 });
 
 const error = (status: number, code: string, meaning: string): ApiErrorSpec => ({ status, code, meaning });
@@ -74,6 +76,7 @@ const workspaceErrors = [
   error(401, "UNAUTHORIZED", "Сессия врача отсутствует или истекла."),
   error(403, "FORBIDDEN", "Роль или организация не дают доступа к операции."),
   error(413, "BODY_TOO_LARGE", "Тело превышает серверный предел."),
+  error(500, "INTERNAL", "Внутренняя ошибка обработки запроса."),
   error(503, "WORKSPACE_UNAVAILABLE", "Рабочее пространство не настроено или недоступно."),
 ] as const;
 
@@ -151,6 +154,12 @@ export const apiGroups: readonly ApiGroup[] = [
     title: "Справочник обследований",
     description: "Read-only контракт B1: профили госпитализации, требования приложения 5, сроки актуальности и статус врачебной проверки.",
   },
+  {
+    id: "mis",
+    eyebrow: "08 · Integration",
+    title: "МИС",
+    description: "Организационно ограниченная очередь событий с отдельной service credential, lease и ACK.",
+  },
 ] as const;
 
 const anon = { kind: "public", label: "Без авторизации", detail: "Не возвращает персональные данные." } as const;
@@ -164,6 +173,11 @@ const patient = {
   label: "Cookie пациента + same-origin",
   detail: "Capability-cookie привязан к sessionId; браузер отправляет его автоматически.",
 } as const;
+const service = {
+  kind: "service",
+  label: "MIS bearer credential",
+  detail: "Отдельный service credential с организацией и scope; browser cookie не принимается.",
+} as const;
 
 export const apiEndpoints: readonly ApiEndpoint[] = [
   {
@@ -174,7 +188,10 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     summary: "Проверить liveness",
     description: "Возвращает версию сборки и готовность режима обработки без платного сетевого вызова.",
     auth: anon,
-    request: { contentType: "none", fields: [], example: null, note: "Опциональный probe=extract защищён доказательством и не предназначен для частого polling." },
+    request: { contentType: "none", fields: [
+      field("probe", '"extract"', false, "Опциональная глубокая проверка; может выполнить один платный вызов только при корректном proof.", "query"),
+      field("x-demeu-health-proof", "hex HMAC", false, "Требуется для probe=extract во внешнем LLM режиме; вычисляется из ключа и commit.", "header"),
+    ], example: null, note: "Опциональный probe=extract защищён доказательством и не предназначен для частого polling." },
     success: {
       status: 200,
       description: "Процесс отвечает.",
@@ -195,6 +212,7 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     summary: "Создать ссылку пациенту",
     description: "В рабочем режиме связывает новый токен с текущим врачом. В legacy-режиме принимает код доступа.",
     auth: { kind: "conditional", label: "Workspace cookie или x-doctor-code", detail: "В production рабочее пространство имеет приоритет; код применяется только в legacy-режиме." },
+    roles: ["doctor"],
     request: { contentType: "application/json", fields: [], example: {}, note: "Каждый успешный вызов создаёт новый одноразовый токен." },
     success: { status: 200, description: "Токен для ссылки /c/{token}.", example: { token: "7fa31c2b940e4a71" } },
     errors: [error(401, "UNAUTHORIZED", "Врач не вошёл или код доступа неверен."), error(403, "FORBIDDEN", "Роль аналитика не создаёт ссылки."), error(409, "OWNER_CONFLICT", "Сгенерированный токен уже принадлежит другому врачу."), error(429, "RATE_LIMITED", "Лимит создания ссылок превышен."), error(500, "INTERNAL", "Не удалось создать или привязать ссылку."), error(503, "WORKSPACE_UNAVAILABLE", "Конфигурация рабочего пространства неполна.")],
@@ -296,9 +314,10 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     summary: "Список опросов врача",
     description: "Owner видит организацию, doctor — только свои записи; analyst персональный слой не получает.",
     auth: workspace,
+    roles: ["owner", "doctor"],
     request: { contentType: "none", fields: [], example: null },
     success: { status: 200, description: "Новые сначала; результат присутствует только у завершённых сессий.", example: { intakes: [{ sessionId: "a94648da-2d5e-4fe0-9010-72e972733850", createdAt: 1789897200000, status: "completed", deliveryStatus: "sent", referralId: null, result: { urgency: "emergency", source: "rules_only" } }] } },
-    errors: workspaceErrors,
+    errors: [error(401, "UNAUTHORIZED", "Сессия врача отсутствует или истекла."), error(403, "FORBIDDEN", "Analyst не получает персональный список."), error(500, "INTERNAL", "Внутренняя ошибка чтения."), error(503, "WORKSPACE_UNAVAILABLE", "Рабочее пространство недоступно.")],
   },
   {
     id: "intake-detail",
@@ -308,23 +327,26 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     summary: "Карточка опроса",
     description: "Возвращает полную врачебную сводку только владельцу записи или owner той же организации.",
     auth: workspace,
+    roles: ["owner", "doctor"],
     request: { contentType: "none", fields: [field("id", "uuid · path", true, "Идентификатор сессии.")], example: null },
     success: { status: 200, description: "Сессия, доставка, связанное направление и результат.", example: { intake: { sessionId: "a94648da-2d5e-4fe0-9010-72e972733850", createdAt: 1789897200000, status: "completed", deliveryStatus: "sent", referralId: "ref-demo-01", result: { urgency: "emergency", red_flags: [{ code: "chest_pain", emergency: true, evidence: "давящая боль в груди" }] } } } },
-    errors: [...workspaceErrors, error(404, "NOT_FOUND", "Запись скрыта или не существует; analyst получает тот же ответ.")],
+    errors: [error(401, "UNAUTHORIZED", "Сессия врача отсутствует или истекла."), error(404, "NOT_FOUND", "Запись скрыта или не существует; analyst получает тот же ответ."), error(500, "INTERNAL", "Внутренняя ошибка чтения."), error(503, "WORKSPACE_UNAVAILABLE", "Рабочее пространство недоступно.")],
   },
   {
     id: "referrals-list",
+    strictQuery: true,
     groupId: "referrals",
     method: "GET",
     path: "/api/referrals",
     summary: "Список направлений",
     description: "Возвращает доступные врачу карточки и принимает по одному фильтру текущего состояния и профиля.",
     auth: workspace,
+    roles: ["owner", "doctor"],
     request: {
       contentType: "none",
       fields: [
-        field("state", "query · journey flow", false, "Одно из: interviewed, specialist_referred, preparing, sent, waiting, scheduled, attended, not_attended."),
-        field("profile", "query · string", false, "Один профиль. Пробелы обрезаются, регистр нормализуется по закрытому справочнику; неизвестное непустое значение даёт пустой список."),
+        field("state", "query · journey flow", false, "Одно из: interviewed, specialist_referred, preparing, sent, waiting, scheduled, attended, not_attended.", "query"),
+        field("profile", "query · string", false, "Один профиль. Пробелы обрезаются, регистр нормализуется по закрытому справочнику; неизвестное непустое значение даёт пустой список.", "query"),
       ],
       example: null,
       note: "Каждый фильтр допускается не более одного раза. Повтор state/profile, неизвестный query-параметр или state вне списка возвращает 400 BAD_REQUEST; пустое значение считается отсутствующим фильтром.",
@@ -340,6 +362,7 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     summary: "Создать направление",
     description: "Фиксирует профиль из справочника и при необходимости связывает завершённый опрос.",
     auth: workspace,
+    roles: ["owner", "doctor"],
     request: {
       contentType: "application/json",
       fields: [field("patientLabel", "string", true, "Псевдоним для рабочего списка."), field("profile", "catalogue value", true, "Профиль из закрытого списка."), field("icd10Code", "string | null", false, "Код для аналитики."), field("destinationOrganization", "string | null", false, "Куда планируется госпитализация."), field("sourceSessionId", "uuid | null", false, "Завершённый опрос того же врача."), field("idempotencyKey", "string", true, "Уникальный ключ команды.")],
@@ -356,9 +379,10 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     summary: "Карточка направления",
     description: "Собирает факты, историю, обследования и вычисленную комплектность на одной ревизии.",
     auth: workspace,
+    roles: ["owner", "doctor"],
     request: { contentType: "none", fields: [field("id", "string · path", true, "Идентификатор направления.")], example: null },
     success: { status: 200, description: "Полная карточка для врача.", example: { referral: { id: "ref-demo-01", revision: 3, flow: "preparing", completeness: { status: "unknown", catalogueAvailable: false, catalogueValidated: false, evaluatedOn: "2026-09-26", entries: [] } } } },
-    errors: [...workspaceErrors, error(404, "NOT_FOUND", "Направление не найдено в доступной области.")],
+    errors: [error(401, "UNAUTHORIZED", "Сессия врача отсутствует или истекла."), error(403, "FORBIDDEN", "Analyst не получает персональную карточку."), error(404, "NOT_FOUND", "Направление не найдено в доступной области."), error(500, "INTERNAL", "Внутренняя ошибка чтения."), error(503, "WORKSPACE_UNAVAILABLE", "Рабочее пространство недоступно.")],
   },
   {
     id: "referral-event",
@@ -368,9 +392,10 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     summary: "Подтвердить изменение пути",
     description: "Добавляет аудируемое врачебное событие; сервер требует ожидаемую ревизию и причину коррекции.",
     auth: workspace,
+    roles: ["owner", "doctor"],
     request: { contentType: "application/json", fields: [field("expectedRevision", "integer", true, "Текущая revision карточки."), field("idempotencyKey", "string", true, "Ключ команды."), field("patch", "ReferralFacts patch", true, "Только разрешённые факты пути."), field("reason", "string | null", false, "Причина ручной коррекции."), field("occurredAt", "unix ms | null", false, "Когда событие произошло фактически.")], example: { expectedRevision: 3, idempotencyKey: "event-demo-04", patch: { specialistReferred: true, preparationStarted: true }, reason: "Подтверждено врачом", occurredAt: 1789897800000 } },
     success: { status: 200, description: "Карточка с новой ревизией и событием.", example: { referral: { id: "ref-demo-01", revision: 4, flow: "preparing", updatedAt: 1789897800000 } } },
-    errors: [...referralErrors, error(400, "ATTENDANCE_DATE_INVALID", "Явку нельзя подтвердить раньше назначенной даты."), error(400, "REASON_REQUIRED", "Изменение требует объяснения врача."), error(400, "SOURCE_SESSION_REQUIRED", "Этап опроса требует связанной завершённой сессии."), error(409, "REFERRAL_CANCELLED", "Сначала явно возобновите отменённое направление.")],
+    errors: [...referralErrors, error(400, "ATTENDANCE_DATE_INVALID", "Явку нельзя подтвердить раньше назначенной даты."), error(400, "REASON_REQUIRED", "Изменение требует объяснения врача."), error(400, "SOURCE_SESSION_REQUIRED", "Этап опроса требует связанной завершённой сессии."), error(409, "NO_CHANGES", "Подтверждённые факты не изменились."), error(409, "REFERRAL_CANCELLED", "Сначала явно возобновите отменённое направление.")],
   },
   {
     id: "referral-examination",
@@ -380,9 +405,10 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     summary: "Записать обследование",
     description: "Сохраняет наличие, даты и применимость позиции, затем пересчитывает комплектность.",
     auth: workspace,
+    roles: ["owner", "doctor"],
     request: { contentType: "application/json", fields: [field("expectedRevision", "integer", true, "Текущая revision."), field("idempotencyKey", "string", true, "Ключ команды."), field("record", "ExaminationRecord", true, "Позиция из справочника или врачебная запись."), field("reason", "string | null", false, "Причина исправления."), field("occurredAt", "unix ms | null", false, "Фактическое время.")], example: { expectedRevision: 4, idempotencyKey: "exam-demo-05", record: { requirementId: "cbc", label: "Общий анализ крови", resultAvailable: true, performedOn: "2026-09-24", expiresOn: "2026-10-08", applicability: "yes" }, reason: "Результат получен" } },
     success: { status: 200, description: "Обновлённая карточка с новой комплектностью.", example: { referral: { id: "ref-demo-01", revision: 5, completeness: { status: "unknown", catalogueValidated: false, entries: [{ requirementId: "cbc", label: "Общий анализ крови", required: true, status: "present", expiresOn: "2026-10-08" }] } } } },
-    errors: [...referralErrors, error(409, "DUPLICATE_EXAMINATION", "Позиция уже существует; исправьте текущую запись.")],
+    errors: [...referralErrors, error(400, "REASON_REQUIRED", "Для исправления позиции нужна причина."), error(409, "PACKAGE_CHANGED", "Снимок пакета изменился."), error(409, "DUPLICATE_EXAMINATION", "Позиция уже существует; исправьте текущую запись.")],
   },
   {
     id: "referral-notify",
@@ -392,6 +418,7 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     summary: "Отправить сводку врачу",
     description: "Доставляет направление и памятку текущему настроенному получателю с защитой от повторной отправки.",
     auth: workspace,
+    roles: ["owner", "doctor"],
     request: { contentType: "application/json", fields: [field("expectedRevision", "integer", true, "Ревизия, которую врач видит на экране."), field("idempotencyKey", "string 8–128", true, "Ключ одной попытки доставки.")], example: { expectedRevision: 5, idempotencyKey: "notify-demo-06" } },
     success: { status: 200, description: "Telegram подтвердил отправку.", example: { sent: true } },
     errors: [...referralErrors, error(409, "DELIVERY_UNCONFIRMED", "Предыдущая попытка имеет неопределённый исход; сначала проверьте чат."), error(503, "DELIVERY_RECIPIENT_UNAVAILABLE", "У врача нет доступного chat id.")],
@@ -404,13 +431,16 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     summary: "Получить памятку пациенту",
     description: "По умолчанию отдаёт JSON; query format=pdf возвращает печатный PDF с тем же содержанием.",
     auth: workspace,
-    request: { contentType: "none", fields: [field("id", "string · path", true, "Идентификатор направления."), field("format", '"pdf" · query', false, "Запросить application/pdf.")], example: null },
-    success: { status: 200, description: "JSON-памятка или PDF attachment.", example: { memo: { patientLabel: "CASE-NEURO-001", scheduledDate: "2026-10-02", destinationOrganization: "Городской стационар", catalogueAvailable: false, items: [{ label: "Общий анализ крови", status: "present", expiresOn: "2026-10-08" }] } } },
-    errors: [...workspaceErrors, error(404, "NOT_FOUND", "Направление не найдено."), error(503, "PDF_UNAVAILABLE", "PDF временно не собрался; JSON остаётся доступен.")],
+    roles: ["owner", "doctor"],
+    request: { contentType: "none", fields: [field("id", "string · path", true, "Идентификатор направления.", "path"), field("format", "string · query", false, "Значение pdf запрашивает application/pdf; другие значения сохраняют legacy JSON-ответ.", "query")], example: null,
+      note: "Legacy handler permissive: неизвестные и повторные query-параметры не отклоняются; формат выбирается по первому format=pdf." },
+    success: { status: 200, description: "JSON-памятка или PDF attachment.", contentTypes: ["application/json", "application/pdf"], example: { memo: { patientLabel: "CASE-NEURO-001", scheduledDate: "2026-10-02", destinationOrganization: "Городской стационар", catalogueAvailable: false, items: [{ label: "Общий анализ крови", status: "present", expiresOn: "2026-10-08" }] } } },
+    errors: [error(401, "UNAUTHORIZED", "Сессия врача отсутствует или истекла."), error(403, "FORBIDDEN", "Analyst не получает персональную памятку."), error(404, "NOT_FOUND", "Направление не найдено."), error(500, "INTERNAL", "Внутренняя ошибка чтения."), error(503, "WORKSPACE_UNAVAILABLE", "Рабочее пространство недоступно."), error(503, "PDF_UNAVAILABLE", "PDF временно не собрался; JSON остаётся доступен.")],
     notes: ["Справочник с validated=false отображается как непроверенный.", "PDF не содержит токенов, cookies или служебных идентификаторов."],
   },
   {
     id: "aggregates",
+    strictQuery: true,
     groupId: "analytics",
     method: "GET",
     path: "/api/workspace/aggregates",
@@ -544,12 +574,13 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
     errors: [...modelEvidenceErrors, error(404, "NOT_FOUND", "Модель или исследовательский контур с таким id отсутствует.")],
     notes: [
       "Detail не содержит predictions, весов, feature/class order, сырых строк и абсолютных путей.",
-      "D1, B3 и D2 не являются patient-level runtime API: карточка публикует только агрегированное evidence.",
+      "B3 имеет отдельный research-only per-referral runtime endpoint по неизменяемым подтверждённым входам и не влияет на клинические или операционные решения; карточки D1/D2 публикуют только агрегированный статус.",
       "Для blocked/unavailable контуров отсутствие метрики представлено null вместе с причиной и требуемыми входами.",
     ],
   },
   {
     id: "examination-requirements-reference",
+    strictQuery: true,
     groupId: "reference",
     method: "GET",
     path: "/api/reference/examination-requirements",
@@ -598,6 +629,224 @@ export const apiEndpoints: readonly ApiEndpoint[] = [
       "Полный ответ содержит все восемь профилей; success example показывает структуру и оба варианта validForDays.",
     ],
   },
+  {
+    id: "chat-preparation",
+    groupId: "patient",
+    method: "POST",
+    path: "/api/chat/preparation",
+    summary: "Получить доступ к подготовке",
+    description: "Для защищённой сессии создаёт или возвращает узкую ссылку на пакет подготовки пациента.",
+    auth: patient,
+    request: { contentType: "application/json", fields: [field("sessionId", "uuid", true, "Идентификатор защищённой сессии.")], example: { sessionId: "a94648da-2d5e-4fe0-9010-72e972733850" } },
+    success: { status: 200, description: "Сессия связана с подготовкой либо пакет ещё ожидает направления.", example: { sessionId: "a94648da-2d5e-4fe0-9010-72e972733850", preparationPending: true } },
+    errors: [error(400, "BAD_REQUEST", "Тело не прошло строгую проверку."), error(401, "UNAUTHORIZED", "Capability-cookie недействительна."), error(403, "FORBIDDEN", "Origin не совпал."), error(404, "SESSION_NOT_FOUND", "Сессия не найдена."), error(413, "BODY_TOO_LARGE", "Тело превышает предел."), error(500, "INTERNAL", "Внутренняя ошибка."), error(503, "WORKSPACE_UNAVAILABLE", "Рабочее пространство недоступно.")],
+  },
+  {
+    id: "patient-access",
+    strictQuery: true,
+    groupId: "patient",
+    method: "POST",
+    path: "/api/patient/access",
+    summary: "Активировать ссылку подготовки",
+    description: "Обменивает одноразовый токен подготовки на узкую HttpOnly cookie одного эпизода.",
+    auth: { kind: "conditional", label: "Токен подготовки + same-origin", detail: "Токен передаётся один раз; ответ устанавливает динамическую capability-cookie." },
+    request: { contentType: "application/json", fields: [field("token", "opaque token", true, "Токен из персональной ссылки.")], example: { token: "<preparation-token>" } },
+    success: { status: 200, description: "Безопасный пакет подготовки.", example: { package: { accessId: "prep-demo-01", state: "preparing", catalogueValidated: false, catalogueAvailable: false, confirmedCompleteness: "unknown", items: [] } } },
+    errors: [error(400, "BAD_REQUEST", "Тело или токен неверны."), error(401, "UNAUTHORIZED", "Токен недействителен или истёк."), error(403, "FORBIDDEN", "Origin не совпал."), error(413, "BODY_TOO_LARGE", "Тело превышает предел."), error(503, "WORKSPACE_UNAVAILABLE", "Хранилище недоступно.")],
+  },
+  {
+    id: "patient-discover",
+    strictQuery: true,
+    groupId: "patient",
+    method: "POST",
+    path: "/api/patient/discover",
+    summary: "Найти ранее активированный пакет",
+    description: "Находит пакет только при совпадении исходной ссылки и уже выданной capability-cookie.",
+    auth: patient,
+    request: { contentType: "application/json", fields: [field("token", "16 hex chars", true, "Исходный токен ссылки.")], example: { token: "7fa31c2b940e4a71" } },
+    success: { status: 200, description: "Тот же безопасный пакет эпизода.", example: { package: { accessId: "prep-demo-01", state: "preparing", catalogueValidated: false, confirmedCompleteness: "unknown", items: [] } } },
+    errors: [error(400, "BAD_REQUEST", "Тело неверно."), error(401, "UNAUTHORIZED", "Ссылка или cookie не совпали."), error(403, "FORBIDDEN", "Origin не совпал."), error(413, "BODY_TOO_LARGE", "Тело превышает предел."), error(503, "WORKSPACE_UNAVAILABLE", "Хранилище недоступно.")],
+  },
+  {
+    id: "patient-package-read",
+    strictQuery: true,
+    groupId: "patient",
+    method: "GET",
+    path: "/api/patient/{id}/package",
+    summary: "Прочитать пакет подготовки",
+    description: "Возвращает whitelist JSON либо PDF без врачебной гипотезы, вероятностей, маршрутизации и внутренних полей.",
+    auth: patient,
+    request: { contentType: "none", fields: [field("id", "preparation access id", true, "Идентификатор доступа.", "path"), field("format", '"pdf"', false, "Формат PDF.", "query"), field("lang", '"ru" | "kk"', false, "Язык PDF; допустим только вместе с format=pdf.", "query")], example: null },
+    success: { status: 200, description: "JSON-пакет или PDF.", contentTypes: ["application/json", "application/pdf"], example: { package: { accessId: "prep-demo-01", state: "preparing", catalogueValidated: false, confirmedCompleteness: "unknown", items: [] } } },
+    errors: [error(400, "BAD_REQUEST", "Query не соответствует строгой схеме."), error(401, "UNAUTHORIZED", "Cookie доступа отсутствует или истекла."), error(403, "FORBIDDEN", "Cross-site чтение отклонено."), error(503, "INTERNAL", "Пакет или PDF временно недоступен.")],
+    pathExample: { id: "prep-demo-01" },
+  },
+  {
+    id: "patient-package-report",
+    strictQuery: true,
+    groupId: "patient",
+    method: "POST",
+    path: "/api/patient/{id}/package",
+    summary: "Сохранить отметку пациента",
+    description: "Сохраняет self-report отдельно от врачебного подтверждения; он не делает пакет проверенно комплектным.",
+    auth: patient,
+    request: { contentType: "application/json", fields: [field("id", "preparation access id", true, "Идентификатор доступа.", "path"), field("requirementId", "string", true, "Позиция активного снимка."), field("performedOn", "YYYY-MM-DD", true, "Дата со слов пациента."), field("resultAvailable", "boolean", true, "Есть ли результат."), field("expectedRevision", "integer", true, "Версия отметки."), field("idempotencyKey", "string", true, "Ключ повтора.")], example: { requirementId: "cbc", performedOn: "2026-10-01", resultAvailable: true, expectedRevision: 0, idempotencyKey: "patient-report-demo-01" } },
+    success: { status: 200, description: "Пакет с отдельной неподтверждённой отметкой.", example: { package: { accessId: "prep-demo-01", state: "preparing", confirmedCompleteness: "unknown", items: [{ requirementId: "cbc", preparationStatus: "present", confirmedStatus: "unknown", selfReport: { performedOn: "2026-10-01", resultAvailable: true, confirmed: false } }] } } },
+    errors: [error(400, "BAD_REQUEST", "Тело неверно."), error(401, "UNAUTHORIZED", "Cookie недействительна."), error(403, "FORBIDDEN", "Origin не совпал."), error(404, "NOT_FOUND", "Позиция не найдена."), error(409, "REVISION_CONFLICT", "Отметка изменилась."), error(409, "IDEMPOTENCY_CONFLICT", "Ключ связан с другим телом."), error(409, "APPLICABILITY_UNCONFIRMED", "Применимость условной позиции не подтверждена."), error(409, "NO_CHANGES", "Такая отметка уже сохранена."), error(409, "PACKAGE_UNAVAILABLE", "Активного пакета нет."), error(413, "BODY_TOO_LARGE", "Тело превышает предел."), error(429, "RATE_LIMIT", "Лимит изменений превышен."), error(429, "REPORT_LIMIT", "Лимит истории превышен."), error(503, "INTERNAL", "Хранилище недоступно.")],
+    pathExample: { id: "prep-demo-01" },
+  },
+  {
+    id: "case1-analytics",
+    strictQuery: true,
+    groupId: "analytics",
+    method: "GET",
+    path: "/api/analytics/case1",
+    summary: "Прочитать Case 1",
+    description: "Возвращает проверенный агрегированный артефакт Case 1 без персональных строк и синтетических сравнений.",
+    auth: workspace,
+    roles: ["owner", "analyst"],
+    request: { contentType: "none", fields: [], example: null, note: "Query и body запрещены." },
+    success: { status: 200, description: "Семь агрегированных блоков с provenance и ограничениями.", example: { schemaVersion: 1, provenance: { source: "reports/case1-analytics.json", limitations: ["Агрегированные наблюдаемые данные."] }, blocks: [] } },
+    errors: [error(400, "BAD_REQUEST", "Query запрещён."), error(401, "UNAUTHORIZED", "Сессия отсутствует."), error(403, "FORBIDDEN", "Роль врача не имеет доступа."), error(405, "METHOD_NOT_ALLOWED", "Поддерживается только GET."), error(503, "CASE1_ANALYTICS_UNAVAILABLE", "Артефакт не прошёл проверку."), error(503, "WORKSPACE_UNAVAILABLE", "Рабочее пространство недоступно.")],
+  },
+  {
+    id: "doctor-assessment",
+    strictQuery: true,
+    groupId: "referrals",
+    method: "POST",
+    path: "/api/referrals/{id}/doctor-assessment",
+    summary: "Сохранить заключение врача",
+    description: "Назначенный врач сохраняет аудитируемую предварительную гипотезу, профиль, код МКБ-10 и контекст лечения.",
+    auth: workspace,
+    roles: ["doctor"],
+    request: { contentType: "application/json", fields: [field("id", "referral id", true, "Направление.", "path"), field("expectedRevision", "integer", true, "Версия карточки."), field("expectedAssessmentRevision", "integer", true, "Версия заключения."), field("idempotencyKey", "string", true, "Ключ повтора."), field("reason", "string", true, "Причина изменения."), field("assessment", "object", true, "hypothesis, profile, icd10Code, careContext.")], example: { expectedRevision: 3, expectedAssessmentRevision: 0, idempotencyKey: "assessment-demo-01", reason: "Проверено врачом", assessment: { hypothesis: "Предварительная сосудистая гипотеза", profile: "Сосудистая хирургия", icd10Code: "I65.2", careContext: "operative" } } },
+    success: { status: 200, description: "Обновлённая карточка с неизменным triage snapshot.", example: { referral: { id: "ref-demo-01", revision: 4, profile: "Сосудистая хирургия", icd10Code: "I65.2", doctorAssessment: { hypothesis: "Предварительная сосудистая гипотеза", careContext: "operative", revision: 1 } } } },
+    errors: [...referralErrors, error(400, "REASON_REQUIRED", "Причина обязательна."), error(409, "ASSESSMENT_REVISION_CONFLICT", "Заключение изменилось."), error(409, "NO_CHANGES", "Изменений нет.")],
+    pathExample: { id: "ref-demo-01" },
+  },
+  {
+    id: "preparation-status",
+    groupId: "referrals",
+    method: "GET",
+    path: "/api/referrals/{id}/patient-access",
+    summary: "Прочитать статус доступа пациента",
+    description: "Возвращает только ревизию, активность и срок доступа без capability token.",
+    auth: workspace,
+    roles: ["owner", "doctor"],
+    request: { contentType: "none", fields: [field("id", "referral id", true, "Направление.", "path")], example: null },
+    success: { status: 200, description: "Текущий статус ссылки.", example: { accessRevision: 1, active: true, expiresAt: 1793700000000 } },
+    errors: [error(401, "UNAUTHORIZED", "Сессия отсутствует."), error(403, "FORBIDDEN", "Роль не разрешена."), error(404, "NOT_FOUND", "Запись скрыта или отсутствует."), error(503, "WORKSPACE_UNAVAILABLE", "Хранилище недоступно.")],
+    pathExample: { id: "ref-demo-01" },
+  },
+  {
+    id: "preparation-manage",
+    strictQuery: true,
+    groupId: "referrals",
+    method: "POST",
+    path: "/api/referrals/{id}/patient-access",
+    summary: "Перевыпустить или отозвать доступ",
+    description: "Owner действует только через назначенного активного врача; прежняя ссылка отзывается атомарно.",
+    auth: workspace,
+    roles: ["owner", "doctor"],
+    request: { contentType: "application/json", fields: [field("id", "referral id", true, "Направление.", "path"), field("action", '"reissue" | "revoke"', true, "Операция."), field("expectedAccessRevision", "integer", true, "Версия доступа."), field("idempotencyKey", "string", true, "Ключ повтора.")], example: { action: "reissue", expectedAccessRevision: 1, idempotencyKey: "patient-access-demo-01" } },
+    success: { status: 200, description: "Новая URL либо null после отзыва.", example: { preparationUrl: "https://example.test/p/<one-time-token>", expiresAt: 1793700000000 } },
+    errors: [...referralErrors, error(409, "ACCESS_CHANGED", "Ссылка уже изменилась."), error(409, "DOCTOR_ASSIGNMENT_REQUIRED", "Нет активного назначенного врача.")],
+    pathExample: { id: "ref-demo-01" },
+  },
+  {
+    id: "patient-report-confirm",
+    strictQuery: true,
+    groupId: "referrals",
+    method: "POST",
+    path: "/api/referrals/{id}/patient-reports/confirm",
+    summary: "Подтвердить отметку пациента",
+    description: "Назначенный врач переносит проверенный результат в текущий пакет; исходный self-report остаётся отдельным аудитом.",
+    auth: workspace,
+    roles: ["doctor"],
+    request: { contentType: "application/json", fields: [field("id", "referral id", true, "Направление.", "path"), field("reportId", "string", true, "Версия self-report."), field("expectedRevision", "integer", true, "Версия карточки."), field("expectedReportRevision", "integer", true, "Версия отметки."), field("idempotencyKey", "string", true, "Ключ повтора.")], example: { reportId: "report-demo-01", expectedRevision: 4, expectedReportRevision: 1, idempotencyKey: "confirm-report-demo-01" } },
+    success: { status: 200, description: "Карточка с врачебно подтверждённым обследованием.", example: { referral: { id: "ref-demo-01", revision: 5, completeness: { status: "unknown", catalogueValidated: false } } } },
+    errors: [...referralErrors, error(409, "APPLICABILITY_UNCONFIRMED", "Условная позиция не подтверждена."), error(409, "REFERRAL_CANCELLED", "Направление отменено.")],
+    pathExample: { id: "ref-demo-01" },
+  },
+  {
+    id: "registration-snapshot",
+    strictQuery: true,
+    groupId: "referrals",
+    method: "POST",
+    path: "/api/referrals/{id}/registration-snapshot",
+    summary: "Зафиксировать входы B3",
+    description: "Назначенный врач один раз подтверждает точные значения на момент регистрации; текущие поля карточки не подставляются.",
+    auth: workspace,
+    roles: ["doctor"],
+    request: { contentType: "application/json", fields: [field("id", "referral id", true, "Направление.", "path"), field("expectedRevision", "integer", true, "Версия карточки."), field("idempotencyKey", "string", true, "Ключ повтора."), field("attestedAtRegistration", "true", true, "Явное подтверждение семантики."), field("features", "exact seven-field object", true, "bed_profile и шесть обязательных регистрационных полей.")], example: { expectedRevision: 5, idempotencyKey: "registration-demo-01", attestedAtRegistration: true, features: { bed_profile: null, icd10_ref_diag_code: "synthetic-icd", referring_mo: "synthetic-referring", hospital_mo: "synthetic-hospital", territorial_type: "synthetic-territory", finance_source: "synthetic-finance", referral_purpose: "synthetic-purpose" } } },
+    success: { status: 200, description: "Неизменяемый снимок сохранён.", example: { referral: { id: "ref-demo-01", revision: 6, registrationSnapshot: { captured: true } } } },
+    errors: [...referralErrors, error(409, "REGISTRATION_SNAPSHOT_IMMUTABLE", "Снимок уже зафиксирован.")],
+    pathExample: { id: "ref-demo-01" },
+    notes: ["OpenAPI показывает форму входа, но MIS event никогда не содержит эти значения."],
+  },
+  {
+    id: "referral-risk",
+    strictQuery: true,
+    groupId: "referrals",
+    method: "GET",
+    path: "/api/referrals/{id}/risk",
+    summary: "Рассчитать исследовательский риск B3",
+    description: "Read-only расчёт по неизменяемому registration snapshot; unavailable является штатным ответом 200.",
+    auth: workspace,
+    roles: ["owner", "doctor"],
+    request: { contentType: "none", fields: [field("id", "referral id", true, "Направление.", "path")], example: null },
+    success: { status: 200, description: "Research-only available/unavailable union.", example: { risk: { status: "unavailable", researchOnly: true, reason: "REGISTRATION_SNAPSHOT_MISSING", missingInputs: ["bed_profile"], inputRevision: null } } },
+    errors: [error(400, "BAD_REQUEST", "Query запрещён."), error(401, "UNAUTHORIZED", "Сессия отсутствует."), error(403, "FORBIDDEN", "Роль analyst не допускается."), error(404, "NOT_FOUND", "Запись скрыта или отсутствует."), error(405, "METHOD_NOT_ALLOWED", "Поддерживается только GET."), error(503, "WORKSPACE_UNAVAILABLE", "Хранилище недоступно.")],
+    pathExample: { id: "ref-demo-01" },
+    notes: ["researchOnly=true; результат не меняет маршрут, срочность или комплектность."],
+  },
+  {
+    id: "openapi",
+    groupId: "system",
+    method: "GET",
+    path: "/api/openapi",
+    summary: "Скачать OpenAPI 3.1",
+    description: "Детерминированный machine-readable контракт, собранный из того же registry, что и портал.",
+    auth: anon,
+    request: { contentType: "none", fields: [], example: null },
+    success: { status: 200, description: "OpenAPI JSON без runtime secrets.", contentTypes: ["application/vnd.oai.openapi+json;version=3.1"], example: { openapi: "3.1.0", info: { title: "Demeu API", version: "1.0.0" }, paths: {} } },
+    errors: [error(500, "INTERNAL", "Контракт не удалось построить.")],
+  },
+  {
+    id: "mis-pull",
+    strictQuery: true,
+    groupId: "mis",
+    method: "POST",
+    path: "/api/mis/v1/events/pull",
+    summary: "Получить события МИС",
+    description: "Атомарно проверяет currentness, выдаёт lease и возвращает только события одной организации.",
+    auth: service,
+    request: { contentType: "application/json", fields: [field("limit", "integer 1..100", false, "Максимум событий; по умолчанию 20.")], example: { limit: 20 } },
+    success: { status: 200, description: "At-least-once события со стабильным eventId.", example: { events: [{ eventId: "event-demo-01", sequence: 3, deliveryId: "delivery-demo-01", deliveryAttempt: 1, type: "referral.readiness.changed", schemaVersion: 1, occurredAt: 1791106225691, subject: { referralId: "ref-demo-01", revision: 8 }, data: { state: "not_ready", reasonCodes: ["SCHEDULE_IN_PAST"], evaluatedOn: "2026-10-04" } }], retryAfterMs: 300000 } },
+    errors: [error(400, "BAD_REQUEST", "Body/query неверны."), error(401, "MIS_UNAUTHORIZED", "Service credential не прошла проверку."), error(403, "MIS_FORBIDDEN", "Scope отсутствует."), error(405, "METHOD_NOT_ALLOWED", "Поддерживается только POST."), error(413, "BODY_TOO_LARGE", "Тело превышает предел."), error(429, "RATE_LIMITED", "Локальный процессный лимит превышен."), error(503, "MIS_UNAVAILABLE", "Credential file или snapshot недоступны.")],
+    notes: ["Research events дополнительно требуют scope events:research и явную серверную активацию."],
+  },
+  {
+    id: "mis-ack",
+    strictQuery: true,
+    groupId: "mis",
+    method: "POST",
+    path: "/api/mis/v1/events/{eventId}/ack",
+    summary: "Подтвердить событие МИС",
+    description: "Фиксирует durable ACK текущей lease; повтор с тем же ключом и телом возвращает сохранённый результат.",
+    auth: service,
+    request: { contentType: "application/json", fields: [field("eventId", "event id", true, "Событие.", "path"), field("deliveryId", "delivery id", true, "Текущая lease."), field("idempotencyKey", "string 8..128", true, "Ключ безопасного повтора.")], example: { deliveryId: "delivery-demo-01", idempotencyKey: "ack-demo-0001" } },
+    success: { status: 200, description: "Подтверждение сохранено.", example: { eventId: "event-demo-01", acked: true, ackedAt: 1791106229000, replayed: false } },
+    errors: [error(400, "BAD_REQUEST", "Body/query неверны."), error(401, "MIS_UNAUTHORIZED", "Service credential не прошла проверку."), error(403, "MIS_FORBIDDEN", "Scope отсутствует."), error(404, "NOT_FOUND", "Событие отсутствует в организации."), error(405, "METHOD_NOT_ALLOWED", "Поддерживается только POST."), error(409, "IDEMPOTENCY_CONFLICT", "Ключ связан с другим телом."), error(409, "DELIVERY_STALE", "Lease истекла или заменена."), error(413, "BODY_TOO_LARGE", "Тело превышает предел."), error(429, "RATE_LIMITED", "Локальный процессный лимит превышен."), error(503, "MIS_UNAVAILABLE", "Credential file или snapshot недоступны.")],
+    pathExample: { eventId: "event-demo-01" },
+  },
+] as const;
+
+export const apiNegativeOperations = [
+  { method: "HEAD", path: "/api/analytics/case1", statuses: [401, 405, 503] },
+  { method: "HEAD", path: "/api/reference/examination-requirements", statuses: [401, 405, 503] },
+  { method: "GET", path: "/api/referrals/{id}/registration-snapshot", statuses: [401, 403, 405, 503] },
+  { method: "POST", path: "/api/referrals/{id}/risk", statuses: [401, 403, 405, 503] },
 ] as const;
 
 export const flowStories: readonly FlowStory[] = [
@@ -639,10 +888,10 @@ export const flowStories: readonly FlowStory[] = [
 ] as const;
 
 function endpointUrl(endpoint: ApiEndpoint): string {
-  const exampleId = endpoint.id === "model-detail" ? "triage-lr-v1" : "ref-demo-01";
-  const path = endpoint.path
-    .replace("{id}", exampleId)
-    .replace("/api/workspace/intakes/ref-demo-01", "/api/workspace/intakes/a94648da-2d5e-4fe0-9010-72e972733850");
+  const defaults: Record<string, string> = endpoint.id === "model-detail" ? { id: "triage-lr-v1" }
+    : endpoint.id === "intake-detail" ? { id: "a94648da-2d5e-4fe0-9010-72e972733850" }
+      : { id: "ref-demo-01", eventId: "event-demo-01" };
+  const path = endpoint.path.replace(/\{([^}]+)\}/gu, (_match, name: string) => endpoint.pathExample?.[name] ?? defaults[name] ?? `${name}-demo`);
   return endpoint.id === "referrals-list"
     ? `${path}?state=preparing&profile=${encodeURIComponent("хирургический")}`
     : path;
@@ -692,6 +941,9 @@ function curlAuth(endpoint: ApiEndpoint, baseUrl: string): string[] {
       `  -H "Origin: ${baseUrl}" \\\n`,
     ];
   }
+  if (endpoint.auth.kind === "service") {
+    return ['  -H "Authorization: Bearer <credential-id>.<secret>" \\\n'];
+  }
   return [];
 }
 
@@ -727,8 +979,9 @@ export function codeExample(endpoint: ApiEndpoint, language: CodeLanguage, baseU
 
   const options = [
     `  method: "${endpoint.method}",`,
-    ...(endpoint.auth.kind !== "public" ? ['  credentials: "include",'] : []),
-    ...(body !== null ? ['  headers: { "Content-Type": "application/json" },', `  body: JSON.stringify(${body.replace(/\n/gu, "\n  ")}),`] : []),
+    ...(endpoint.auth.kind !== "public" && endpoint.auth.kind !== "service" ? ['  credentials: "include",'] : []),
+    ...(endpoint.auth.kind === "service" ? ['  headers: { Authorization: "Bearer <credential-id>.<secret>", "Content-Type": "application/json" },'] : []),
+    ...(body !== null ? [...(endpoint.auth.kind === "service" ? [] : ['  headers: { "Content-Type": "application/json" },']), `  body: JSON.stringify(${body.replace(/\n/gu, "\n  ")}),`] : []),
   ];
   return `const response = await fetch("${endpointUrl(endpoint)}", {\n${options.join("\n")}\n});\n\nif (!response.ok) {\n  const problem = await response.json();\n  throw new Error(problem.code ?? "REQUEST_FAILED");\n}\n\nconst data = await response.${endpoint.id === "patient-memo" ? "json() // use blob() with ?format=pdf" : "json()"};`;
 }

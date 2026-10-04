@@ -124,7 +124,12 @@ export class ScopedWorkspaceNotifier {
   }
   async sendAbortedNotice(notice: AbortedSessionNotice): Promise<void> {
     const recipient = await this.recipient(await this.deps.ownerForToken(notice.doctorToken));
-    await this.deps.journal().deliver(["aborted", notice.sessionId], ["aborted", notice.sessionId], [recipient.id, recipient.organizationId, recipient.telegramChatId, notice], () => this.notifier(recipient.telegramChatId).sendAbortedNotice(notice));
+    const context = {
+      doctorDisplayName: recipient.displayName,
+      episodeLabel: "Незавершённый опрос",
+      intakeUrl: workspaceUrl(`/workspace/intakes/${encodeURIComponent(notice.sessionId)}`),
+    };
+    await this.deps.journal().deliver(["aborted", notice.sessionId], ["aborted", notice.sessionId], [recipient.id, recipient.organizationId, recipient.telegramChatId, notice, context], () => this.notifier(recipient.telegramChatId).sendAbortedNotice(notice, context));
   }
   async sendReferral(actor: ReferralActor, referral: ReferralDetail, memo: PatientMemo, idempotencyKey: string): Promise<{ sent: true }> {
     if (actor.role === "analyst" || actor.organizationId !== referral.organizationId || (actor.role !== "owner" && actor.id !== referral.doctorId)) return fail(403, "FORBIDDEN");

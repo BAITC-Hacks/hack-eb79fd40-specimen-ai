@@ -8,7 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import ApiDocsPage, { dynamic as apiDocsRenderingMode } from "../../app/api-docs/page";
 import { ApiDocsPortal } from "../../app/api-docs/portal";
-import { apiEndpoints, apiGroups, codeExample, endpointOperation, flowStories } from "../../lib/api-catalog";
+import { apiEndpoints, apiGroups, apiNegativeOperations, codeExample, endpointOperation, flowStories } from "../../lib/api-catalog";
 import { apiDocsBaseUrl } from "../../lib/api-docs-origin";
 
 const doctorAccessForTest = {
@@ -31,12 +31,14 @@ function implementedOperations(): string[] {
     const route = `/${relative("app", filename).split(sep).slice(0, -1).join("/")}`
       .replace(/\[([^\]]+)\]/gu, "{$1}");
     const methods = new Set<string>();
-    for (const match of source.matchAll(/export\s+(?:async\s+)?function\s+(GET|POST|DELETE)\b|export\s+const\s+(GET|POST|DELETE)\s*=/gu)) {
+    for (const match of source.matchAll(/export\s+(?:async\s+)?function\s+(GET|POST|DELETE|HEAD)\b|export\s+const\s+(GET|POST|DELETE|HEAD)\s*=/gu)) {
       methods.add(match[1] ?? match[2]);
     }
     for (const method of methods) operations.push(`${method} ${route}`);
   }
-  return operations.sort();
+  const negative = new Set(apiNegativeOperations.map((entry) => `${entry.method} ${entry.path}`));
+  expect([...negative].sort()).toEqual(operations.filter((operation) => negative.has(operation)).sort());
+  return operations.filter((operation) => !negative.has(operation)).sort();
 }
 
 describe("Demeu API portal", () => {
@@ -271,7 +273,7 @@ describe("Demeu API portal", () => {
     ].sort());
     const sharedReferralErrors = [
       "400 BAD_REQUEST", "401 UNAUTHORIZED", "403 FORBIDDEN", "404 NOT_FOUND",
-      "409 IDEMPOTENCY_CONFLICT", "409 REVISION_CONFLICT", "413 BODY_TOO_LARGE",
+      "409 IDEMPOTENCY_CONFLICT", "409 REVISION_CONFLICT", "413 BODY_TOO_LARGE", "500 INTERNAL",
       "503 WORKSPACE_UNAVAILABLE",
     ];
     expect(errorPairs("referral-create")).toEqual([
@@ -279,10 +281,10 @@ describe("Demeu API portal", () => {
     ].sort());
     expect(errorPairs("referral-event")).toEqual([
       ...sharedReferralErrors, "400 ATTENDANCE_DATE_INVALID", "400 REASON_REQUIRED",
-      "400 SOURCE_SESSION_REQUIRED", "409 REFERRAL_CANCELLED",
+      "400 SOURCE_SESSION_REQUIRED", "409 NO_CHANGES", "409 REFERRAL_CANCELLED",
     ].sort());
     expect(errorPairs("referral-examination")).toEqual([
-      ...sharedReferralErrors, "409 DUPLICATE_EXAMINATION",
+      ...sharedReferralErrors, "400 REASON_REQUIRED", "409 PACKAGE_CHANGED", "409 DUPLICATE_EXAMINATION",
     ].sort());
     for (const endpointId of ["chat-start", "chat-turn", "chat-finalize"]) {
       expect(errorPairs(endpointId)).not.toContain("429 RATE_LIMITED");

@@ -6,8 +6,14 @@ import { EmptyState, Icon, KpiCard, PageHeading } from "../ui";
 import { aggregateCoverage, barWidth, bottleneckNotes, DEMO_ORGANIZATION_COMPARISON, insightEndpoint, MODEL_EVIDENCE, timelinePoints, type InsightAggregate } from "../insights";
 import { useInsightData } from "../insights-client";
 import styles from "../insights.module.css";
+import { DepartmentAnalytics } from "./department";
 
 export default function AnalyticsPage() {
+  const { actor } = useWorkspaceContext();
+  return actor.role === "doctor" ? <DoctorAnalytics /> : <DepartmentAnalytics />;
+}
+
+function DoctorAnalytics() {
   const { actor } = useWorkspaceContext();
   const { data, loading, error, refresh } = useInsightData<{ aggregates: InsightAggregate }>(insightEndpoint(actor.role, "analytics"));
   const aggregates = data?.aggregates;
@@ -78,7 +84,7 @@ export default function AnalyticsPage() {
       <div className={styles.tablewrap}><table className={styles.table}><caption>{DEMO_ORGANIZATION_COMPARISON.period}. Недельная динамика новых направлений в синтетическом примере.</caption><thead><tr><th scope="col">Неделя</th>{DEMO_ORGANIZATION_COMPARISON.organizations.map((organization) => <th scope="col" key={organization.id}>{organization.name}</th>)}</tr></thead><tbody>{DEMO_ORGANIZATION_COMPARISON.timeline.map((row) => <tr key={row.period}><th scope="row">{row.period}</th>{DEMO_ORGANIZATION_COMPARISON.organizations.map((organization) => <td className={styles.number} key={organization.id}>{row.values[organization.id]}</td>)}</tr>)}</tbody></table></div>
     </section>
     <section className={styles.card}>
-      <div className={styles.sectionHead}><div><h2>Исследовательские оценки и ограничения</h2><p className={styles.muted}>Справочные результаты офлайн-проверки. Они не запускаются для пациентов, не влияют на маршрут и не являются рабочими прогнозами.</p></div><span className={styles.tag}>Не операционные</span></div>
+      <div className={styles.sectionHead}><div><h2>Исследовательские оценки и ограничения</h2><p className={styles.muted}>Справочные результаты офлайн-проверки. B3 можно отдельно рассчитать в карточке только по подтверждённым регистрационным полям; оценка не влияет на маршрут или решение врача. D1 и D2 для пациентов не запускаются.</p></div><span className={styles.tag}>Только исследование</span></div>
       <div className={styles.modelGrid}>{MODEL_EVIDENCE.map((model) => <article className={styles.modelCard} key={model.id}>
         <div className={styles.modelHead}><span>{model.id}</span><strong>{model.statusLabel}</strong></div>
         <h3>{model.title}</h3>

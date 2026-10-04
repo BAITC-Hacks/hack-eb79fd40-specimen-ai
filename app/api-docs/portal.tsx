@@ -178,7 +178,8 @@ export function ApiDocsPortal({ baseUrl }: { baseUrl: string }) {
         <div className={styles.environment} aria-label="Контур примеров">
           <span /> production contract
         </div>
-        <Link className={styles.workspaceLink} href="/workspace">Рабочее пространство <span aria-hidden="true">↗</span></Link>
+        <div className={styles.topLinks}><a className={styles.workspaceLink} href="/api/openapi">OpenAPI JSON <span aria-hidden="true">↗</span></a>
+          <Link className={styles.workspaceLink} href="/workspace">Рабочее пространство <span aria-hidden="true">↗</span></Link></div>
       </header>
 
       <aside className={styles.sidebar} aria-label="Навигация по API">

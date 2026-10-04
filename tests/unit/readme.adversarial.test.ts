@@ -15,7 +15,8 @@ interface Report {
   metric_status: Record<string, MetricStatus>;
 }
 
-const readme = readFileSync("README.md", "utf8");
+const readme = readFileSync("docs/technical.md", "utf8");
+const productReadme = readFileSync("README.md", "utf8");
 const report = JSON.parse(readFileSync("eval/report.json", "utf8")) as Report;
 
 const rows: Record<string, string> = {
@@ -85,12 +86,17 @@ function assertPublication(markdown: string): void {
 }
 
 describe("README publication adversarial checks", () => {
+  it("keeps canonical metric evidence discoverable from product README", () => {
+    expect(productReadme).toContain("[docs/technical.md](docs/technical.md)");
+  });
   it("binds every public value and status to eval/report.json", () => {
     expect(() => assertPublication(readme)).not.toThrow();
   });
 
   it.each([
     ["deleted metric", (text: string) => text.replace(/^\| Pathology Top-1 .*\n/mu, "")],
+    ["denominator substitution", (text: string) => text.replace("40/40 (100%)", "40/50 (100%)")],
+    ["percent substitution", (text: string) => text.replace("40/40 (100%)", "40/40 (90%)")],
     ["substituted metric", (text: string) => text.replace("40/40 (100%)", "39/40 (97.5%)")],
     [
       "validated status substitution",

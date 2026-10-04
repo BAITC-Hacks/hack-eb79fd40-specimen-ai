@@ -42,9 +42,12 @@ describe("review 25.09: referral readiness and privacy", () => {
       now: () => Date.parse("2026-09-13T12:00:00Z"),
       catalogue: catalogue([requirement("core", true, false)]),
     });
-    const created = await service.create(doctor, { patientLabel: "Эпизод", profile: "Хирургический", idempotencyKey: "create" });
+    let created = await service.create(doctor, { patientLabel: "Эпизод", profile: "Хирургический", idempotencyKey: "create" });
+    created = await service.assess(doctor, created.id, { expectedRevision: created.revision, expectedAssessmentRevision: 0,
+      idempotencyKey: "assessment", reason: "Тестовый operative контекст",
+      assessment: { hypothesis: null, profile: created.profile, icd10Code: created.icd10Code ?? null, careContext: "operative" } });
     const scheduled = await service.update(doctor, created.id, {
-      expectedRevision: 1,
+      expectedRevision: created.revision,
       idempotencyKey: "schedule",
       patch: { scheduledDate: "2026-09-20" },
     });
@@ -52,7 +55,7 @@ describe("review 25.09: referral readiness and privacy", () => {
     const { id: _id, ...coreResult } = examination("core");
     void _id;
     const complete = await service.examination(doctor, created.id, {
-      expectedRevision: 2,
+      expectedRevision: scheduled.revision,
       idempotencyKey: "core-result",
       record: coreResult,
     });
@@ -133,6 +136,9 @@ describe("review 25.09: referral readiness and privacy", () => {
       profile: "Хирургический",
       idempotencyKey: "profile-create",
     });
+    referral = await service.assess(doctor, referral.id, { expectedRevision: referral.revision, expectedAssessmentRevision: 0,
+      idempotencyKey: "profile-assessment", reason: "Тестовый operative контекст",
+      assessment: { hypothesis: null, profile: referral.profile, icd10Code: referral.icd10Code ?? null, careContext: "operative" } });
     referral = await service.update(doctor, referral.id, {
       expectedRevision: referral.revision,
       idempotencyKey: "profile-date",
@@ -178,6 +184,9 @@ describe("review 25.09: referral readiness and privacy", () => {
       profile: "Хирургический",
       idempotencyKey: "unchecked-profile-create",
     });
+    unchecked = await uncheckedService.assess(doctor, unchecked.id, { expectedRevision: unchecked.revision, expectedAssessmentRevision: 0,
+      idempotencyKey: "unchecked-assessment", reason: "Тестовый operative контекст",
+      assessment: { hypothesis: null, profile: unchecked.profile, icd10Code: unchecked.icd10Code ?? null, careContext: "operative" } });
     const { id: _uncheckedOldId, ...uncheckedOldRecord } = examination("old-profile");
     void _uncheckedOldId;
     unchecked = await uncheckedService.examination(doctor, unchecked.id, {
@@ -218,9 +227,7 @@ describe("review 25.09: referral readiness and privacy", () => {
       patch: { queue: true },
     });
     const withheld = await service.aggregates(analyst);
-    expect(withheld.suppressed).toBe(true);
-    expect(withheld.total).toBeNull();
-    expect(withheld.groups).toEqual(released.groups);
+    expect(withheld).toEqual(released);
     expect(withheld.groups.some((group) => group.count === 6)).toBe(false);
 
     const current = await service.aggregates(owner);

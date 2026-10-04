@@ -11,15 +11,17 @@ export function validateRequirementCatalogue(value: unknown): RequirementCatalog
     || !(value.source === null || text(value.source)) || typeof value.validated !== "boolean" || !Array.isArray(value.profiles)) return invalid();
   if (value.scope !== undefined && value.scope !== null && (!object(value.scope)
     || !keys(value.scope, ["population", "careSetting", "treatment"])
-    || value.scope.population !== "adult" || value.scope.careSetting !== "inpatient" || value.scope.treatment !== "operative")) return invalid();
+    || value.scope.population !== "adult" || value.scope.careSetting !== "inpatient"
+    || !["operative", "conservative"].includes(String(value.scope.treatment)))) return invalid();
   const profiles = new Set<string>();
   for (const profile of value.profiles) {
     if (!object(profile) || !keys(profile, ["profile", "requirements"]) || !text(profile.profile) || profiles.has(profile.profile) || !Array.isArray(profile.requirements)) return invalid();
     const ids = new Set<string>();
     for (const requirement of profile.requirements) {
-      if (!object(requirement) || !keys(requirement, ["id", "label", "required", "conditional", "validForDays"])
+      if (!object(requirement) || !keys(requirement, ["id", "label", "required", "conditional", "validForDays", "provenance"])
         || !text(requirement.id) || ids.has(requirement.id) || !text(requirement.label)
         || !(requirement.required === null || typeof requirement.required === "boolean") || typeof requirement.conditional !== "boolean"
+        || !(requirement.provenance === undefined || ["source_documented", "profile_addition_unverified"].includes(String(requirement.provenance)))
         || !(requirement.validForDays === null || (typeof requirement.validForDays === "number" && Number.isSafeInteger(requirement.validForDays) && requirement.validForDays >= 0 && requirement.validForDays <= 36500))) return invalid();
       ids.add(requirement.id);
     }
@@ -72,7 +74,8 @@ export function evaluateCompleteness(
           ? "unknown" : expiresOn < evaluatedOn ? referral.scheduledDate ? "expired" : "unknown" : "present";
       }
     }
-    return { requirementId: requirement.id, label: requirement.label, required: requirement.required, status, expiresOn };
+    return { requirementId: requirement.id, label: requirement.label, required: requirement.required, status, expiresOn,
+      ...(requirement.provenance ? { provenance: requirement.provenance } : {}) };
   });
   const listedIds = new Set(entries.map((entry) => entry.requirementId));
   for (const record of referral.examinations) {

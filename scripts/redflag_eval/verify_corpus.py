@@ -36,6 +36,8 @@ def fail(message: str) -> None:
 
 def verify(path: Path) -> None:
     corpus = load_json(path)
+    if not isinstance(corpus, dict) or set(corpus) != {"schema_version", "frozen_on", "research_only", "label_scope", "limitations", "items"}:
+        fail("unexpected corpus keys")
     if corpus.get("schema_version") != "redflags-eval-v1":
         fail("unexpected schema_version")
     if corpus.get("research_only") is not True:
@@ -54,6 +56,8 @@ def verify(path: Path) -> None:
     for index, item in enumerate(items):
         if not isinstance(item, dict):
             fail(f"item {index} is not an object")
+        if set(item) != {"id", "language", "messages", "expected_emergency", "expected_codes", "target_trigger", "trap", "provenance"}:
+            fail(f"item {index}: unexpected keys")
         item_id = item.get("id")
         if not isinstance(item_id, str) or not item_id or item_id in ids:
             fail(f"item {index} has a missing or duplicate id")
@@ -77,6 +81,8 @@ def verify(path: Path) -> None:
         for message in messages:
             if not isinstance(message, dict):
                 fail(f"{item_id}: invalid message")
+            if set(message) != {"role", "content"}:
+                fail(f"{item_id}: unexpected message keys")
             if message.get("role") not in {"user", "assistant"}:
                 fail(f"{item_id}: invalid role")
             if not isinstance(message.get("content"), str) or not message["content"].strip():
@@ -90,6 +96,8 @@ def verify(path: Path) -> None:
         provenance = item.get("provenance")
         if not isinstance(provenance, dict):
             fail(f"{item_id}: missing provenance")
+        if set(provenance) != {"kind", "source", "clinician_validated", "validation_status"}:
+            fail(f"{item_id}: unexpected provenance keys")
         if provenance.get("kind") not in {
             "production_regression",
             "synthetic_adversarial",

@@ -1,0 +1,32 @@
+{
+  "artifactSha256": "c52267ac918981ec1ef7458c57eede369b66cde2a7de69142d9d14f8770c6bed",
+  "limitations": [
+    "March was previously examined in the source handoff.",
+    "This verifies exported arithmetic, not prospective clinical utility.",
+    "Source dataset license remains not verified."
+  ],
+  "modelId": "referral-refusal-baseline-v0",
+  "pythonExportFormulaParity": {
+    "maximumAbsoluteProbabilityDelta": 3.3306690738754696e-16,
+    "passed": true,
+    "reference": "sklearn_pipeline_vs_exported_python_formula",
+    "riskBandMismatches": 0,
+    "workingThreshold": 0.1709380688837899
+  },
+  "pythonTsRuntimeParity": {
+    "maximumAbsoluteProbabilityDelta": 3.3306690738754696e-16,
+    "passed": true,
+    "reference": "sklearn_pipeline_predict_proba_vs_lib_referral_risk_ts",
+    "riskBandMismatches": 0,
+    "rows": 223353
+  },
+  "schemaVersion": 1,
+  "source": {
+    "containsCategoryValues": false,
+    "containsIdentifiers": false,
+    "containsRowData": false,
+    "inputSha256": "c9386df30d37f3035aa653772abb74f648348a17b7de5497e9306b088bc01798",
+    "partition": "2025-03-01 <= registration_dt < 2025-04-01",
+    "rows": 223353
+  }
+}

@@ -70,30 +70,13 @@ def main() -> None:
     corpus = load_json(CORPUS_PATH)
     items = corpus["items"]
     candidates = report["candidates"]
+    # Historical measurements already have their own source version and timings.
+    # Never relabel or reevaluate them during a deterministic runtime refresh.
     baseline_candidate = next(
-        (
-            candidate
-            for candidate in candidates
-            if candidate["id"] == "rules_baseline"
-        ),
-        None,
+        candidate for candidate in candidates if candidate["id"] == "rules_baseline"
     )
-    if baseline_candidate is None:
-        baseline_candidate = next(
-            candidate for candidate in candidates if candidate["id"] == "rules"
-        )
     baseline_payload = load_json(ROOT / baseline_candidate["predictions_artifact"])
     baseline_rows = baseline_payload["predictions"]
-    baseline_path = PREDICTIONS_DIR / "rules-baseline-v1.json"
-    if not baseline_path.is_file():
-        write_json(
-            baseline_path,
-            {"candidate": "rules_baseline", "predictions": baseline_rows},
-        )
-    baseline_candidate["id"] = "rules_baseline"
-    baseline_candidate["kind"] = "deterministic_rules_baseline"
-    baseline_candidate["predictions_artifact"] = str(baseline_path.relative_to(ROOT))
-    baseline_candidate["development_stage"] = "before corpus-guided hardening"
 
     current_rows = run_current_rules()
     current_path = PREDICTIONS_DIR / "rules-v1.json"
@@ -112,6 +95,14 @@ def main() -> None:
         prediction_path=current_path,
     )
     current_candidate["development_stage"] = "after corpus-guided hardening"
+    current_candidate["measured_at"] = datetime.now(UTC).isoformat()
+    current_candidate["provenance"] = {
+        "source_sha256": sha256_file(ROOT / "lib/redflags.ts"),
+        "runner_sha256": sha256_file(ROOT / "scripts/redflag_eval/rules_runner.ts"),
+        "corpus_sha256": sha256_file(CORPUS_PATH),
+        "predictions_sha256": sha256_file(current_path),
+        "execution": "offline deterministic TypeScript only; historical candidates unchanged",
+    }
 
     before_fn, before_fp = misses(items, baseline_rows)
     after_fn, after_fp = misses(items, current_rows)
@@ -142,23 +133,8 @@ def main() -> None:
         for candidate in candidates
         if candidate["id"] not in {"rules", "rules_baseline"}
     ]
-    logical_batch_count = len(items) // int(report["method"]["ollama_batch_size"])
-    for candidate in other_candidates:
-        if candidate.get("kind") != "local_ollama":
-            continue
-        accepted_requests = int(candidate["latency_ms"]["request_count"])
-        candidate["structured_output"] = {
-            "logical_batch_count": logical_batch_count,
-            "accepted_request_count": accepted_requests,
-            "rejected_malformed_response_count": (
-                accepted_requests - logical_batch_count
-            ),
-        }
-        candidate["latency_ms"]["scope"] = (
-            "accepted structurally complete requests only; rejected malformed-response "
-            "request time was not retained by benchmark v1 instrumentation"
-        )
-    report["generated_at"] = datetime.now(UTC).isoformat()
+    # Keep generated_at as the historical multi-candidate measurement date.
+    report["rules_refreshed_at"] = current_candidate["measured_at"]
     report["benchmark_title"] = "Synthetic RU/KK emergency regression benchmark"
     report["evaluation_design"] = {
         "split_role": "development regression corpus",

@@ -7,7 +7,7 @@
       "codes": [
         "chest_pain"
       ],
-      "latency_ms": 83.96149700000001
+      "latency_ms": 95.269713
     },
     {
       "id": "rf-002",
@@ -15,7 +15,7 @@
       "codes": [
         "chest_pain"
       ],
-      "latency_ms": 6.281814999999995
+      "latency_ms": 7.093823000000015
     },
     {
       "id": "rf-003",
@@ -23,7 +23,7 @@
       "codes": [
         "chest_pain"
       ],
-      "latency_ms": 1.639774999999986
+      "latency_ms": 1.9261400000000037
     },
     {
       "id": "rf-004",
@@ -31,7 +31,7 @@
       "codes": [
         "chest_pain"
       ],
-      "latency_ms": 4.91267400000001
+      "latency_ms": 5.563386000000008
     },
     {
       "id": "rf-005",
@@ -39,7 +39,7 @@
       "codes": [
         "chest_pain"
       ],
-      "latency_ms": 0.03106699999997886
+      "latency_ms": 0.04055400000001441
     },
     {
       "id": "rf-006",
@@ -47,7 +47,7 @@
       "codes": [
         "chest_pain"
       ],
-      "latency_ms": 0.9114649999999926
+      "latency_ms": 1.0567609999999945
     },
     {
       "id": "rf-007",
@@ -55,7 +55,7 @@
       "codes": [
         "chest_pain"
       ],
-      "latency_ms": 0.9238880000000051
+      "latency_ms": 0.9948289999999815
     },
     {
       "id": "rf-008",
@@ -63,7 +63,7 @@
       "codes": [
         "chest_pain"
       ],
-      "latency_ms": 0.359878000000009
+      "latency_ms": 0.3787930000000017
     },
     {
       "id": "rf-009",
@@ -71,7 +71,7 @@
       "codes": [
         "chest_pain"
       ],
-      "latency_ms": 0.019535999999988007
+      "latency_ms": 0.08128899999999817
     },
     {
       "id": "rf-010",
@@ -79,67 +79,67 @@
       "codes": [
         "chest_pain"
       ],
-      "latency_ms": 0.5186080000000004
+      "latency_ms": 0.5802899999999909
     },
     {
       "id": "rf-011",
       "emergency": false,
       "codes": [],
-      "latency_ms": 4.812951999999996
+      "latency_ms": 5.4527149999999835
     },
     {
       "id": "rf-012",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.021348999999986518
+      "latency_ms": 0.044531000000006316
     },
     {
       "id": "rf-013",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.009588000000007924
+      "latency_ms": 0.01679100000001199
     },
     {
       "id": "rf-014",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.027080000000012205
+      "latency_ms": 0.05035200000000373
     },
     {
       "id": "rf-015",
       "emergency": false,
       "codes": [],
-      "latency_ms": 12.672027999999983
+      "latency_ms": 14.28644700000001
     },
     {
       "id": "rf-016",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.016049000000009528
+      "latency_ms": 0.0429189999999835
     },
     {
       "id": "rf-017",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.009486999999978707
+      "latency_ms": 0.012132000000008247
     },
     {
       "id": "rf-018",
       "emergency": false,
       "codes": [],
-      "latency_ms": 1.5820690000000184
+      "latency_ms": 1.8702470000000062
     },
     {
       "id": "rf-019",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.03344099999998207
+      "latency_ms": 0.04928999999998496
     },
     {
       "id": "rf-020",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.025797000000011394
+      "latency_ms": 0.038259999999979755
     },
     {
       "id": "rf-021",
@@ -147,7 +147,7 @@
       "codes": [
         "stroke"
       ],
-      "latency_ms": 0.017381000000000313
+      "latency_ms": 0.0241839999999911
     },
     {
       "id": "rf-022",
@@ -155,7 +155,7 @@
       "codes": [
         "stroke"
       ],
-      "latency_ms": 0.01794200000000501
+      "latency_ms": 0.021709999999984575
     },
     {
       "id": "rf-023",
@@ -163,7 +163,7 @@
       "codes": [
         "stroke"
       ],
-      "latency_ms": 0.019525999999984833
+      "latency_ms": 0.027149000000008527
     },
     {
       "id": "rf-024",
@@ -171,7 +171,7 @@
       "codes": [
         "stroke"
       ],
-      "latency_ms": 0.016741000000024542
+      "latency_ms": 0.02075800000000072
     },
     {
       "id": "rf-025",
@@ -179,7 +179,7 @@
       "codes": [
         "stroke"
       ],
-      "latency_ms": 0.06021999999998684
+      "latency_ms": 0.03497400000003381
     },
     {
       "id": "rf-026",
@@ -187,7 +187,7 @@
       "codes": [
         "stroke"
       ],
-      "latency_ms": 0.015138000000007423
+      "latency_ms": 0.02152899999998681
     },
     {
       "id": "rf-027",
@@ -195,7 +195,7 @@
       "codes": [
         "stroke"
       ],
-      "latency_ms": 0.0161290000000065
+      "latency_ms": 0.017893000000015036
     },
     {
       "id": "rf-028",
@@ -203,7 +203,7 @@
       "codes": [
         "stroke"
       ],
-      "latency_ms": 0.02236100000001784
+      "latency_ms": 0.023392999999998665
     },
     {
       "id": "rf-029",
@@ -211,7 +211,7 @@
       "codes": [
         "stroke"
       ],
-      "latency_ms": 0.01728199999999447
+      "latency_ms": 0.019515000000012606
     },
     {
       "id": "rf-030",
@@ -219,67 +219,67 @@
       "codes": [
         "stroke"
       ],
-      "latency_ms": 0.0236629999999991
+      "latency_ms": 0.024866000000031363
     },
     {
       "id": "rf-031",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.009276999999997315
+      "latency_ms": 0.011961999999982709
     },
     {
       "id": "rf-032",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.010618999999991274
+      "latency_ms": 0.01298399999996036
     },
     {
       "id": "rf-033",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.009266999999994141
+      "latency_ms": 0.011301000000003114
     },
     {
       "id": "rf-034",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.01875400000000127
+      "latency_ms": 0.023672999999973854
     },
     {
       "id": "rf-035",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.025136000000003378
+      "latency_ms": 0.03158799999999928
     },
     {
       "id": "rf-036",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.010680000000007794
+      "latency_ms": 0.012403000000006159
     },
     {
       "id": "rf-037",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.010309000000006563
+      "latency_ms": 0.011481000000003405
     },
     {
       "id": "rf-038",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.010148000000015145
+      "latency_ms": 0.011159999999961201
     },
     {
       "id": "rf-039",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.017410999999981414
+      "latency_ms": 0.024273999999991247
     },
     {
       "id": "rf-040",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.022531000000014956
+      "latency_ms": 0.029313999999999396
     },
     {
       "id": "rf-041",
@@ -287,7 +287,7 @@
       "codes": [
         "bleeding"
       ],
-      "latency_ms": 0.018514000000010356
+      "latency_ms": 0.025365999999962696
     },
     {
       "id": "rf-042",
@@ -295,7 +295,7 @@
       "codes": [
         "bleeding"
       ],
-      "latency_ms": 0.015968999999984135
+      "latency_ms": 0.023902999999961594
     },
     {
       "id": "rf-043",
@@ -303,7 +303,7 @@
       "codes": [
         "bleeding"
       ],
-      "latency_ms": 0.015868999999980815
+      "latency_ms": 0.020727999999962776
     },
     {
       "id": "rf-044",
@@ -311,7 +311,7 @@
       "codes": [
         "bleeding"
       ],
-      "latency_ms": 0.013944999999978336
+      "latency_ms": 0.01610899999997173
     },
     {
       "id": "rf-045",
@@ -319,7 +319,7 @@
       "codes": [
         "bleeding"
       ],
-      "latency_ms": 0.021128000000004477
+      "latency_ms": 0.026447999999959393
     },
     {
       "id": "rf-046",
@@ -327,7 +327,7 @@
       "codes": [
         "bleeding"
       ],
-      "latency_ms": 0.05727400000000671
+      "latency_ms": 0.016459999999995034
     },
     {
       "id": "rf-047",
@@ -335,7 +335,7 @@
       "codes": [
         "bleeding"
       ],
-      "latency_ms": 0.01209199999999555
+      "latency_ms": 0.013514999999983957
     },
     {
       "id": "rf-048",
@@ -343,7 +343,7 @@
       "codes": [
         "bleeding"
       ],
-      "latency_ms": 0.01424599999998577
+      "latency_ms": 0.01604000000003225
     },
     {
       "id": "rf-049",
@@ -351,7 +351,7 @@
       "codes": [
         "bleeding"
       ],
-      "latency_ms": 0.012573000000003276
+      "latency_ms": 0.014988000000016655
     },
     {
       "id": "rf-050",
@@ -359,67 +359,67 @@
       "codes": [
         "bleeding"
       ],
-      "latency_ms": 0.017943000000002485
+      "latency_ms": 0.020026999999970485
     },
     {
       "id": "rf-051",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.009877999999986287
+      "latency_ms": 0.012301999999976942
     },
     {
       "id": "rf-052",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.010469000000000506
+      "latency_ms": 0.013003000000026077
     },
     {
       "id": "rf-053",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.011661000000003696
+      "latency_ms": 0.016930999999999585
     },
     {
       "id": "rf-054",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.03381200000001172
+      "latency_ms": 0.0846339999999941
     },
     {
       "id": "rf-055",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.031779000000000224
+      "latency_ms": 0.03648699999996552
     },
     {
       "id": "rf-056",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.010018000000002303
+      "latency_ms": 0.01255300000002535
     },
     {
       "id": "rf-057",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.010339000000016085
+      "latency_ms": 0.012431999999989785
     },
     {
       "id": "rf-058",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.009637999999995372
+      "latency_ms": 0.011440999999990709
     },
     {
       "id": "rf-059",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.021028000000001157
+      "latency_ms": 0.027680000000032123
     },
     {
       "id": "rf-060",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.023722999999989725
+      "latency_ms": 0.04362000000003263
     },
     {
       "id": "rf-061",
@@ -427,7 +427,7 @@
       "codes": [
         "thunderclap_headache"
       ],
-      "latency_ms": 0.03041600000000244
+      "latency_ms": 0.04589400000003252
     },
     {
       "id": "rf-062",
@@ -435,7 +435,7 @@
       "codes": [
         "thunderclap_headache"
       ],
-      "latency_ms": 0.026247000000012122
+      "latency_ms": 0.03253999999998314
     },
     {
       "id": "rf-063",
@@ -443,7 +443,7 @@
       "codes": [
         "thunderclap_headache"
       ],
-      "latency_ms": 0.0216700000000003
+      "latency_ms": 0.03255899999999201
     },
     {
       "id": "rf-064",
@@ -451,7 +451,7 @@
       "codes": [
         "thunderclap_headache"
       ],
-      "latency_ms": 0.017372000000023036
+      "latency_ms": 0.024464999999963766
     },
     {
       "id": "rf-065",
@@ -459,7 +459,7 @@
       "codes": [
         "thunderclap_headache"
       ],
-      "latency_ms": 0.03093699999999444
+      "latency_ms": 0.03845099999995227
     },
     {
       "id": "rf-066",
@@ -467,7 +467,7 @@
       "codes": [
         "thunderclap_headache"
       ],
-      "latency_ms": 0.028913000000017064
+      "latency_ms": 0.06369699999999057
     },
     {
       "id": "rf-067",
@@ -475,7 +475,7 @@
       "codes": [
         "thunderclap_headache"
       ],
-      "latency_ms": 0.018874000000010938
+      "latency_ms": 0.026757999999972526
     },
     {
       "id": "rf-068",
@@ -483,7 +483,7 @@
       "codes": [
         "thunderclap_headache"
       ],
-      "latency_ms": 0.024714999999986276
+      "latency_ms": 0.03103699999996934
     },
     {
       "id": "rf-069",
@@ -491,7 +491,7 @@
       "codes": [
         "thunderclap_headache"
       ],
-      "latency_ms": 0.04123599999999783
+      "latency_ms": 0.03396199999997407
     },
     {
       "id": "rf-070",
@@ -499,67 +499,67 @@
       "codes": [
         "thunderclap_headache"
       ],
-      "latency_ms": 0.03335099999998192
+      "latency_ms": 0.02674899999999525
     },
     {
       "id": "rf-071",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.02360300000000848
+      "latency_ms": 0.01481699999999364
     },
     {
       "id": "rf-072",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.03358199999999556
+      "latency_ms": 0.018332999999984168
     },
     {
       "id": "rf-073",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.05406899999999837
+      "latency_ms": 0.0499009999999771
     },
     {
       "id": "rf-074",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.06644099999999753
+      "latency_ms": 0.0478170000000091
     },
     {
       "id": "rf-075",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.11121299999999223
+      "latency_ms": 0.0672429999999622
     },
     {
       "id": "rf-076",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.015368000000023585
+      "latency_ms": 0.016771000000005643
     },
     {
       "id": "rf-077",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.015538999999989755
+      "latency_ms": 0.017701999999985674
     },
     {
       "id": "rf-078",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.027249000000011847
+      "latency_ms": 0.034172000000012304
     },
     {
       "id": "rf-079",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.014767000000006192
+      "latency_ms": 0.016139000000009673
     },
     {
       "id": "rf-080",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.0313069999999982
+      "latency_ms": 0.037057000000004336
     },
     {
       "id": "rf-081",
@@ -567,7 +567,7 @@
       "codes": [
         "consciousness"
       ],
-      "latency_ms": 0.020177000000018097
+      "latency_ms": 0.024014000000022406
     },
     {
       "id": "rf-082",
@@ -575,7 +575,7 @@
       "codes": [
         "consciousness"
       ],
-      "latency_ms": 0.01702099999999973
+      "latency_ms": 0.01999599999999191
     },
     {
       "id": "rf-083",
@@ -583,7 +583,7 @@
       "codes": [
         "consciousness"
       ],
-      "latency_ms": 0.021369000000021288
+      "latency_ms": 0.02224100000000817
     },
     {
       "id": "rf-084",
@@ -591,7 +591,7 @@
       "codes": [
         "consciousness"
       ],
-      "latency_ms": 0.02113800000000765
+      "latency_ms": 0.03242899999997917
     },
     {
       "id": "rf-085",
@@ -599,7 +599,7 @@
       "codes": [
         "consciousness"
       ],
-      "latency_ms": 0.030165000000010878
+      "latency_ms": 0.03949199999999564
     },
     {
       "id": "rf-086",
@@ -607,7 +607,7 @@
       "codes": [
         "consciousness"
       ],
-      "latency_ms": 0.018503000000009706
+      "latency_ms": 0.022371000000021013
     },
     {
       "id": "rf-087",
@@ -615,7 +615,7 @@
       "codes": [
         "consciousness"
       ],
-      "latency_ms": 0.01666099999999915
+      "latency_ms": 0.016701000000011845
     },
     {
       "id": "rf-088",
@@ -623,7 +623,7 @@
       "codes": [
         "consciousness"
       ],
-      "latency_ms": 0.019885999999985415
+      "latency_ms": 0.02134900000004336
     },
     {
       "id": "rf-089",
@@ -631,7 +631,7 @@
       "codes": [
         "consciousness"
       ],
-      "latency_ms": 0.0317579999999964
+      "latency_ms": 0.04152500000003556
     },
     {
       "id": "rf-090",
@@ -639,67 +639,67 @@
       "codes": [
         "consciousness"
       ],
-      "latency_ms": 0.021370000000018763
+      "latency_ms": 0.025096000000019103
     },
     {
       "id": "rf-091",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.014426000000014483
+      "latency_ms": 0.01577900000000909
     },
     {
       "id": "rf-092",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.015718999999990046
+      "latency_ms": 0.016039999999975407
     },
     {
       "id": "rf-093",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.017902000000020735
+      "latency_ms": 0.01838399999996909
     },
     {
       "id": "rf-094",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.03749899999999684
+      "latency_ms": 0.04208699999998089
     },
     {
       "id": "rf-095",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.04744600000000787
+      "latency_ms": 0.055742000000009284
     },
     {
       "id": "rf-096",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.01634999999998854
+      "latency_ms": 0.023252000000013595
     },
     {
       "id": "rf-097",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.015047999999978856
+      "latency_ms": 0.01636999999999489
     },
     {
       "id": "rf-098",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.015638999999993075
+      "latency_ms": 0.016641000000049644
     },
     {
       "id": "rf-099",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.036467000000016014
+      "latency_ms": 0.04100399999998672
     },
     {
       "id": "rf-100",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.036105999999989535
+      "latency_ms": 0.04067400000002408
     },
     {
       "id": "rf-101",
@@ -707,7 +707,7 @@
       "codes": [
         "dyspnea_rest"
       ],
-      "latency_ms": 0.8058019999999999
+      "latency_ms": 0.9220550000000003
     },
     {
       "id": "rf-102",
@@ -715,7 +715,7 @@
       "codes": [
         "dyspnea_rest"
       ],
-      "latency_ms": 0.4191250000000082
+      "latency_ms": 0.5623170000000073
     },
     {
       "id": "rf-103",
@@ -723,7 +723,7 @@
       "codes": [
         "dyspnea_rest"
       ],
-      "latency_ms": 0.02735899999998992
+      "latency_ms": 0.08632699999998295
     },
     {
       "id": "rf-104",
@@ -731,7 +731,7 @@
       "codes": [
         "dyspnea_rest"
       ],
-      "latency_ms": 0.022952000000003636
+      "latency_ms": 0.03442300000000387
     },
     {
       "id": "rf-105",
@@ -739,7 +739,7 @@
       "codes": [
         "dyspnea_rest"
       ],
-      "latency_ms": 0.019364999999993415
+      "latency_ms": 0.03170800000003737
     },
     {
       "id": "rf-106",
@@ -747,7 +747,7 @@
       "codes": [
         "dyspnea_rest"
       ],
-      "latency_ms": 0.016048999999981106
+      "latency_ms": 0.02772099999998545
     },
     {
       "id": "rf-107",
@@ -755,7 +755,7 @@
       "codes": [
         "dyspnea_rest"
       ],
-      "latency_ms": 0.01421600000000467
+      "latency_ms": 0.020196999999996024
     },
     {
       "id": "rf-108",
@@ -763,7 +763,7 @@
       "codes": [
         "dyspnea_rest"
       ],
-      "latency_ms": 0.020677999999975327
+      "latency_ms": 0.028040999999973337
     },
     {
       "id": "rf-109",
@@ -771,7 +771,7 @@
       "codes": [
         "dyspnea_rest"
       ],
-      "latency_ms": 0.01632000000000744
+      "latency_ms": 0.021578999999974258
     },
     {
       "id": "rf-110",
@@ -779,67 +779,67 @@
       "codes": [
         "dyspnea_rest"
       ],
-      "latency_ms": 0.02147899999999936
+      "latency_ms": 0.0257869999999798
     },
     {
       "id": "rf-111",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.011330999999984215
+      "latency_ms": 0.018844000000001415
     },
     {
       "id": "rf-112",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.009848000000005186
+      "latency_ms": 0.014046000000007552
     },
     {
       "id": "rf-113",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.01187100000001351
+      "latency_ms": 0.015347999999960393
     },
     {
       "id": "rf-114",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.02272100000001842
+      "latency_ms": 0.03561500000000706
     },
     {
       "id": "rf-115",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.03931199999999535
+      "latency_ms": 0.06473799999997709
     },
     {
       "id": "rf-116",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.012642999999997073
+      "latency_ms": 0.01872400000002017
     },
     {
       "id": "rf-117",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.01284299999997529
+      "latency_ms": 0.018623999999988428
     },
     {
       "id": "rf-118",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.012502000000012004
+      "latency_ms": 0.015409000000033757
     },
     {
       "id": "rf-119",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.02174999999999727
+      "latency_ms": 0.034372999999959575
     },
     {
       "id": "rf-120",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.02942400000000589
+      "latency_ms": 0.046784999999999854
     },
     {
       "id": "rf-121",
@@ -847,7 +847,7 @@
       "codes": [
         "suicidal"
       ],
-      "latency_ms": 0.02563699999998903
+      "latency_ms": 0.030475999999964642
     },
     {
       "id": "rf-122",
@@ -855,7 +855,7 @@
       "codes": [
         "suicidal"
       ],
-      "latency_ms": 0.013324000000011438
+      "latency_ms": 0.01867400000003272
     },
     {
       "id": "rf-123",
@@ -863,7 +863,7 @@
       "codes": [
         "suicidal"
       ],
-      "latency_ms": 0.017131999999975278
+      "latency_ms": 0.0246150000000398
     },
     {
       "id": "rf-124",
@@ -871,7 +871,7 @@
       "codes": [
         "suicidal"
       ],
-      "latency_ms": 0.0176620000000014
+      "latency_ms": 0.02202000000005455
     },
     {
       "id": "rf-125",
@@ -879,7 +879,7 @@
       "codes": [
         "suicidal"
       ],
-      "latency_ms": 0.017181000000022095
+      "latency_ms": 0.024194000000022697
     },
     {
       "id": "rf-126",
@@ -887,7 +887,7 @@
       "codes": [
         "suicidal"
       ],
-      "latency_ms": 0.01828300000002514
+      "latency_ms": 0.02402399999999716
     },
     {
       "id": "rf-127",
@@ -895,7 +895,7 @@
       "codes": [
         "suicidal"
       ],
-      "latency_ms": 0.016310000000004266
+      "latency_ms": 0.02387399999997797
     },
     {
       "id": "rf-128",
@@ -903,7 +903,7 @@
       "codes": [
         "suicidal"
       ],
-      "latency_ms": 0.018775000000005093
+      "latency_ms": 0.026218000000028496
     },
     {
       "id": "rf-129",
@@ -911,7 +911,7 @@
       "codes": [
         "suicidal"
       ],
-      "latency_ms": 0.01878399999998237
+      "latency_ms": 0.024364999999988868
     },
     {
       "id": "rf-130",
@@ -919,67 +919,67 @@
       "codes": [
         "suicidal"
       ],
-      "latency_ms": 0.020978000000013708
+      "latency_ms": 0.028391999999996642
     },
     {
       "id": "rf-131",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.012573000000003276
+      "latency_ms": 0.01907499999998663
     },
     {
       "id": "rf-132",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.012171999999992522
+      "latency_ms": 0.017442000000016833
     },
     {
       "id": "rf-133",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.014165999999988799
+      "latency_ms": 0.017642000000023472
     },
     {
       "id": "rf-134",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.022872000000006665
+      "latency_ms": 0.043008999999983644
     },
     {
       "id": "rf-135",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.03455299999998829
+      "latency_ms": 0.04853900000000522
     },
     {
       "id": "rf-136",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.012792999999987842
+      "latency_ms": 0.01834400000001324
     },
     {
       "id": "rf-137",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.012541999999996278
+      "latency_ms": 0.017142000000035296
     },
     {
       "id": "rf-138",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.011942000000004782
+      "latency_ms": 0.01449600000000828
     },
     {
       "id": "rf-139",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.021610000000009677
+      "latency_ms": 0.04959000000002334
     },
     {
       "id": "rf-140",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.0387410000000159
+      "latency_ms": 0.05514099999999189
     },
     {
       "id": "rf-141",
@@ -987,7 +987,7 @@
       "codes": [
         "meningeal"
       ],
-      "latency_ms": 0.6091129999999794
+      "latency_ms": 0.7944719999999847
     },
     {
       "id": "rf-142",
@@ -995,7 +995,7 @@
       "codes": [
         "meningeal"
       ],
-      "latency_ms": 0.5952269999999942
+      "latency_ms": 0.5126370000000406
     },
     {
       "id": "rf-143",
@@ -1003,7 +1003,7 @@
       "codes": [
         "meningeal"
       ],
-      "latency_ms": 0.1801590000000033
+      "latency_ms": 0.13617900000002692
     },
     {
       "id": "rf-144",
@@ -1011,7 +1011,7 @@
       "codes": [
         "meningeal"
       ],
-      "latency_ms": 0.02809100000001763
+      "latency_ms": 0.03307999999998401
     },
     {
       "id": "rf-145",
@@ -1019,7 +1019,7 @@
       "codes": [
         "meningeal"
       ],
-      "latency_ms": 0.026598000000007005
+      "latency_ms": 0.04213699999996834
     },
     {
       "id": "rf-146",
@@ -1027,7 +1027,7 @@
       "codes": [
         "meningeal"
       ],
-      "latency_ms": 0.03234900000001062
+      "latency_ms": 0.04055399999998599
     },
     {
       "id": "rf-147",
@@ -1035,7 +1035,7 @@
       "codes": [
         "meningeal"
       ],
-      "latency_ms": 0.03072700000001305
+      "latency_ms": 0.03418299999998453
     },
     {
       "id": "rf-148",
@@ -1043,7 +1043,7 @@
       "codes": [
         "meningeal"
       ],
-      "latency_ms": 0.027771000000001322
+      "latency_ms": 0.04137500000001637
     },
     {
       "id": "rf-149",
@@ -1051,7 +1051,7 @@
       "codes": [
         "meningeal"
       ],
-      "latency_ms": 0.022200999999995474
+      "latency_ms": 0.028070999999954438
     },
     {
       "id": "rf-150",
@@ -1059,67 +1059,67 @@
       "codes": [
         "meningeal"
       ],
-      "latency_ms": 0.02925399999998035
+      "latency_ms": 0.04091500000004089
     },
     {
       "id": "rf-151",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.01297400000001403
+      "latency_ms": 0.016740000000027067
     },
     {
       "id": "rf-152",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.01219199999999887
+      "latency_ms": 0.0150480000000357
     },
     {
       "id": "rf-153",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.013795000000015989
+      "latency_ms": 0.017492000000004282
     },
     {
       "id": "rf-154",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.029263000000014472
+      "latency_ms": 0.043339000000003125
     },
     {
       "id": "rf-155",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.03154700000001753
+      "latency_ms": 0.04357899999996562
     },
     {
       "id": "rf-156",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.012943000000007032
+      "latency_ms": 0.021238999999980024
     },
     {
       "id": "rf-157",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.012042000000008102
+      "latency_ms": 0.016701000000011845
     },
     {
       "id": "rf-158",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.014817000000022063
+      "latency_ms": 0.014686999999980799
     },
     {
       "id": "rf-159",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.02648800000000051
+      "latency_ms": 0.051695000000052005
     },
     {
       "id": "rf-160",
       "emergency": false,
       "codes": [],
-      "latency_ms": 0.030885999999981095
+      "latency_ms": 0.043780000000026575
     }
   ]
 }

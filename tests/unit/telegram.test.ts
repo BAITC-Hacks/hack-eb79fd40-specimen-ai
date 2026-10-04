@@ -369,8 +369,9 @@ describe("Telegram rendering", () => {
     });
 
     expect(text).toContain("пациент начал опрос и не закончил");
-    expect(text).toContain("Токен врача: doctor1");
-    expect(text).toContain("Причина: ttl_expired");
+    expect(text).not.toContain("doctor1");
+    expect(text).not.toContain("Сессия:");
+    expect(text).toContain("Причина: время опроса истекло");
     expect(text).not.toContain("ГИПОТЕЗА");
     expect(text).not.toContain("МАРШРУТИЗАЦИЯ");
   });

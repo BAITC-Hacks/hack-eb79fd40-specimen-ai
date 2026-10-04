@@ -3,12 +3,9 @@ import { randomUUID } from "node:crypto";
 import filesystem from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { REFERRAL_PROFILES } from "../lib/referrals/profiles";
 import { validateReferralDatabase } from "../lib/referrals/service";
 import type {
-  Referral,
   ReferralDatabase,
-  ReferralFacts,
 } from "../lib/referrals/types";
 
 export const INSTALLATION_CHECK_REFERRAL_ID = "2e2d9e10-e4a2-46e3-9119-3b8b1d55db34";
@@ -21,53 +18,6 @@ export interface CleanupResult {
   removedReferrals: number;
   removedCommands: number;
   normalizedProfiles: number;
-}
-
-const SAFE_LEGACY_PROFILES = ["Кардиология", "Терапия"] as const;
-const SAFE_PROFILE_NAMES = [...REFERRAL_PROFILES, ...SAFE_LEGACY_PROFILES];
-
-function safeCanonicalProfile(value: string): string {
-  const normalized = value.trim().toLocaleLowerCase("ru");
-  return SAFE_PROFILE_NAMES.find(
-    (profile) => profile.toLocaleLowerCase("ru") === normalized,
-  ) ?? value;
-}
-
-function normalizeFactsProfile(value: ReferralFacts): ReferralFacts {
-  return { ...value, profile: safeCanonicalProfile(value.profile) };
-}
-
-function normalizeReferralProfile(referral: Referral): {
-  referral: Referral;
-  changed: boolean;
-} {
-  const normalized = structuredClone(referral);
-  let changed = false;
-  const normalizeFacts = (value: ReferralFacts): ReferralFacts => {
-    const next = normalizeFactsProfile(value);
-    if (next.profile !== value.profile) changed = true;
-    return next;
-  };
-
-  const canonical = safeCanonicalProfile(normalized.profile);
-  if (canonical !== normalized.profile) {
-    normalized.profile = canonical;
-    changed = true;
-  }
-  for (const event of normalized.events) {
-    if (event.type === "examination_recorded") continue;
-    if (event.before) event.before = normalizeFacts(event.before as ReferralFacts);
-    event.after = normalizeFacts(event.after as ReferralFacts);
-  }
-  if (normalized.requirementSnapshot?.profiles.length === 1) {
-    const snapshotProfile = normalized.requirementSnapshot.profiles[0];
-    const normalizedSnapshotProfile = safeCanonicalProfile(snapshotProfile.profile);
-    if (normalizedSnapshotProfile !== snapshotProfile.profile) {
-      snapshotProfile.profile = normalizedSnapshotProfile;
-      changed = true;
-    }
-  }
-  return { referral: normalized, changed };
 }
 
 export function snapshotSha256(bytes: Uint8Array): string {
@@ -89,19 +39,17 @@ export function cleanupInstallationCheck(
   const referralId = INSTALLATION_CHECK_REFERRAL_ID;
   const matches = current.referrals.filter((referral) => referral.id === referralId);
   if (matches.length > 1) throw new Error("Synthetic referral ID is not unique");
-  let normalizedProfiles = 0;
-  const referrals = current.referrals
-    .filter((referral) => referral.id !== referralId)
-    .map((referral) => {
-      const normalized = normalizeReferralProfile(referral);
-      if (normalized.changed) normalizedProfiles += 1;
-      return normalized.referral;
-    });
+  const normalizedProfiles = 0;
+  const referrals = current.referrals.filter((referral) => referral.id !== referralId);
   const removedCommands = current.commands.filter((command) => command.referralId === referralId).length;
   const candidate: ReferralDatabase = {
     ...structuredClone(current),
     referrals,
     commands: current.commands.filter((command) => command.referralId !== referralId),
+    patientAccess: current.patientAccess?.filter((access) => access.referralId !== referralId),
+    patientReports: current.patientReports?.filter((report) => report.referralId !== referralId),
+    misOutbox: current.misOutbox?.filter((event) => event.referralId !== referralId),
+    misCommands: current.misCommands?.filter((command) => !current.misOutbox?.some((event) => event.referralId === referralId && event.eventId === command.eventId)),
   };
   const removedReferrals = matches.length;
   return {

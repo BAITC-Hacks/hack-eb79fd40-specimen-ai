@@ -305,3 +305,172 @@ openssl s_client -connect 109.123.248.16:443 -noservername \
 
 An auxiliary `openssl s_client ... -servername 109.123.248.16` may inspect the SAN path, but cannot
 replace either acceptance command. Unknown non-empty SNI must still fail; do not add `fallback_sni`.
+
+
+## Finalization schema6: recovery and optional MIS mount (04.10.2026)
+
+This section describes the new, uncommitted finalization code. Read-only production
+inspection on 04.10 observed `e5cc4a2`, `ok:true`, `external_llm`; this does not
+claim that finalization is deployed. Preserve the shared rootless Docker profile,
+`compose.host-proxy.yml`, port 8019 and organizer-managed host Caddy.
+
+The runtime image now bakes `/app/referral-schema-version` from the reviewed reader
+marker. Both stock scripts pin the saved recovery image to an immutable Docker
+image ID **before activation**. They validate the entire bounded regular,
+non-symlink `referrals.json` with JSON.parse and check its integer schema against
+that exact image's baked capability. The configured data directory is mounted
+read-only and existence/type/size are checked inside the exact image as its normal
+runtime UID. This is required for rootless directories that the host login UID
+cannot traverse; a host `EACCES` must never be interpreted as a missing snapshot.
+An absent snapshot is accepted only when that in-image probe observes `ENOENT`.
+The image probe runs without network,
+read-only, with all capabilities dropped and no-new-privileges. A checked-out
+marker or a subsequently retagged image cannot authorize fallback.
+
+The same check runs again immediately before automatic fallback, before checkout,
+environment/marker restoration, image retags or container activation. A target can
+write a newer schema before failing its health gate: the saved reader then may no
+longer be compatible. In that case the script exits unsuccessfully, keeps the
+current runtime and state, and does **not** claim the previous release is healthy.
+A malformed complete JSON document, future schema, missing/invalid marker or
+unreadable file also blocks activation. Manual rollback additionally checks the
+requested target's reader marker before changing its checkout.
+
+### First boundary from a markerless existing image
+
+A legacy image with no baked reader marker is not assumed to support schema6.
+With a persisted snapshot present, stock activation will refuse that recovery
+image. This is a release preparation gate, not a reason to bypass the scripts.
+Before requesting the first cutover:
+
+1. Record the current exact deployed source, image ID, health, proxy/ports and
+   private state-file ownership. Quiesce writes for a consistent backup of the
+   accounts and referral snapshot together; keep originals and hashes private.
+2. In an isolated environment, reopen the backup with the exact old reader and
+   perform a reversible write/read against a **copy**. Prove its supported schema
+   from code and tests. Build a preserved recovery image from that exact source
+   with only the reviewed baked reader marker added; do not relabel an unknown
+   reader. Verify the immutable image, private mounted-file readability and the
+   same writable restore. This preparation does not activate any container.
+3. The coordinator records the boundary decision and preserved recovery image
+   evidence, then uses the stock deployment chain with fresh preflight. If that
+   exact-source recovery image cannot be proved, the first cutover remains
+   blocked; choose an approved roll-forward recovery release after providing a
+   verified writable backup, rather than guessing a capability.
+4. If state has already advanced beyond a recovery reader, do not lower the JSON
+   schema field or discard new fields. Quiesce writes and use a compatible
+   roll-forward release through the stock script, or restore the paired verified
+   backup under an explicitly approved recovery procedure. Include any changes
+   since the backup in that decision. Reopen/read/write a copied restored
+   snapshot first, then require exact-SHA health, L1 smoke, mount readability and
+   green/previous markers. A health response alone is not writable recovery.
+
+No production cutover, backup restore or first-boundary approval is claimed by
+these offline checks. Never manually activate Compose to bypass a blocked gate.
+
+The executable one-shot contract for this first boundary uses two process
+environment variables. They do not belong in `.env` and must be supplied together:
+
+- `DEMEU_PREPARED_RECOVERY_IMAGE_ID=sha256:<64 lowercase hex>` is the immutable
+  ID of a marker-only child of the exact running image.
+- `DEMEU_PREPARED_RECOVERY_COMMIT=<7 lowercase hex>` is the current healthy
+  release commit, not the incoming candidate.
+
+On the authorized production server shell, build the prepared image in a private
+temporary directory from the exact running image ID. The marker must come from
+the same old source commit in the server's preserved Git history. This server-side
+template uses placeholders from the fresh preflight:
+
+```bash
+cd '<absolute current production app dir>'
+current_image_id='sha256:<exact running image ID>'
+current_commit='<current healthy commit>'
+preflight_runner='<absolute staged reviewed source>/deploy/deploy.sh'
+preparation_dir="$(mktemp -d)"
+chmod 700 "$preparation_dir"
+git show "${current_commit}:deploy/referral-schema-version" > "$preparation_dir/referral-schema-version"
+cat > "$preparation_dir/Dockerfile" <<'EOF'
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+COPY --chown=1001:1001 referral-schema-version /app/referral-schema-version
+EOF
+docker build --pull=false --no-cache \
+  --build-arg "BASE_IMAGE=${current_image_id}" \
+  --tag demeu-app:first-boundary-recovery "$preparation_dir"
+prepared_image_id="$(docker image inspect --format '{{.Id}}' demeu-app:first-boundary-recovery)"
+DEMEU_PREPARED_RECOVERY_IMAGE_ID="$prepared_image_id" \
+DEMEU_PREPARED_RECOVERY_COMMIT="$current_commit" \
+APP_DIR="$PWD" bash "$preflight_runner" --check-prepared-recovery
+```
+
+The staged runner must contain the reviewed candidate `deploy/deploy.sh`, sibling
+`recovery-guards.sh` and `validate-mis-credentials.cjs`; the current production
+checkout still contains the markerless old script. Stage this small bundle in a
+private non-runtime directory and remove it after the check. `APP_DIR` continues
+to point at the untouched current production checkout, state and `.env`.
+
+Before candidate mutation, the stock script proves all of the following: the
+running container and `demeu-app:latest` still resolve to the same immutable base;
+that base is markerless; image `COMMIT_SHA`, current health, existing green marker
+and old checkout identify the supplied commit; prepared config equals base config;
+prepared rootfs is the exact canonical `sha256:<64 hex>` base sequence plus one
+layer (read with a joined template so Docker's final newline is not a layer); and
+the final saved layer
+is either raw tar or gzip identified by its bytes. It contains one regular
+`app/referral-schema-version` with the source marker and may contain the BuildKit
+`app/` parent entry only when its owner, group and mode exactly match `/app` in the
+base image. Unsupported compression, changed parent metadata, whiteouts and every
+other archive entry fail closed.
+The layer archive is private, bounded while unpacking, and removed on success,
+failure or signal. The prepared image then passes the same state and optional MIS
+readability probes as ordinary recovery before build or `up` is allowed.
+
+The `--check-prepared-recovery` command performs current health, immutable image,
+marker-only layer, rootless state and optional MIS checks. It acquires the deploy
+lock but performs no tag, build, `up`, provider probe or application activation.
+
+Exit the server shell. In the reviewed **local** source worktree, invoke the
+ordinary rsync deployment path with the recorded non-secret literal image ID and
+commit. The script forwards only these constrained values to internal activation:
+
+```bash
+DEMEU_PREPARED_RECOVERY_IMAGE_ID='sha256:<recorded server image ID>' \
+DEMEU_PREPARED_RECOVERY_COMMIT='<recorded current 7-char commit>' \
+DEPLOY_MODE=rsync SERVER='<user@host>' APP_DIR='<absolute app dir>' \
+bash deploy/deploy.sh
+```
+
+Do not retag `demeu-app:latest`, manually run Compose or persist the prepared
+variables. After the first successful boundary, the candidate image has a baked
+marker and becomes `last-green`; remove the temporary build directory and the
+one-shot preparation tag. Supplying this lane again against a marked current image
+fails closed. If a failed candidate has already advanced persisted schema beyond
+the old reader, automatic fallback also fails closed and leaves state untouched
+for the reviewed roll-forward or paired-backup procedure above.
+
+### Optional MIS service credentials
+
+MIS remains disabled unless `DEMEU_HOST_MIS_CREDENTIALS_FILE` is explicitly set
+to a private absolute host file in `.env`. Stock deploy/rollback add
+`compose.mis.yml` only then. Its bind mount is read-only, disallows implicit
+host-path creation, and fixes the runtime path to
+`/run/secrets/demeu-mis-credentials.json`. An explicitly different runtime path or
+a runtime path without its host mount is rejected. Existing workspace mounts and
+rootless ingress remain unchanged.
+
+The host file must be regular, non-symlink, nonempty, at most 1,000,000 bytes and
+mode 0600. A probe using the actual image's normal nextjs UID validates complete
+strict JSON and readability under the rootless UID mapping before activation;
+it prints neither file contents nor credential values. Apply private ownership
+for the mapped runtime UID, following the existing account-file mapping; do not
+make the file world-readable to fix a mount. Candidate and recovery readers both
+must pass. The validator is captured before any checkout, so an older target
+cannot remove it and accidentally turn validation into a successful empty script.
+
+Credential schema is version1 with explicit integrations and organization IDs,
+keys carrying unique credential IDs, `sha256$...` hashes, enabled flags,
+`events:pull` / `events:ack` / optional `events:research` scopes and nullable expiry.
+Real service secrets stay outside Git and command arguments. Browser credentials
+are not service authentication. Research export additionally requires exact
+`DEMEU_MIS_RESEARCH_EVENTS=I_ACKNOWLEDGE_RESEARCH_ONLY`; it is disabled by default.
+No real MIS credential, external delivery or live integration was tested here.

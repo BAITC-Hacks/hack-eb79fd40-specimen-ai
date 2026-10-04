@@ -72,7 +72,6 @@ describe("workspace aggregate boundary", () => {
       expect(aggregateJson).not.toContain(privateText);
     }
 
-    const releasedGroups = analystPayload.aggregates.groups;
     await referrals.create(doctorA, {
       patientLabel: "Новая закрытая запись",
       profile: "Хирургический",
@@ -80,7 +79,7 @@ describe("workspace aggregate boundary", () => {
     });
     const withheld = await handleWorkspaceAggregateDashboard(request(), deps(analyst));
     const withheldPayload = await withheld.json();
-    expect(withheldPayload.aggregates).toMatchObject({ suppressed: true, total: null, groups: releasedGroups });
+    expect(withheldPayload).toEqual(analystPayload);
     expect(await (await handleWorkspaceAggregateDashboard(request(), deps(analyst))).json()).toEqual(withheldPayload);
 
     for (const [index, referral] of doctorARecords.slice(0, 4).entries()) {
@@ -92,7 +91,7 @@ describe("workspace aggregate boundary", () => {
       });
     }
     const smallCellPayload = await (await handleWorkspaceAggregateDashboard(request(), deps(analyst))).json();
-    expect(smallCellPayload.aggregates).toMatchObject({ suppressed: true, total: null, groups: releasedGroups });
+    expect(smallCellPayload).toEqual(analystPayload);
     expect(await (await handleWorkspaceAggregateDashboard(request(), deps(analyst))).json()).toEqual(smallCellPayload);
 
     const filtered = await handleWorkspaceAggregateDashboard(request("/api/workspace/aggregates?profile=Хирургический"), deps(analyst));
@@ -157,7 +156,7 @@ describe("workspace aggregate boundary", () => {
     }
 
     const withheld = await referrals.aggregates(analyst);
-    expect(withheld).toMatchObject({ suppressed: true, total: null, groups: baseline.groups });
+    expect(withheld).toEqual(baseline);
     expect(await referrals.aggregates(analyst)).toEqual(withheld);
 
     const actual = await referrals.aggregates(owner);
@@ -166,6 +165,47 @@ describe("workspace aggregate boundary", () => {
       waiting: 7,
       scheduled: 14,
     });
+  });
+
+  it("keeps the entire empty payload stable until five contributors, including time and suppression", async () => {
+    let clock = Date.parse("2026-09-01T12:00:00Z");
+    const repository = new MemoryReferralRepository();
+    const referrals = new ReferralService(repository, { now: () => clock });
+    const empty = await referrals.aggregates(analyst);
+    expect(empty).toMatchObject({ suppressed: true, total: null, groups: [] });
+    for (let index = 0; index < 4; index++) {
+      clock += 86_400_000;
+      await referrals.create(doctorA, { patientLabel: `Private ${index}`, profile: "Хирургический", idempotencyKey: `empty-${index}` });
+      expect(await referrals.aggregates(analyst)).toEqual(empty);
+      expect(await new ReferralService(repository, { now: () => clock + 100 * 86_400_000 }).aggregates(analyst)).toEqual(empty);
+    }
+    await referrals.create(doctorA, { patientLabel: "Fifth", profile: "Хирургический", idempotencyKey: "empty-fifth" });
+    expect(await referrals.aggregates(analyst)).toMatchObject({ suppressed: false, total: 5 });
+  });
+
+  it("counts timing revisions in the same final cell, withholds four and releases a safe fifth", async () => {
+    let clock = Date.parse("2026-09-01T12:00:00Z");
+    const repository = new MemoryReferralRepository();
+    const service = new ReferralService(repository, { now: () => clock });
+    const records = [];
+    for (let index = 0; index < 10; index++) records.push(await service.create(doctorA, {
+      patientLabel: `Timing ${index}`, profile: "Хирургический", idempotencyKey: `timing-create-${index}`,
+    }));
+    const baseline = await service.aggregates(analyst);
+    clock += 5 * 86_400_000;
+    for (let index = 0; index < 5; index++) {
+      let record = await service.update(doctorA, records[index].id, { expectedRevision: records[index].revision,
+        idempotencyKey: `timing-out-${index}`, patch: { queue: true } });
+      record = await service.update(doctorA, record.id, { expectedRevision: record.revision,
+        idempotencyKey: `timing-back-${index}`, reason: "Synthetic correction", patch: { queue: false } });
+      if (index < 4) expect(await service.aggregates(analyst)).toEqual(baseline);
+    }
+    const released = await service.aggregates(analyst);
+    expect(released).toMatchObject({ suppressed: false, total: 10 });
+    expect(released.groups[0].count).toBe(baseline.groups[0].count);
+    expect(released.groups[0].meanObservedDays).not.toBe(baseline.groups[0].meanObservedDays);
+    clock += 20 * 86_400_000;
+    expect(await new ReferralService(repository, { now: () => clock }).aggregates(analyst)).toEqual(released);
   });
 
 });

@@ -94,7 +94,7 @@ def _method_evaluation(
 
 def _choose_model(
     partitions: TemporalPartitions,
-) -> tuple[LogisticModelBundle, dict[str, float], list[dict[str, Any]]]:
+) -> tuple[LogisticModelBundle, dict[str, Any], list[dict[str, Any]]]:
     candidates: list[dict[str, Any]] = []
     fitted: list[LogisticModelBundle] = []
     for c_value in LOGISTIC_C_VALUES:

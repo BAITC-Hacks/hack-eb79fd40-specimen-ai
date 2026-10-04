@@ -1,4 +1,5 @@
 import type { TriageResult } from "../types";
+import type { MisCommand, MisOutboxEvent } from "../mis/types";
 
 export interface ReferralActor {
   id: string;
@@ -21,26 +22,53 @@ export interface ReferralFacts {
   attendance: "attended" | "not_attended" | null;
   cancelled: boolean;
 }
+export type CareContext = "operative" | "conservative" | "unknown";
+export interface DoctorAssessment {
+  hypothesis: string | null;
+  profile: string;
+  icd10Code: string | null;
+  careContext: CareContext;
+  authorId: string;
+  authorName: string;
+  recordedAt: number;
+  revision: number;
+}
+export interface DoctorAssessmentEventState {
+  assessment: DoctorAssessment | null;
+  requirementSnapshot: RequirementCatalogue | null;
+  requirementSnapshotId: string | null;
+}
+export interface RegistrationFeatures {
+  bed_profile: string | null;
+  icd10_ref_diag_code: string | null;
+  referring_mo: string | null;
+  hospital_mo: string | null;
+  territorial_type: string | null;
+  finance_source: string | null;
+  referral_purpose: string | null;
+}
 export interface ExaminationRecord {
   id: string;
+  requirementSnapshotId?: string;
   requirementId: string;
   label: string;
   resultAvailable: boolean | null;
   performedOn: string | null;
   expiresOn: string | null;
   applicability: "yes" | "no" | "unknown";
+  patientReportId?: string;
 }
 export interface ReferralEvent {
   id: string;
-  type: "created" | "facts_changed" | "examination_recorded";
+  type: "created" | "facts_changed" | "examination_recorded" | "doctor_assessment_changed" | "registration_snapshot_recorded";
   actorId: string;
   actorName: string;
   source: "doctor_confirmation";
   occurredAt: number | null;
   recordedAt: number;
   reason: string | null;
-  before: ReferralFacts | ExaminationRecord | null;
-  after: ReferralFacts | ExaminationRecord;
+  before: ReferralFacts | ExaminationRecord | DoctorAssessmentEventState | RegistrationFeatures | null;
+  after: ReferralFacts | ExaminationRecord | DoctorAssessmentEventState | RegistrationFeatures;
   revision: number;
 }
 export interface Referral extends ReferralFacts {
@@ -50,7 +78,10 @@ export interface Referral extends ReferralFacts {
   patientLabel: string;
   sourceSessionId: string | null;
   triageSnapshot: TriageSnapshot | null;
+  doctorAssessment?: DoctorAssessment | null;
+  registrationSnapshot: RegistrationFeatures | null;
   requirementSnapshot?: RequirementCatalogue;
+  requirementSnapshotId?: string | null;
   createdAt: number;
   updatedAt: number;
   revision: number;
@@ -72,12 +103,30 @@ export interface UpdateReferralInput {
   reason?: string | null;
   occurredAt?: number | null;
 }
+export interface RecordDoctorAssessmentInput {
+  expectedRevision: number;
+  expectedAssessmentRevision: number;
+  idempotencyKey: string;
+  reason: string;
+  assessment: {
+    hypothesis: string | null;
+    profile: string;
+    icd10Code: string | null;
+    careContext: CareContext;
+  };
+}
 export interface RecordExaminationInput {
   expectedRevision: number;
   idempotencyKey: string;
-  record: Omit<ExaminationRecord, "id"> & { id?: string };
+  record: Omit<ExaminationRecord, "id" | "requirementSnapshotId"> & { id?: string };
   reason?: string | null;
   occurredAt?: number | null;
+}
+export interface RecordRegistrationSnapshotInput {
+  expectedRevision: number;
+  idempotencyKey: string;
+  attestedAtRegistration: true;
+  features: RegistrationFeatures;
 }
 // Только серверный адаптер получает этот объект из проверенной completed-сессии.
 export interface ReferralSourceSession {
@@ -91,6 +140,7 @@ export interface ExaminationRequirement {
   required: boolean | null;
   conditional: boolean;
   validForDays: number | null;
+  provenance?: "source_documented" | "profile_addition_unverified";
 }
 export interface RequirementCatalogue {
   schemaVersion: 1;
@@ -100,7 +150,7 @@ export interface RequirementCatalogue {
   scope?: {
     population: "adult";
     careSetting: "inpatient";
-    treatment: "operative";
+    treatment: "operative" | "conservative";
   } | null;
   validated: boolean;
   profiles: { profile: string; requirements: ExaminationRequirement[] }[];
@@ -114,7 +164,7 @@ export interface Completeness {
   catalogueAvailable: boolean;
   catalogueValidated?: boolean;
   catalogueStatus?: "available" | "unavailable";
-  entries: { requirementId: string; label: string; required: boolean | null; status: ExaminationStatus; expiresOn: string | null }[];
+  entries: { requirementId: string; label: string; required: boolean | null; status: ExaminationStatus; expiresOn: string | null; provenance?: ExaminationRequirement["provenance"] }[];
 }
 /**
  * Seven product phases are represented by eight values because the seventh
@@ -158,6 +208,72 @@ export interface ReferralDetail extends Referral {
   flow: ReferralFlow;
   observedStageDays: number | null;
   intake?: ReferralIntakeSummary | null;
+  patientReports?: PatientReport[];
+}
+export interface PatientAccess {
+  id: string;
+  sourceSessionId: string | null;
+  referralId: string | null;
+  sourceLinkHash: string | null;
+  organizationId: string;
+  doctorId: string;
+  capabilityHash: string;
+  issuedAt: number;
+  expiresAt: number;
+  revokedAt: number | null;
+  issuedBy: string;
+  revokedBy: string | null;
+}
+export interface PatientReport {
+  id: string;
+  referralId: string;
+  requirementId: string;
+  catalogueVersion: string;
+  requirementSnapshotId: string;
+  source: "patient_self_report";
+  actorAccessId: string;
+  performedOn: string;
+  resultAvailable: boolean;
+  recordedAt: number;
+  revision: number;
+  idempotencyKey: string;
+  payload: string;
+}
+export interface PatientReportInput {
+  requirementId: string;
+  performedOn: string;
+  resultAvailable: boolean;
+  expectedRevision: number;
+  idempotencyKey: string;
+}
+export interface PatientPackage {
+  accessId: string;
+  expiresAt: number;
+  state: "awaiting_referral" | "preparing" | "cancelled";
+  patientLabel: string | null;
+  scheduledDate: string | null;
+  destinationOrganization: string | null;
+  catalogueVersion: string | null;
+  catalogueSource: string | null;
+  catalogueValidated: boolean;
+  catalogueAvailable: boolean;
+  careContext?: CareContext;
+  evaluatedOn: string;
+  confirmedCompleteness: Completeness["status"];
+  items: {
+    requirementId: string;
+    label: string;
+    required: boolean | null;
+    conditional: boolean;
+    applicability: "yes" | "no" | "unknown";
+    validForDays: number | null;
+    provenance?: ExaminationRequirement["provenance"];
+    confirmedStatus: ExaminationStatus;
+    preparationStatus: "present" | "missing" | "expired" | "unknown" | "not_applicable";
+    expiresOn: string | null;
+    expiringBeforeAdmission: boolean;
+    selfReport: { performedOn: string; resultAvailable: boolean; recordedAt: number; revision: number; confirmed: boolean } | null;
+  }[];
 }
 export interface ReferralListFilters {
   state?: ReferralJourneyFlow;
@@ -168,7 +284,8 @@ export interface PatientMemo {
   scheduledDate: string | null;
   destinationOrganization: string | null;
   catalogueAvailable: boolean;
-  items: { label: string; status: ExaminationStatus; expiresOn: string | null }[];
+  careContext?: CareContext;
+  items: { label: string; status: ExaminationStatus; expiresOn: string | null; provenance?: ExaminationRequirement["provenance"] }[];
 }
 export interface ReferralAggregates {
   suppressed: boolean;
@@ -190,10 +307,14 @@ export interface ReferralAggregates {
   timelineUnavailableReason: "not_available_for_analyst" | null;
 }
 export interface ReferralDatabase {
-  schemaVersion: 2;
+  schemaVersion: 2 | 3 | 4 | 5 | 6;
   referrals: Referral[];
   links: { token: string; owner: ReferralActor }[];
   commands: { actorId: string; organizationId: string; key: string; payload: string; referralId: string }[];
+  patientAccess?: PatientAccess[];
+  patientReports?: PatientReport[];
+  misOutbox?: MisOutboxEvent[];
+  misCommands?: MisCommand[];
 }
 export interface ReferralRepository {
   read<R>(fn: (state: Readonly<ReferralDatabase>) => R): Promise<R>;

@@ -95,6 +95,7 @@ describe("workspace insights: scoped data and honest quantities", () => {
     });
     expect(MODEL_EVIDENCE[0].note).toContain("Март ранее изучался в исходной передаче данных");
     expect(MODEL_EVIDENCE[1].note).toContain("Март ранее изучался в исходной передаче данных");
+    expect(MODEL_EVIDENCE[1].note).toContain("подтверждённому снимку семи полей");
     expect(MODEL_EVIDENCE[2]).toMatchObject({ status: "unavailable_data" });
     expect(MODEL_EVIDENCE[2].heldOutMetric).toContain("Не рассчитана");
     expect(MODEL_EVIDENCE[2].baseline).toContain("Не рассчитан");

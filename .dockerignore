@@ -45,3 +45,8 @@ CLAUDE.md
 Dockerfile
 docker-compose.yml
 deploy/
+
+.unlazy/
+!deploy/
+deploy/**
+!deploy/referral-schema-version

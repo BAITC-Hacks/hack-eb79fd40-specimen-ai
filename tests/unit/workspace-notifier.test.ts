@@ -82,6 +82,7 @@ describe("durable scoped delivery", () => {
     });
     const notice = { sessionId: "aborted-1", doctorToken: "token", startedAt: 1, abortedAt: 2, reason: "expired" };
     await notifier.sendAbortedNotice(notice);
+    expect(summaries.sendAbortedNotice).toHaveBeenCalledWith(notice, { doctorDisplayName: "Врач", episodeLabel: "Незавершённый опрос", intakeUrl: "https://demeu.example.test/workspace/intakes/aborted-1" });
     current = { ...owner, role: "owner" };
     await notifier.sendAbortedNotice({ ...notice, sessionId: "promoted-doctor" });
     for (const changed of [null, { ...owner, role: "analyst" as const }, { ...owner, organizationId: "other" }, { ...owner, telegramChatId: undefined }]) {

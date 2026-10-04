@@ -6,7 +6,7 @@ import { FRONTEND_RESULT } from "../fixtures/frontend-result";
 function referral(patch: Partial<ReferralDetail> = {}): ReferralDetail {
   return {
     id: "r1", organizationId: "org", doctorId: "doctor", patientLabel: "Эпизод А", profile: "Терапия",
-    sourceSessionId: null, triageSnapshot: null, createdAt: 100, updatedAt: 100, revision: 1, events: [], examinations: [],
+    sourceSessionId: null, triageSnapshot: null, registrationSnapshot: null, createdAt: 100, updatedAt: 100, revision: 1, events: [], examinations: [],
     specialistReferred: null, preparationStarted: true, destinationOrganization: null, sent: null, queue: null,
     scheduledDate: null, attendance: null, cancelled: false, flow: "preparing", observedStageDays: null,
     completeness: { status: "unknown", evaluatedOn: "2026-09-13", basis: "today", catalogueVersion: "unverified-1", catalogueAvailable: false, entries: [] },

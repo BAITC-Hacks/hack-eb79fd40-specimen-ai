@@ -324,16 +324,19 @@ describe("commands, memo and aggregate HTTP contracts", () => {
     }), referral.id, deps());
     expect(response.status).toBe(200);
     const memo = await (await handlePatientMemo(req(), referral.id, deps())).json();
-    expect(Object.keys(memo.memo).sort()).toEqual(["catalogueAvailable", "destinationOrganization", "items", "patientLabel", "scheduledDate"]);
+    expect(Object.keys(memo.memo).sort()).toEqual(["careContext", "catalogueAvailable", "destinationOrganization", "items", "patientLabel", "scheduledDate"].sort());
     expect(memo.memo.catalogueAvailable).toBe(false);
     expect(JSON.stringify(memo)).not.toMatch(/hypothesis|anamnesis|triageSnapshot|sourceSessionId|doctorToken/u);
   });
 
   it("passes a recorded expired examination to the doctor's notification without draft requirements", async () => {
     const fixed = new ReferralService(new MemoryReferralRepository(), { now: () => Date.parse("2026-09-18T12:00:00Z") });
-    const created = await fixed.create(doctor, input());
+    let created = await fixed.create(doctor, input());
+    created = await fixed.assess(doctor, created.id, { expectedRevision: created.revision, expectedAssessmentRevision: 0,
+      idempotencyKey: "notify-assessment", reason: "Тестовый operative контекст",
+      assessment: { hypothesis: null, profile: created.profile, icd10Code: created.icd10Code ?? null, careContext: "operative" } });
     const scheduled = await fixed.update(doctor, created.id, {
-      expectedRevision: 1, idempotencyKey: "scheduled-notify", patch: { scheduledDate: "2026-09-25" },
+      expectedRevision: created.revision, idempotencyKey: "scheduled-notify", patch: { scheduledDate: "2026-09-25" },
     });
     const examined = await fixed.examination(doctor, created.id, {
       expectedRevision: scheduled.revision, idempotencyKey: "exam-notify",

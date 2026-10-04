@@ -17,35 +17,35 @@ const displayDate = (value: string) => value.split("-").reverse().join(".");
 // calculated against the referral's persisted requirementSnapshot. A newer
 // catalogue must not silently rewrite an existing episode package.
 export function patientMemoFromReferral(referral: ReferralDetail): PatientMemo {
-  const items = referral.completeness.entries.length > 0
-    ? referral.completeness.entries
-      .filter((entry) => entry.status !== "not_applicable")
-      .map(({ label, status, expiresOn }) => ({ label, status, expiresOn }))
-    : referral.examinations.map((record) => ({
-      label: record.label,
-      status: "unknown" as const,
-      expiresOn: record.expiresOn,
-    }));
+  const items = referral.completeness.entries
+    .filter((entry) => entry.status !== "not_applicable")
+    .map(({ label, status, expiresOn, provenance }) => ({ label, status, expiresOn, ...(provenance ? { provenance } : {}) }));
   return {
     patientLabel: referral.patientLabel,
     scheduledDate: referral.scheduledDate,
     destinationOrganization: referral.destinationOrganization,
     catalogueAvailable: referral.completeness.catalogueAvailable,
+    careContext: referral.doctorAssessment?.careContext ?? "unknown",
     items,
   };
 }
 
 // Patient-facing whitelist: no transcript, hypothesis, risk score or snapshot.
 export function renderPatientMemoText(memo: PatientMemo): string {
+  const context = memo.careContext === "operative" ? "с вмешательством"
+    : memo.careContext === "conservative" ? "без вмешательства" : "не уточнён";
   return [
     "Demeu · Памятка по подготовке",
     `Пациент: ${memo.patientLabel}`,
     `Организация: ${memo.destinationOrganization ?? "уточнить у врача"}`,
     `Целевая дата госпитализации: ${memo.scheduledDate ? displayDate(memo.scheduledDate) : "не указана"}`,
-    memo.catalogueAvailable
+    `Контекст подготовки: ${context}`,
+    memo.careContext === "unknown"
+      ? "Контекст подготовки ещё не выбран врачом. Активный перечень недоступен."
+      : memo.catalogueAvailable
       ? "Что взять с собой к целевой дате:"
       : "Справочник ещё не проверен врачом больницы. Состав пакета ниже не подтверждён; уточните его у врача.",
-    ...memo.items.map((item, index) => `${index + 1}. ${item.label} — ${ACTIONS[item.status]}${item.expiresOn ? `; срок действия до ${displayDate(item.expiresOn)}` : "; срок действия уточните у врача"}`),
+    ...memo.items.map((item, index) => `${index + 1}. ${item.label} — ${ACTIONS[item.status]}${item.expiresOn ? `; срок действия до ${displayDate(item.expiresOn)}` : "; срок действия уточните у врача"}${item.provenance === "profile_addition_unverified" ? "; профильное дополнение требует подтверждения врача" : ""}`),
     "Назначенная дата не подтверждает явку. При изменении планов свяжитесь с врачом.",
     "Окончательный состав пакета и готовность подтверждает врач.",
     "Demeu не отправляет данные в Портал бюро госпитализации.",
@@ -53,11 +53,15 @@ export function renderPatientMemoText(memo: PatientMemo): string {
 }
 
 export async function renderPatientMemoPdf(memo: PatientMemo): Promise<Uint8Array> {
+  return renderPatientTextPdf(renderPatientMemoText(memo));
+}
+
+export async function renderPatientTextPdf(content: string): Promise<Uint8Array> {
   const document = await PDFDocument.create();
   document.registerFontkit(fontkit);
   const font = await document.embedFont(await readFile(resolve(process.cwd(), "assets/fonts/IBMPlexSans-Variable.ttf")), { subset: true });
   const supported = new Set(font.getCharacterSet());
-  const text = [...renderPatientMemoText(memo)].map((char) => char === "\n" || supported.has(char.codePointAt(0)!) ? char : " ").join("");
+  const text = [...content].map((char) => char === "\n" || supported.has(char.codePointAt(0)!) ? char : " ").join("");
   let page = document.addPage(PageSizes.A4);
   let y = page.getHeight() - 48;
   const size = 11;

@@ -23,6 +23,9 @@ export interface StartChatResponse {
   sessionId: string;
   reply: string;
   turnsLeft: number;
+  preparationId?: string;
+  preparationUrl?: string;
+  preparationPending?: boolean;
 }
 
 export interface ChatTurnResponse {
@@ -253,7 +256,10 @@ function isStartResponse(value: unknown): value is StartChatResponse {
     isRecord(value) &&
     nonEmpty(value.sessionId) &&
     nonEmpty(value.reply) &&
-    turnsLeft(value.turnsLeft)
+    turnsLeft(value.turnsLeft) &&
+    (value.preparationId === undefined || nonEmpty(value.preparationId)) &&
+    (value.preparationUrl === undefined || typeof value.preparationUrl === "string" && /^\/p\/[A-Za-z0-9_-]{43}$/u.test(value.preparationUrl)) &&
+    (value.preparationPending === undefined || typeof value.preparationPending === "boolean")
   );
 }
 

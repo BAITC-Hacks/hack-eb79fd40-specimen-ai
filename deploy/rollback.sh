@@ -2,6 +2,10 @@
 
 set -Eeuo pipefail
 
+DEMEU_SCRIPT_DIRECTORY="${BASH_SOURCE[0]%/*}"
+[ "$DEMEU_SCRIPT_DIRECTORY" != "${BASH_SOURCE[0]}" ] || DEMEU_SCRIPT_DIRECTORY=.
+source "${DEMEU_SCRIPT_DIRECTORY}/recovery-guards.sh"
+
 APP_DIR="${APP_DIR:-/opt/demeu}"
 HEALTH_ATTEMPTS="${HEALTH_ATTEMPTS:-30}"
 HEALTH_INTERVAL_SECONDS="${HEALTH_INTERVAL_SECONDS:-3}"
@@ -15,6 +19,7 @@ ROLLBACK_SUCCEEDED=0
 RECOVERY_RUNNING=0
 COMPOSE_READY=0
 RECOVERY_IMAGE_AVAILABLE=0
+RECOVERY_IMAGE_ID=""
 COMPOSE_ARGS=()
 OLD_GREEN_SHA=""
 OLD_GREEN_FULL=""
@@ -216,6 +221,7 @@ configure_compose() {
       || die "current production requires TLS_BRANCH=branch-b-caddy"
     COMPOSE_ARGS+=(-f deploy/compose.new-server-ip.yml)
   fi
+  configure_private_mis
   docker compose "${COMPOSE_ARGS[@]}" config --quiet
 }
 
@@ -268,36 +274,14 @@ referral_schema_at() {
 }
 
 assert_referral_snapshot_compatible() {
-  local target_commit="$1" data_dir snapshot current_version target_version size
-  data_dir="$(env_value DEMEU_HOST_DATA_DIR)" \
-    || die "DEMEU_HOST_DATA_DIR is duplicated in .env"
+  local target_commit="$1" data_dir target_version reader_image
+  data_dir="$(env_value DEMEU_HOST_DATA_DIR)" || die "DEMEU_HOST_DATA_DIR is duplicated in .env"
   [ -n "$data_dir" ] || return 0
-  case "$data_dir" in
-    /*) ;;
-    *) die "DEMEU_HOST_DATA_DIR must be an absolute path" ;;
-  esac
-  case "$data_dir" in
-    /|*/|*[!A-Za-z0-9_./-]*|*..*|*//*) die "DEMEU_HOST_DATA_DIR contains unsafe characters" ;;
-  esac
-  snapshot="${data_dir}/referrals.json"
-  [ -e "$snapshot" ] || return 0
-  [ -f "$snapshot" ] && [ ! -L "$snapshot" ] \
-    || die "referral snapshot must be a regular non-symlink file"
-  size="$(stat -c '%s' "$snapshot")" || die "referral snapshot size could not be read"
-  [[ "$size" =~ ^[0-9]+$ ]] && [ "$size" -le 33554432 ] \
-    || die "referral snapshot exceeds the validated size limit"
-  # FileState writes compact JSON with the root schemaVersion first. Anchor to
-  # that root field so nested catalogue schema versions cannot weaken the gate.
-  current_version="$(sed -n \
-    '1s/^[[:space:]]*{"schemaVersion":\([1-9][0-9]\{0,2\}\),.*$/\1/p' \
-    "$snapshot")" || die "referral snapshot could not be read"
-  [[ "$current_version" =~ ^[1-9][0-9]{0,2}$ ]] \
-    || die "referral snapshot schemaVersion could not be verified"
   target_version="$(referral_schema_at "$target_commit")" \
     || die "rollback target referral schema capability is missing or invalid while referral state exists"
-  if [ "$current_version" -gt "$target_version" ]; then
-    die "referral snapshot schema v${current_version} is newer than rollback target capability v${target_version}"
-  fi
+  reader_image="$(resolve_recovery_image "$LAST_GREEN_IMAGE")" || die "snapshot validation image is unavailable"
+  assert_recovery_image_compatible "$reader_image" "$target_version" \
+    || die "referral snapshot is malformed or newer than rollback target capability v${target_version}"
 }
 
 health_probe() {
@@ -536,11 +520,19 @@ recover_rollback() {
   RECOVERY_RUNNING=1
   log "rollback activation failed; restoring the last green release"
 
+  if [ "$RECOVERY_IMAGE_AVAILABLE" = "1" ]; then
+    if ! assert_recovery_image_compatible "$RECOVERY_IMAGE_ID" || ! assert_private_mis_readable "$RECOVERY_IMAGE_ID"; then
+      printf '[rollback] FAIL: recovery image is incompatible with current persistent state or private mounts; retain current runtime and use validated recovery\n' >&2
+      return 1
+    fi
+  else
+    return 1
+  fi
   restore_env_snapshot || failed=1
   git reset --hard --quiet "$OLD_GREEN_FULL" || failed=1
   restore_markers || failed=1
   if [ "$COMPOSE_READY" = "1" ] && [ "$RECOVERY_IMAGE_AVAILABLE" = "1" ]; then
-    docker image tag "$RECOVERY_IMAGE" "$LAST_GREEN_IMAGE" || failed=1
+    docker image tag "$RECOVERY_IMAGE_ID" "$LAST_GREEN_IMAGE" || failed=1
     docker image tag "$LAST_GREEN_IMAGE" demeu-app:latest || failed=1
     if [ "$failed" = "0" ]; then
       env_matches_snapshot || failed=1
@@ -648,7 +640,10 @@ run_rollback() {
     || die "last-green image is missing; refuse an unsafe rollback"
   docker image tag "$LAST_GREEN_IMAGE" "$RECOVERY_IMAGE" \
     || die "last-green recovery snapshot could not be created"
+  RECOVERY_IMAGE_ID="$(resolve_recovery_image "$RECOVERY_IMAGE")" || die "recovery image identity could not be pinned"
   RECOVERY_IMAGE_AVAILABLE=1
+    assert_recovery_image_compatible "$RECOVERY_IMAGE_ID" || die "saved recovery image cannot read current persistent state"
+    assert_private_mis_readable "$RECOVERY_IMAGE_ID" || die "MIS credentials are invalid or unreadable by saved runtime UID"
 
   ACTIVATION_STARTED=1
   log "activating ${TARGET_SHORT} from verified local history"
@@ -656,6 +651,7 @@ run_rollback() {
   assert_clean_worktree
   export COMMIT_SHA="$TARGET_SHORT"
   compose build app
+  assert_private_mis_readable demeu-app:latest || die "MIS credential JSON or mapped runtime UID readability is invalid"
   compose up -d --remove-orphans
   if ! wait_for_health "$TARGET_SHORT" "$TARGET_MODEL"; then
     die "rollback target health contract failed"

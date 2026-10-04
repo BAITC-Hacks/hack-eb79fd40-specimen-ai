@@ -68,6 +68,7 @@
 .environment span { width: 7px; height: 7px; border-radius: 50%; background: #5cae6f; box-shadow: 0 0 0 4px rgba(92, 174, 111, .13); }
 .workspaceLink { color: var(--api-pine); font-size: 13px; font-weight: 700; text-decoration: none; }
 .workspaceLink span { margin-left: 5px; }
+.topLinks { display: flex; align-items: center; gap: 18px; }
 
 .sidebar {
   position: fixed;
@@ -230,6 +231,7 @@
 .conditional { background: #c8892f; }
 .patient { background: #3d7598; }
 .workspace { background: var(--api-pine); }
+.service { background: #8a5a24; }
 .accessLine strong { font-size: 12px; }
 .accessLine p { margin-top: 3px; color: var(--api-soft); font-size: 11px; line-height: 1.5; }
 .fields { border-top: 1px solid var(--api-line); }

@@ -27,6 +27,10 @@ ENV COMMIT_SHA=$COMMIT_SHA
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/assets ./assets
+COPY --from=builder --chown=nextjs:nodejs /app/data/case1/aggregates.json ./data/case1/aggregates.json
+COPY --from=builder --chown=nextjs:nodejs /app/models/referral-risk-v1.json ./models/referral-risk-v1.json
+
+COPY --from=builder --chown=nextjs:nodejs /app/deploy/referral-schema-version ./referral-schema-version
 
 USER nextjs
 EXPOSE 3000

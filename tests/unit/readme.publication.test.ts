@@ -17,7 +17,8 @@ interface EvalReportSummary {
   invariants: { all_passed: boolean };
 }
 
-const readme = readFileSync("README.md", "utf8");
+const readme = readFileSync("docs/technical.md", "utf8");
+const productReadme = readFileSync("README.md", "utf8");
 const report = JSON.parse(readFileSync("eval/report.json", "utf8")) as EvalReportSummary;
 const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
   scripts: Record<string, string>;
@@ -34,6 +35,13 @@ function publishedValue(name: string): string {
 }
 
 describe("README publication contract", () => {
+  it("preserves the product README and a visible canonical technical documentation link", () => {
+    expect(productReadme).toContain("## Как собирали продукт");
+    expect(productReadme).toContain("## Что сделано по неделям");
+    expect(productReadme).toContain("[docs/technical.md](docs/technical.md)");
+    expect(productReadme).toContain("e5cc4a2");
+    expect(productReadme).toContain("не выложена");
+  });
   it("has explicit sections for every data-methodology criterion", () => {
     const headings = [
       "### 1. Источник и происхождение",
@@ -95,10 +103,11 @@ describe("README publication contract", () => {
   });
 
   it("uses the restricted term only in an explicit negative construction", () => {
-    const matches = [...readme.matchAll(/диагноз/giu)];
+    const published = `${productReadme}\n${readme}`;
+    const matches = [...published.matchAll(/диагноз/giu)];
     expect(matches.length).toBeGreaterThan(0);
     for (const match of matches) {
-      const before = readme.slice(Math.max(0, match.index! - 24), match.index!);
+      const before = published.slice(Math.max(0, match.index! - 24), match.index!);
       expect(before).toMatch(/не\s+(?:ставит\s+)?$/iu);
     }
   });

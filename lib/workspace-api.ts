@@ -1,5 +1,7 @@
 import { isReferralError, type ReferralService } from "./referrals/service";
-import type { CreateReferralInput, RecordExaminationInput, ReferralJourneyFlow, ReferralSourceSession, UpdateReferralInput } from "./referrals/types";
+import type { CreateReferralInput, RecordDoctorAssessmentInput, RecordExaminationInput, ReferralJourneyFlow, ReferralSourceSession, UpdateReferralInput } from "./referrals/types";
+import type { RecordRegistrationSnapshotInput } from "./referrals/types";
+import { loadReferralRiskArtifact, REFERRAL_RISK_FEATURES, scoreReferralRisk, type ReferralRiskArtifact } from "./referral-risk";
 import { linkClientKey, linkRateLimiter, type LinkRateLimiter } from "./rate-limit";
 import { store, type SessionStore } from "./store";
 import type { ReadonlySession } from "./types";
@@ -9,13 +11,15 @@ import { workspace } from "./workspace";
 type IntakeStore = Pick<SessionStore, "getSession" | "createDoctorToken"> & { listSessions(): Promise<ReadonlySession[]> };
 export interface WorkspaceApiDeps {
   actor?: (req: Request) => Promise<WorkspaceActor>;
-  referrals?: Pick<ReferralService, "list" | "detail" | "create" | "replayCreate" | "update" | "examination" | "memo" | "aggregates" | "bindLink" | "ownerForToken">;
+  referrals?: Pick<ReferralService, "list" | "detail" | "create" | "replayCreate" | "update" | "examination" | "memo" | "aggregates" | "bindLink" | "ownerForToken">
+    & Partial<Pick<ReferralService, "assess" | "recordRegistrationSnapshot">>;
   sessions?: IntakeStore;
   limiter?: Pick<LinkRateLimiter, "consume">;
+  riskArtifact?: () => Promise<ReferralRiskArtifact>;
 }
 
 const BODY_LIMIT = 16_384;
-const noStore = { "Cache-Control": "no-store" };
+const noStore = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" };
 function json(value: unknown, status = 200, headers: Record<string, string> = {}): Response {
   return Response.json(value, { status, headers: { ...noStore, ...headers } });
 }
@@ -64,6 +68,7 @@ const messages: Record<string, string> = {
   WORKSPACE_UNAVAILABLE: "Рабочее пространство недоступно",
   REASON_REQUIRED: "Укажите причину исправления",
   REVISION_CONFLICT: "Запись изменилась, обновите карточку",
+  ASSESSMENT_REVISION_CONFLICT: "Заключение врача изменилось, обновите карточку",
   IDEMPOTENCY_CONFLICT: "Запрос уже использован для другого изменения",
   SOURCE_SESSION_NOT_COMPLETED: "Опрос ещё не завершён",
   REFERRAL_CANCELLED: "Сначала явно возобновите отменённое направление и укажите причину",
@@ -71,6 +76,7 @@ const messages: Record<string, string> = {
   DELIVERY_RECIPIENT_UNAVAILABLE: "Получатель не настроен или больше не имеет доступа",
   BODY_TOO_LARGE: "Запрос слишком большой",
   METHOD_NOT_ALLOWED: "Метод недоступен",
+  REGISTRATION_SNAPSHOT_IMMUTABLE: "Снимок при регистрации уже сохранён",
 };
 async function boundary(work: () => Promise<Response>): Promise<Response> {
   try { return await work(); }
@@ -153,6 +159,68 @@ export function handleReferralEvents(req: Request, id: string, deps: WorkspaceAp
     method(req, "POST");
     const input = await body(req, ["expectedRevision", "idempotencyKey", "patch", "reason", "occurredAt"]);
     return json({ referral: await service(deps).update(actor, id, input as unknown as UpdateReferralInput) });
+  });
+}
+
+export function handleDoctorAssessment(req: Request, id: string, deps: WorkspaceApiDeps = {}): Promise<Response> {
+  return boundary(async () => {
+    const actor = await authorized(req, deps);
+    writer(actor);
+    method(req, "POST");
+    if (actor.role !== "doctor") failure(403, "FORBIDDEN");
+    const referrals = service(deps);
+    // Resolve scope before parsing caller-controlled query/body so a doctor
+    // outside the record scope receives the same 404 for every payload shape.
+    await referrals.detail(actor, id);
+    if (new URL(req.url).search) failure(400, "BAD_REQUEST");
+    const input = await body(req, ["expectedRevision", "expectedAssessmentRevision", "idempotencyKey", "reason", "assessment"]);
+    if (object(input.assessment)) onlyFields(input.assessment, ["hypothesis", "profile", "icd10Code", "careContext"]);
+    if (!("assess" in referrals) || typeof referrals.assess !== "function") failure(503, "WORKSPACE_UNAVAILABLE");
+    return json({ referral: await referrals.assess(actor, id, input as unknown as RecordDoctorAssessmentInput) });
+  });
+}
+
+export function handleRegistrationSnapshot(req: Request, id: string, deps: WorkspaceApiDeps = {}): Promise<Response> {
+  return boundary(async () => {
+    const actor = await authorized(req, deps);
+    writer(actor);
+    method(req, "POST");
+    if (actor.role !== "doctor") failure(403, "FORBIDDEN");
+    const referrals = service(deps);
+    await referrals.detail(actor, id);
+    if (new URL(req.url).search) failure(400, "BAD_REQUEST");
+    const input = await body(req, ["expectedRevision", "idempotencyKey", "attestedAtRegistration", "features"]);
+    if (object(input.features)) onlyFields(input.features, REFERRAL_RISK_FEATURES);
+    if (!("recordRegistrationSnapshot" in referrals) || typeof referrals.recordRegistrationSnapshot !== "function") failure(503, "WORKSPACE_UNAVAILABLE");
+    return json({ referral: await referrals.recordRegistrationSnapshot(actor, id, input as unknown as RecordRegistrationSnapshotInput) });
+  });
+}
+
+export function handleReferralRisk(req: Request, id: string, deps: WorkspaceApiDeps = {}): Promise<Response> {
+  return boundary(async () => {
+    const actor = await authorized(req, deps);
+    writer(actor);
+    method(req, "GET");
+    const referral = await service(deps).detail(actor, id);
+    if (new URL(req.url).search) failure(400, "BAD_REQUEST");
+    const inputRevision = referral.events.find((event) => event.type === "registration_snapshot_recorded")?.revision ?? null;
+    if (!referral.registrationSnapshot) return json({ risk: { status: "unavailable", researchOnly: true,
+      reason: "REGISTRATION_SNAPSHOT_MISSING", missingInputs: [...REFERRAL_RISK_FEATURES], inputRevision } });
+    const missingInputs = REFERRAL_RISK_FEATURES.filter((feature) => feature !== "bed_profile" && referral.registrationSnapshot![feature] === null);
+    if (missingInputs.length) return json({ risk: { status: "unavailable", researchOnly: true,
+      reason: "INPUTS_INCOMPLETE", missingInputs, inputRevision } });
+    let artifact: ReferralRiskArtifact;
+    try { artifact = await (deps.riskArtifact ?? loadReferralRiskArtifact)(); }
+    catch { return json({ risk: { status: "unavailable", researchOnly: true,
+      reason: "ARTIFACT_UNAVAILABLE", missingInputs: [], inputRevision } }); }
+    const score = scoreReferralRisk(referral.registrationSnapshot, artifact);
+    const fallback = Object.values(score.inputCoverage).some((coverage) => coverage === "fallback_infrequent_or_unseen" || coverage === "unknown_all_zero");
+    return json({ risk: { status: "available", researchOnly: true, limitationsLabel: "experimental_research_only", modelVersion: artifact.modelId,
+      method: artifact.classifier.kind, refusalProbabilityAmongMatureOutcomes: score.refusalProbabilityAmongMatureOutcomes,
+      workingThreshold: score.workingThreshold, riskBand: score.riskBand, inputRevision,
+      inputCoverage: score.inputCoverage, warnings: fallback ? ["Часть значений не встречалась достаточно часто в обучающей выборке."] : [],
+      limitations: ["Исследовательская оценка среди зрелых исходов; не прогноз клинического результата.",
+        "Не влияет на решение врача, маршрут, срочность или комплектность.", "Лицензия исходного набора не проверена."] } });
   });
 }
 
@@ -243,6 +311,7 @@ export function handleWorkspaceLink(req: Request, deps: WorkspaceApiDeps = {}): 
   return boundary(async () => {
     const actor = await authorized(req, deps);
     writer(actor);
+    if (actor.role !== "doctor") failure(403, "FORBIDDEN");
     method(req, "POST");
     const delay = (deps.limiter ?? linkRateLimiter()).consume(linkClientKey(req.headers));
     if (delay) return json({ code: "RATE_LIMITED", error: "Слишком много запросов", retry_after_ms: delay }, 429, {

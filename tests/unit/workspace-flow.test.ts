@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { isOperationallyDelayed } from "../../app/workspace/operational-delay";
-import { FileReferralRepository, MemoryReferralRepository, ReferralService } from "../../lib/referrals/service";
+import { FileReferralRepository, MemoryReferralRepository, ReferralService, REFERRAL_DATABASE_SCHEMA_VERSION } from "../../lib/referrals/service";
 import type { ReferralActor, RequirementCatalogue } from "../../lib/referrals/types";
 import { MemorySessionStore } from "../../lib/store";
 import type { TriageResult } from "../../lib/types";
@@ -168,9 +168,12 @@ describe("D6a patient and referral journey", () => {
     const intake = await sessions.createSession(token);
     await sessions.appendMessage(intake.id, { role: "user", content: "Закрытый текст разговора" });
     await sessions.completeSession(intake.id, triage);
-    const referral = await service.create(doctor, {
+    let referral = await service.create(doctor, {
       patientLabel: "Связанный эпизод", profile: "Хирургический", sourceSessionId: intake.id, idempotencyKey: "linked",
     }, { sessionId: intake.id, doctorToken: token, result: triage });
+    referral = await service.assess(doctor, referral.id, { expectedRevision: referral.revision, expectedAssessmentRevision: 0,
+      idempotencyKey: "linked-assessment", reason: "Тестовый operative контекст",
+      assessment: { hypothesis: null, profile: referral.profile, icd10Code: referral.icd10Code ?? null, careContext: "operative" } });
     const deps: WorkspaceApiDeps = { actor: async () => doctor, referrals: service, sessions };
     const response = await handleReferral(request(`/api/referrals/${referral.id}`), referral.id, deps);
     const card = (await response.json()).referral;
@@ -181,7 +184,7 @@ describe("D6a patient and referral journey", () => {
       triageSnapshot: { anamnesis: { chief_complaint: "Тестовая жалоба" } },
       completeness: { catalogueVersion: "flow-test" },
       scheduledDate: null,
-      events: [{ type: "created", transition: { from: null, to: "interviewed" } }],
+      events: [{ type: "created", transition: { from: null, to: "interviewed" } }, { type: "doctor_assessment_changed", transition: null }],
     });
     expect(JSON.stringify(card)).not.toContain("Закрытый текст разговора");
     expect((await handleReferral(request(`/api/referrals/${referral.id}`), referral.id, { ...deps, actor: async () => other })).status).toBe(404);
@@ -205,7 +208,7 @@ describe("D6a patient and referral journey", () => {
 
       const raw = await readFile(filename, "utf8");
       const persisted = JSON.parse(raw) as { schemaVersion: number; referrals: { events: Record<string, unknown>[] }[] };
-      expect(persisted.schemaVersion).toBe(2);
+      expect(persisted.schemaVersion).toBe(REFERRAL_DATABASE_SCHEMA_VERSION);
       expect(raw).not.toContain('"transition"');
       expect(persisted.referrals[0].events.map((event) => Object.keys(event).sort())).toEqual([
         ["actorId", "actorName", "after", "before", "id", "occurredAt", "reason", "recordedAt", "revision", "source", "type"].sort(),

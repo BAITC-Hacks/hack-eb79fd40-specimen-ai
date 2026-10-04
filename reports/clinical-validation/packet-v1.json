@@ -12,9 +12,9 @@
     },
     "benchmark": {
       "path": "reports/redflags/redflags-benchmark-v1.json",
-      "sha256": "193e92e6fd94bc82c25994efc46ec9dfc6d50134500ad1c15c8eae6bb1c4844e",
+      "sha256": "06ab402a0e6d7775d5d015a6f36b52d95d51a11aadfa6783224cd1f888a509fc",
       "research_only": true,
-      "rules_candidate_version": "36c2bf1f899883d7274529d1c52729d4e38087fb25d4b9ae33fe102413d75409",
+      "rules_candidate_version": "8ec89a44d0b6de5a9f18223fa8cbdfc0442b81e5a5020b74c1d6effea7613669",
       "interpretation": "The hardened-rules score is in-sample regression coverage on synthetic labels, not independent clinical validation; post-benchmark adversarial cases are regression-tested separately."
     }
   },

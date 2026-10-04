@@ -2,7 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { FileReferralRepository, MemoryReferralRepository, ReferralService, validateReferralDatabase } from "../../lib/referrals/service";
+import { FileReferralRepository, MemoryReferralRepository, ReferralService, validateReferralDatabase, REFERRAL_DATABASE_SCHEMA_VERSION } from "../../lib/referrals/service";
 import { evaluateCompleteness, isCalendarDate, localDate, validateRequirementCatalogue } from "../../lib/referrals/requirements";
 import { canonicalProfile, REFERRAL_PROFILES } from "../../lib/referrals/profiles";
 import type { ExaminationRecord, ReferralActor, ReferralDatabase, RequirementCatalogue } from "../../lib/referrals/types";
@@ -150,8 +150,8 @@ describe("направления: принадлежность и подтвер
     const added = await service.examination(doctor, r.id, { expectedRevision: 1, idempotencyKey: "exam", record });
     expect(added.completeness.status).toBe("unknown");
     const memo = await service.memo(doctor, r.id);
-    expect(Object.keys(memo).sort()).toEqual(["catalogueAvailable", "destinationOrganization", "items", "patientLabel", "scheduledDate"]);
-    expect(memo).toMatchObject({ scheduledDate: null, catalogueAvailable: false, items: [{ label: record.label, status: "unknown", expiresOn: "2026-09-20" }] });
+    expect(Object.keys(memo).sort()).toEqual(["careContext", "catalogueAvailable", "destinationOrganization", "items", "patientLabel", "scheduledDate"].sort());
+    expect(memo).toMatchObject({ scheduledDate: null, careContext: "unknown", catalogueAvailable: false, items: [] });
   });
 });
 
@@ -208,7 +208,10 @@ describe("правки по смоуку 14.09", () => {
     const repository = new MemoryReferralRepository();
     const firstCatalogue = { ...catalogue, version: "v1" };
     const first = new ReferralService(repository, { now: () => now, catalogue: firstCatalogue });
-    const record = await first.create(doctor, createInput("version"));
+    let record = await first.create(doctor, createInput("version"));
+    record = await first.assess(doctor, record.id, { expectedRevision: record.revision, expectedAssessmentRevision: 0,
+      idempotencyKey: "version-assessment", reason: "Тестовый operative контекст",
+      assessment: { hypothesis: null, profile: record.profile, icd10Code: record.icd10Code ?? null, careContext: "operative" } });
     const changedCatalogue = { ...catalogue, version: "v2", profiles: [{ profile: "Хирургический", requirements: [{ ...catalogue.profiles[0].requirements[0], id: "r2" }] }] };
     const reopened = new ReferralService(repository, { now: () => now, catalogue: changedCatalogue });
     const detail = await reopened.detail(doctor, record.id);
@@ -220,7 +223,7 @@ describe("правки по смоуку 14.09", () => {
     const repository = new MemoryReferralRepository();
     const service = new ReferralService(repository, { now: () => now, catalogue });
     const record = await service.create(doctor, createInput("legacy-without-snapshot"));
-    await repository.transaction((state) => { delete state.referrals[0].requirementSnapshot; });
+    await repository.transaction((state) => { delete state.referrals[0].requirementSnapshot; state.referrals[0].requirementSnapshotId = null; });
     const detail = await service.detail(doctor, record.id);
     expect(detail.completeness).toMatchObject({
       status: "unknown",
@@ -313,7 +316,7 @@ describe("агрегаты и устойчивость", () => {
     expect(JSON.stringify(visible)).not.toContain("doctor-a");
     const other = await service.create(colleague, createInput("b"));
     await service.update(colleague, other.id, { expectedRevision: 1, idempotencyKey: "wait", patch: { queue: true } });
-    expect(await service.aggregates(analyst)).toMatchObject({ total: null, suppressed: true, groups: [{ flow: "preparing", count: 5 }] });
+    expect(await service.aggregates(analyst)).toEqual(visible);
     expect(await service.aggregates(doctor)).toMatchObject({ total: 5, scope: "own" });
   });
   it("не сбрасывает время этапа из-за изменения обследования", async () => {
@@ -385,10 +388,14 @@ describe("агрегаты и устойчивость", () => {
     state.referrals[0].queue = true;
     expect(() => validateReferralDatabase(state)).toThrow("Invalid referral snapshot");
   });
-  it("при чтении мигрирует исходный v1 snapshot в текущий v2 и отвергает будущую схему", () => {
-    expect(validateReferralDatabase({ schemaVersion: 1, referrals: [], links: [], commands: [] }))
-      .toEqual({ schemaVersion: 2, referrals: [], links: [], commands: [] });
-    expect(() => validateReferralDatabase({ schemaVersion: 3, referrals: [], links: [], commands: [] }))
+  it("при чтении мигрирует v1/v2 snapshot в текущую схему и отвергает будущую схему", () => {
+    for (const version of [1, 2]) {
+      expect(validateReferralDatabase({ schemaVersion: version, referrals: [], links: [], commands: [] }))
+        .toEqual({ schemaVersion: REFERRAL_DATABASE_SCHEMA_VERSION, referrals: [], links: [], commands: [], patientAccess: [], patientReports: [], misOutbox: [], misCommands: [] });
+    }
+    expect(() => validateReferralDatabase({ schemaVersion: REFERRAL_DATABASE_SCHEMA_VERSION + 1, referrals: [], links: [], commands: [] }))
+      .toThrow("Invalid referral snapshot");
+    expect(() => validateReferralDatabase({ schemaVersion: REFERRAL_DATABASE_SCHEMA_VERSION, referrals: [], links: [], commands: [] }))
       .toThrow("Invalid referral snapshot");
   });
   it("валидатор обнаруживает повреждение вложенного снимка, цепочки и команд", async () => {

@@ -109,4 +109,4 @@ export function monthDays(month: string): string[] {
 export function calendarRecords(records: readonly ReferralDetail[], date: string): ReferralDetail[] {
   return records.filter((record) => !record.cancelled && record.scheduledDate === date);
 }
-export const EVENT_LABELS = { created: "Направление создано", facts_changed: "Факты подтверждены", examination_recorded: "Обследование записано" };
+export const EVENT_LABELS = { created: "Направление создано", facts_changed: "Факты подтверждены", examination_recorded: "Обследование записано", registration_snapshot_recorded: "Снимок при регистрации подтверждён" };

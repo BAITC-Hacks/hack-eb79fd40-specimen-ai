@@ -10,6 +10,8 @@ import { useWorkspaceContext } from "./shell";
 import { EmptyState, Icon, KpiCard, PageHeading, StatusBadge } from "./ui";
 import s from "./dashboard.module.css";
 
+const OVERVIEW_EVENT_LABELS = { ...EVENT_LABELS, doctor_assessment_changed: "Заключение врача" } as const;
+
 function StageBars({ groups }: { groups: { flow: ReferralFlow; count: number }[] }) {
   const maximum = Math.max(1, ...groups.map((group) => group.count));
   return <div>{groups.map((group) => <div className={s.barRow} key={group.flow}><span>{FLOW_LABELS[group.flow]}</span><div className={s.barTrack}><span className={s.barFill} style={{ width: (group.count / maximum * 100) + "%" }} /></div><strong>{group.count}</strong></div>)}</div>;
@@ -67,7 +69,7 @@ export default function Overview() {
         </section>
         </div><div className={s.stack}>
         <section className={s.card}><div className={s.head}><h2>Назначенные даты</h2><Link className={s.sectionLink} href="/workspace/calendar">Календарь →</Link></div>{upcoming.length ? <ul className={s.rows}>{upcoming.map((r) => <li key={r.id}><div className={s.row}><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(r.id)}>{r.patientLabel}</Link><span className={s.tag}>{calendarDate(r.scheduledDate)}</span></div><p className={s.muted}>{profileDisplayName(r.profile)} · {r.destinationOrganization || "Организация не указана"}</p></li>)}</ul> : <EmptyState title="Предстоящих дат нет" description="Здесь появятся даты, которые подтвердит врач." />}</section>
-        <section className={s.card}><div className={s.head}><h2>Последние подтверждения</h2><Link className={s.sectionLink} href="/workspace/activity">Вся история →</Link></div>{activity.length ? <ul className={s.rows}>{activity.map(({ referralId, patientLabel, event }) => <li key={event.id}><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(referralId)}>{patientLabel}</Link><p className={s.muted}>{EVENT_LABELS[event.type]} · {event.actorName}</p><span className={s.small}>Записано {timestamp(event.recordedAt)}</span></li>)}</ul> : <EmptyState title="История ещё не началась" description="Создание и каждое подтверждение сохраняются вместе с автором." />}</section>
+        <section className={s.card}><div className={s.head}><h2>Последние подтверждения</h2><Link className={s.sectionLink} href="/workspace/activity">Вся история →</Link></div>{activity.length ? <ul className={s.rows}>{activity.map(({ referralId, patientLabel, event }) => <li key={event.id}><Link className={s.record} href={"/workspace/referrals/" + encodeURIComponent(referralId)}>{patientLabel}</Link><p className={s.muted}>{OVERVIEW_EVENT_LABELS[event.type]} · {event.actorName}</p><span className={s.small}>Записано {timestamp(event.recordedAt)}</span></li>)}</ul> : <EmptyState title="История ещё не началась" description="Создание и каждое подтверждение сохраняются вместе с автором." />}</section>
         </div>
       </div>
       <div className={s.notice}>Неизвестные данные не считаются подтверждёнными. Дата сама по себе не означает явку. Данные Портала госпитализации не подключены.</div>

@@ -2,13 +2,17 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-const readme = readFileSync("README.md", "utf8");
+const readme = readFileSync("docs/technical.md", "utf8");
+const productReadme = readFileSync("README.md", "utf8");
 const handoff = readFileSync("HANDOFF.md", "utf8");
 const deploy = readFileSync("deploy/DEPLOY.md", "utf8");
 const tls = readFileSync("deploy/TLS.md", "utf8");
 const envExample = readFileSync(".env.example", "utf8");
 
 describe("release documentation status", () => {
+  it("links product description to canonical technical evidence", () => {
+    expect(productReadme).toContain("[docs/technical.md](docs/technical.md)");
+  });
   it("records accepted live evidence without overstating delivery or production", () => {
     expect(readme).toContain("два\n  запроса Anthropic");
     expect(readme).toContain("Telegram Bot API принял `sendMessage` и `sendDocument` с HTTP 200");

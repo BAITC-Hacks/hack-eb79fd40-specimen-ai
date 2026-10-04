@@ -9,6 +9,8 @@ const FRONTEND_FILES = [
   "app/c/[token]/patient-components.tsx",
   "app/ds/page.tsx",
   "lib/http.ts",
+  "app/p/Preparation.tsx",
+  "app/p/[token]/page.tsx",
 ];
 
 describe("frontend scope guard", () => {
@@ -18,14 +20,16 @@ describe("frontend scope guard", () => {
     expect(page).not.toMatch(/doctorCode|DOCTOR_ACCESS_CODE|codePlaceholder/u);
   });
 
-  it("uses exactly the five supported network endpoints including protected resume", () => {
+  it("uses the supported chat and scoped patient preparation endpoints", () => {
     const source = FRONTEND_FILES.map((file) => readFileSync(`${ROOT}/${file}`, "utf8")).join("\n");
     const endpoints = [...source.matchAll(/["`](\/api\/[a-z/]+)["`]/g)].map((match) => match[1]);
     expect(new Set(endpoints)).toEqual(
-      new Set(["/api/link", "/api/chat/start", "/api/chat", "/api/chat/finalize", "/api/chat/resume"]),
+      new Set(["/api/link", "/api/chat/start", "/api/chat", "/api/chat/finalize", "/api/chat/resume", "/api/chat/preparation", "/api/patient/discover", "/api/patient/access"]),
     );
     expect(source).not.toMatch(/\/api\/(?:booking|reminder|after|faq|doctor)/);
     expect(source).not.toContain("input_hint");
+    expect(source).toContain("/api/patient/${encodeURIComponent(accessId)}/package");
+    expect(source).toContain('referrerPolicy: "no-referrer"');
   });
 
   it("has no external font or CDN dependency", () => {
