@@ -172,7 +172,7 @@
       "id": "rules",
       "kind": "deterministic_rules",
       "model": "lib/redflags.ts",
-      "version": "8ec89a44d0b6de5a9f18223fa8cbdfc0442b81e5a5020b74c1d6effea7613669",
+      "version": "878d928a6a3a6cfe8d3267be837251a1116780ae1885c187fb0f2a9a904b6378",
       "availability": "measured",
       "research_only": true,
       "item_count": 160,
@@ -291,10 +291,10 @@
       "latency_ms": {
         "measurement_unit": "per_item_wall_clock",
         "request_count": 160,
-        "total": 141.53512699999985,
-        "mean": 0.884594543749999,
-        "p50": 0.026218000000028496,
-        "p95": 0.9948289999999815
+        "total": 163.97600599999996,
+        "mean": 1.0248500374999998,
+        "p50": 0.06200300000000425,
+        "p95": 1.1657849999999712
       },
       "cost": {
         "currency": "USD",
@@ -303,12 +303,12 @@
       },
       "predictions_artifact": "eval/redflags/rules-v1.json",
       "development_stage": "after corpus-guided hardening",
-      "measured_at": "2026-10-04T14:21:58.537509+00:00",
+      "measured_at": "2026-10-05T17:48:20.030030+00:00",
       "provenance": {
-        "source_sha256": "8ec89a44d0b6de5a9f18223fa8cbdfc0442b81e5a5020b74c1d6effea7613669",
+        "source_sha256": "878d928a6a3a6cfe8d3267be837251a1116780ae1885c187fb0f2a9a904b6378",
         "runner_sha256": "70cc9795d2da7add574480144d06260a7c9b75dd5944303ef1f201ef0672178f",
         "corpus_sha256": "bafae774a648ccde988b4804a02d0d0adce983d7d979e6fcefcf230902ac5625",
-        "predictions_sha256": "c1ef260744849fd672bde6ff8eae54fe9f992e60116d4fff54152ee0639f19bb",
+        "predictions_sha256": "faca6df258ba1703757420ba7091ad1c54eee548f30ac2ca584776c75832c985",
         "execution": "offline deterministic TypeScript only; historical candidates unchanged"
       }
     },
@@ -756,5 +756,5 @@
     "independent_adversarial_review_test": "tests/unit/redflags.production-20260926.test.ts",
     "misses_artifact": "reports/redflags/rules-misses-before-hardening-v1.json"
   },
-  "rules_refreshed_at": "2026-10-04T14:21:58.537509+00:00"
+  "rules_refreshed_at": "2026-10-05T17:48:20.030030+00:00"
 }

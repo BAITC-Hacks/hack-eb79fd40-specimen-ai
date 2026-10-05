@@ -28,8 +28,11 @@ export const RULES: readonly Rule[] = [
     emergency: true,
     patterns: [
       { id: "stroke.ru_face", regex: /перекос\p{L}*\s+лиц\p{L}*/iu },
+      { id: "stroke.ru_face_reverse", regex: /(?<!\p{L})лиц\p{L}*\s+(?:внезапно\s+)?перекос\p{L}*/iu },
       { id: "stroke.ru_arm_weakness", regex: /слабост\p{L}*\s+в\s+(?:\p{L}+\s+)?рук\p{L}*/iu },
+      { id: "stroke.ru_arm_numb", regex: /(?<!\p{L})(?:онемел\p{L}*\s+(?:(?:правая|левая)\s+)?рук\p{L}*|рук\p{L}*\s+онемел\p{L}*)/iu },
       { id: "stroke.ru_speech", regex: /(?:наруш\p{L}*\s+реч\p{L}*|реч\p{L}*\s+наруш\p{L}*)/iu },
+      { id: "stroke.ru_slurred_speech", regex: /(?<!\p{L})(?:реч\p{L}*\s+(?:стала\s+)?(?:невнятн\p{L}*|неразборчив\p{L}*)|(?:невнятн\p{L}*|неразборчив\p{L}*)\s+реч\p{L}*)/iu },
       { id: "stroke.ru_numbness", regex: /онемел\p{L}*\s+половин\p{L}*/iu },
       { id: "stroke.kk_face", regex: /бет\p{L}*\s+қиса\p{L}*/iu },
       { id: "stroke.ru_mouth_arm", regex: /(?:угол\s+рта\s+опуст\p{L}*|рук\p{L}*\s+ослаб\p{L}*)/iu },
@@ -153,6 +156,13 @@ const NEGATION_BEFORE =
   /(?:^|\s)(?:(?:никогда\s+)?не(?:\s+было)?|никогда\s+не\s+\p{L}+|нет|без|отрицаю|отрицает|жоқ|емес)\s+$/iu;
 const NEGATION_AFTER =
   /^\s*(?:[\p{L}\p{N}_-]+\s+){0,3}(?:нет|не\s+было|не\s+бывает|не\s+беспокоит|не\s+болит|не\s+случа\p{L}*|отсутствует|не\s+замеча(?:л|ла)|не\s+чувствую|не\s+наблюдается|жоқ\p{L}*|болған\s+жоқ\p{L}*|болмады|емес\p{L}*|келмейді)(?!\p{L})/iu;
+// Only a direct correction at the end of this clause. A different noun after
+// the dash ("— боли нет", "— нет боли") does not deny the preceding symptom.
+const DIRECT_DASH_DENIAL_AFTER =
+  /^\s*[—–-]\s*(?:нет|не\s+было|не\s+беспокоит|отсутствует|не\s+наблюдается)\s*$/iu;
+const ARM_WEAKNESS = /(?<!\p{L})слабост\p{L}*\s+в\s+(?:\p{L}+\s+)?рук\p{L}*\s*$/iu;
+const LEG_WEAKNESS_DENIAL =
+  /^\s*(?:в\s+)?(?:(?:прав\p{L}*|лев\p{L}*)\s+)?ног(?:е|ах)\s+(?:нет|не\s+было|не\s+наблюдается|отсутству(?:ет|ют)|не\s+чувствую|не\s+замеча(?:л|ла))(?!\p{L})/iu;
 const SHORT_AFFIRMATION =
   /^\s*(?:(?:да|ага|угу|верно|точно|правда|конечно|иә|ия)(?:\s*[,—-]?\s*(?:(?:очень\s+)?сильно|есть|бывает|қатты|бар))?|есть|бывает|бар)\s*[,.!]?\s*$/iu;
 
@@ -256,6 +266,16 @@ function clauses(text: string): { text: string; boundaryBefore: string }[] {
   let boundary: RegExpExecArray | null;
 
   while ((boundary = CLAUSE_BOUNDARY.exec(text))) {
+    // Shared weakness can name both limbs before its denial: "слабости в
+    // руках и ногах нет". Keep that small anatomical list together; an "и"
+    // between different symptoms still separates their negation scopes.
+    if (
+      /^\s+и\s+$/u.test(boundary[0]) &&
+      ARM_WEAKNESS.test(text.slice(last, boundary.index)) &&
+      LEG_WEAKNESS_DENIAL.test(
+        text.slice(boundary.index + boundary[0].length),
+      )
+    ) continue;
     result.push({ text: text.slice(last, boundary.index), boundaryBefore });
     boundaryBefore = boundary[0];
     last = boundary.index + boundary[0].length;
@@ -265,9 +285,23 @@ function clauses(text: string): { text: string; boundaryBefore: string }[] {
 }
 
 function isNegated(clause: string, start: number, end: number): boolean {
+  const after = clause.slice(end);
+  const conjunction = /^\s+и\s+/u.exec(after);
+  // This suffix belongs to the same weakness report even with "и в левой
+  // ноге нет" or a plural absence predicate. Do not enlarge the general
+  // word window or cross a new leg-pain predicate.
+  const coordinatedWeaknessDenial = conjunction !== null &&
+    ARM_WEAKNESS.test(clause.slice(start, end)) &&
+    LEG_WEAKNESS_DENIAL.test(after.slice(conjunction[0].length));
+  // The generic token window admits hyphens in words. Never let a standalone
+  // ASCII dash use that window to cross into an independent predicate.
+  const suffixDenial = /^\s*[—–-]/u.test(after)
+    ? DIRECT_DASH_DENIAL_AFTER.test(after)
+    : NEGATION_AFTER.test(after);
   return (
     NEGATION_BEFORE.test(clause.slice(0, start)) ||
-    NEGATION_AFTER.test(clause.slice(end))
+    suffixDenial ||
+    coordinatedWeaknessDenial
   );
 }
 
@@ -297,14 +331,21 @@ function matchRule(
       .slice(0, 2)
       .join(" ");
     for (const { id, regex } of rule.patterns) {
-      const match = regex.exec(clause);
-      if (
-        match?.index !== undefined &&
-        !isNegated(clause, match.index, match.index + match[0].length) &&
-        (includeResolvedHistory || CURRENT_RECURRENCE.test(text) || !isNonCurrentMatch(clause, followUp)) &&
-        !isNonEmergencyMeaning(clause, previousClause, previousContext, boundaryBefore, rule, id)
-      ) {
-        return match[0];
+      // A denied first mention must not hide a later positive report using
+      // the same pattern. A fresh matcher leaves the exported rules stateless.
+      const matcher = new RegExp(regex.source, `${regex.flags}g`);
+      for (const match of clause.matchAll(matcher)) {
+        const deniedScreeningQuestion = boundaryBefore === ":" &&
+          SCREENING_DENIAL_CONTEXT.test(`${previousClause} ${clause} ${followUp}`) &&
+          /^\s*(?:я\s+)?(?:ответил\p{L}*|сказал\p{L}*)\s+(?:нет|жоқ\p{L}*)(?!\p{L})/iu.test(followUp);
+        if (
+          !isNegated(clause, match.index, match.index + match[0].length) &&
+          !deniedScreeningQuestion &&
+          (includeResolvedHistory || CURRENT_RECURRENCE.test(text) || !isNonCurrentMatch(clause, followUp)) &&
+          !isNonEmergencyMeaning(clause, previousClause, previousContext, boundaryBefore, rule, id)
+        ) {
+          return match[0];
+        }
       }
     }
   }
